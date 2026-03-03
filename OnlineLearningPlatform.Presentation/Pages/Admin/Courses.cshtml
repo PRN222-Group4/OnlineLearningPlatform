@@ -1,0 +1,97 @@
+@page
+@model OnlineLearningPlatform.Presentation.Pages.Admin.CoursesModel
+@{
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Admin - Courses";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="m-0">Courses Management</h3>
+        <div class="d-flex gap-2 align-items-center">
+            <form method="get" class="d-flex gap-2 align-items-center m-0">
+                <input type="hidden" name="status" value="-1" />
+                <button class="btn btn-outline-secondary btn-sm" type="submit">All</button>
+            </form>
+            <form method="get" class="d-flex gap-2 align-items-center m-0">
+                <input type="hidden" name="status" value="0" />
+                <button class="btn btn-outline-warning btn-sm" type="submit">Draft</button>
+            </form>
+            <form method="get" class="d-flex gap-2 align-items-center m-0">
+                <input type="hidden" name="status" value="1" />
+                <button class="btn btn-outline-info btn-sm" type="submit">Pending</button>
+            </form>
+            <form method="get" class="d-flex gap-2 align-items-center m-0">
+                <input type="hidden" name="status" value="2" />
+                <button class="btn btn-outline-success btn-sm" type="submit">Published</button>
+            </form>
+            <a class="btn btn-primary" asp-page="/Admin/CoursesCreate">Create Course</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:96px;"></th>
+                    <th>Title &amp; Description</th>
+                    <th style="width:120px;">Price</th>
+                    <th style="width:140px;">Status</th>
+                    <th style="width:90px;">Show</th>
+                    <th style="width:180px;">Approve / Reject</th>
+                    <th style="width:90px;">Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Courses)
+                {
+                    <tr>
+                        <td>
+                            <img src="@(string.IsNullOrEmpty(c.Image) ? "/images/default-course.png" : c.Image)" alt="thumb" class="img-fluid rounded" style="width:96px;height:64px;object-fit:cover;" />
+                        </td>
+                        <td>
+                            <div class="fw-semibold">@c.Title</div>
+                            <div class="text-muted small">@c.Description</div>
+                        </td>
+                        <td class="fw-semibold">@c.Price.ToString("N0") đ</td>
+                        <td>
+                            @if (c.Status == 2)
+                            {
+                                <span class="badge bg-success">Published</span>
+                            }
+                            else if (c.Status == 1)
+                            {
+                                <span class="badge bg-info text-dark">Pending</span>
+                            }
+                            else if (c.Status == 0)
+                            {
+                                <span class="badge bg-secondary">Draft</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Rejected</span>
+                            }
+                        </td>
+                        <td>
+                            <partial name="_CourseActionShow" model="c" />
+                        </td>
+
+                        <td>
+                            @* For Pending, Draft or Rejected allow Approve/Reject flows *@
+                            @if (c.Status == 1 || c.Status == 0 || c.Status == 3)
+                            {
+                                <partial name="_CourseActionApproveReject" model="c" />
+                            }
+                        </td>
+
+                        <td>
+                            <partial name="_CourseActionDelete" model="c" />
+                        </td>
+                    </tr>
+
+                    
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

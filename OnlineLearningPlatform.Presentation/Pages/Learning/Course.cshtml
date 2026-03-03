@@ -1,0 +1,328 @@
+@page "{courseId:guid}"
+@model OnlineLearningPlatform.Presentation.Pages.Learning.CourseModel
+@{
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = Model.CourseDetail?.Title ?? "Learning";
+}
+
+<style>
+    .course-sidebar {
+        background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+        border-right: 1px solid #dee2e6;
+        width: 360px;
+        overflow-y: auto;
+        transition: all 0.3s ease;
+    }
+    .course-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .course-sidebar::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 3px;
+    }
+    .course-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+    }
+    .progress-ring {
+        width: 60px;
+        height: 60px;
+    }
+    .lesson-item {
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .lesson-item:hover {
+        background-color: #f1f5f9;
+        border-left-color: #667eea;
+    }
+    .lesson-item.active {
+        background-color: #e0e7ff;
+        border-left-color: #667eea;
+        font-weight: 500;
+    }
+    .lesson-item.completed {
+        background-color: #ecfdf5;
+    }
+    .video-container {
+        background: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .reading-card {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .module-header {
+        background: #f8fafc;
+        border-left: 4px solid #667eea;
+    }
+    .content-area {
+        background: #f9fafb;
+    }
+    .nav-button {
+        transition: all 0.3s ease;
+    }
+    .nav-button:hover {
+        transform: translateX(5px);
+    }
+    .nav-button.prev:hover {
+        transform: translateX(-5px);
+    }
+</style>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger m-4">@Model.ErrorMessage</div>
+}
+
+@if (Model.CourseDetail != null)
+{
+    <div class="d-flex" style="height: calc(100vh - 56px);">
+        <!-- Sidebar: Modules & Lessons -->
+        <div class="course-sidebar">
+            <div class="course-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1 fw-bold">@Model.CourseDetail.Title</h5>
+                        <small class="opacity-75">Your Learning Progress</small>
+                    </div>
+                    <div class="text-center">
+                        <div class="progress-ring position-relative d-inline-flex align-items-center justify-content-center">
+                            <svg class="position-absolute" width="60" height="60">
+                                <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="4"></circle>
+                                <circle cx="30" cy="30" r="26" fill="none" stroke="white" stroke-width="4" 
+                                        stroke-dasharray="@(163.36)" 
+                                        stroke-dashoffset="@(163.36 * (1 - Model.CourseDetail.ProgressPercent / 100.0))" 
+                                        transform="rotate(-90 30 30)" 
+                                        style="transition: stroke-dashoffset 0.5s ease;"></circle>
+                            </svg>
+                            <span class="fw-bold" style="font-size: 0.9rem;">@Model.CourseDetail.ProgressPercent%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Modules != null && Model.Modules.Any())
+            {
+                <div class="accordion accordion-flush" id="modulesAccordion">
+                    @foreach (var module in Model.Modules)
+                    {
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button module-header @(Model.Modules.First() == module ? "" : "collapsed")" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#module-@module.ModuleId">
+                                    <div class="w-100">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <div class="fw-bold">@module.Title</div>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-book me-1"></i>@module.LessonCount lessons
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="module-@module.ModuleId" 
+                                 class="accordion-collapse collapse @(Model.Modules.First() == module ? "show" : "")" 
+                                 data-bs-parent="#modulesAccordion">
+                                <div class="accordion-body p-0">
+                                    @foreach (var lesson in module.Lessons)
+                                    {
+                                        <a href="?courseId=@Model.CourseId&lessonId=@lesson.LessonId" 
+                                           class="lesson-item d-block px-4 py-3 text-decoration-none @(Model.CurrentLessonId == lesson.LessonId ? "active" : "") @(lesson.IsCompleted ? "completed" : "")">
+                                            <div class="d-flex align-items-start">
+                                                <div class="me-3 mt-1">
+                                                    @if (lesson.IsCompleted)
+                                                    {
+                                                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                                    }
+                                                    else if (Model.CurrentLessonId == lesson.LessonId)
+                                                    {
+                                                        <i class="bi bi-play-circle-fill text-primary fs-5"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-circle text-muted fs-5"></i>
+                                                    }
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-semibold text-dark">@lesson.Title</div>
+                                                    @if (!string.IsNullOrEmpty(lesson.Description))
+                                                    {
+                                                        <small class="text-muted d-block mt-1">@lesson.Description</small>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-grow-1 d-flex flex-column content-area" style="overflow: hidden;">
+            @if (Model.CurrentLesson != null)
+            {
+                <!-- Lesson Header -->
+                <div class="border-bottom p-4 bg-white shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1 me-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-primary me-2">Lesson</span>
+                                @if (Model.CurrentLesson.IsCompleted)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Completed</span>
+                                }
+                            </div>
+                            <h3 class="mb-2 fw-bold">@Model.CurrentLesson.Title</h3>
+                            @if (!string.IsNullOrEmpty(Model.CurrentLesson.Description))
+                            {
+                                <p class="text-muted mb-0">@Model.CurrentLesson.Description</p>
+                            }
+                        </div>
+                        <div>
+                            @if (!Model.CurrentLesson.IsCompleted)
+                            {
+                                <form method="post" asp-page-handler="MarkComplete" class="d-inline">
+                                    <input type="hidden" name="lessonId" value="@Model.CurrentLesson.LessonId" />
+                                    <button class="btn btn-success" type="submit">
+                                        <i class="bi bi-check-circle"></i> Mark Complete
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-success" disabled>
+                                    <i class="bi bi-check-circle-fill"></i> Completed
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lesson Content -->
+                <div class="flex-grow-1 p-4" style="overflow-y: auto; max-width: 1200px; margin: 0 auto; width: 100%;">
+                    @if (Model.CurrentLesson.Items != null && Model.CurrentLesson.Items.Any())
+                    {
+                        @foreach (var item in Model.CurrentLesson.Items)
+                        {
+                            <div class="mb-5">
+                                @if (item.Type == 0)
+                                {
+                                    <!-- Video -->
+                                    <div class="mb-4">
+                                        <h4 class="mb-3 fw-bold">
+                                            <i class="bi bi-play-circle-fill text-primary me-2"></i>@item.Title
+                                        </h4>
+                                        @if (!string.IsNullOrEmpty(item.Description))
+                                        {
+                                            <p class="text-muted mb-3">@item.Description</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(item.VideoUrl))
+                                        {
+                                            <div class="video-container">
+                                                <div class="ratio ratio-16x9">
+                                                    <video controls class="w-100" controlsList="nodownload">
+                                                        <source src="@item.VideoUrl" type="video/mp4">
+                                                        Your browser does not support the video tag.
+                                                    </video>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else if (item.Type == 1)
+                                {
+                                    <!-- Reading -->
+                                    <div class="mb-4">
+                                        <h4 class="mb-3 fw-bold">
+                                            <i class="bi bi-book-fill text-info me-2"></i>@item.Title
+                                        </h4>
+                                        @if (!string.IsNullOrEmpty(item.Description))
+                                        {
+                                            <p class="text-muted mb-3">@item.Description</p>
+                                        }
+                                        <div class="reading-card p-4">
+                                            <div class="content">
+                                                @Html.Raw(item.Content ?? "<p class='text-muted'>No content available</p>")
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <p class="text-muted mt-3">No content available for this lesson yet.</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Navigation Footer -->
+                <div class="border-top p-4 bg-white shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        @if (Model.PreviousLessonId.HasValue)
+                        {
+                            <a href="?courseId=@Model.CourseId&lessonId=@Model.PreviousLessonId" 
+                               class="btn btn-outline-primary btn-lg nav-button prev">
+                                <i class="bi bi-arrow-left me-2"></i>Previous Lesson
+                            </a>
+                        }
+                        else
+                        {
+                            <div></div>
+                        }
+
+                        @if (Model.NextLessonId.HasValue)
+                        {
+                            <a href="?courseId=@Model.CourseId&lessonId=@Model.NextLessonId" 
+                               class="btn btn-primary btn-lg nav-button">
+                                Next Lesson<i class="bi bi-arrow-right ms-2"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="text-muted">
+                                <i class="bi bi-trophy-fill text-warning me-2"></i>Course Complete!
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="text-center">
+                        <i class="bi bi-arrow-left display-1 text-muted"></i>
+                        <p class="text-muted mt-3">Select a lesson from the sidebar to begin</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-5">
+        <div class="alert alert-warning">Course not found or you don't have access to this course.</div>
+    </div>
+}
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+}

@@ -1,0 +1,29 @@
+@page
+@model OnlineLearningPlatform.Presentation.Pages.Admin.CoursesCreateModel
+@{
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Admin - Create Course";
+}
+
+<div class="container-fluid">
+    <h3>Create Course</h3>
+    <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input class="form-control" asp-for="Request.Title" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" asp-for="Request.Description"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Price</label>
+            <input class="form-control" asp-for="Request.Price" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Image</label>
+            <input type="file" class="form-control" asp-for="Request.ImageFile" />
+        </div>
+        <button class="btn btn-primary" type="submit">Create</button>
+    </form>
+</div>

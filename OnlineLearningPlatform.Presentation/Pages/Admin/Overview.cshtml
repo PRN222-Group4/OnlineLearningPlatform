@@ -1,0 +1,116 @@
+@page
+@model OnlineLearningPlatform.Presentation.Pages.Admin.OverviewModel
+@{
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Admin Overview";
+}
+
+<div class="container-fluid">
+    <h3 class="mb-4">Admin Overview</h3>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="card-title">Total Users</div>
+                    <h2>@Model.TotalUsers</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="card-title">Total Courses</div>
+                    <h2>@Model.TotalCourses</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="card-title">Enrollments</div>
+                    <h2>@Model.TotalEnrollments</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-dark">
+                <div class="card-body">
+                    <div class="card-title">Total Revenue</div>
+                    <h2>@Model.TotalRevenue.ToString("N0") đ</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Top course by enrolls</h5>
+                    @if (!string.IsNullOrEmpty(Model.TopCourseTitle))
+                    {
+                        <p class="mb-1"><strong>@Model.TopCourseTitle</strong></p>
+                        <small class="text-muted">@Model.TopCourseEnrolls enrollments</small>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No data</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Top instructor by students</h5>
+                    @if (!string.IsNullOrEmpty(Model.TopInstructorName))
+                    {
+                        <p class="mb-1"><strong>@Model.TopInstructorName</strong></p>
+                        <small class="text-muted">@Model.TopInstructorStudents students</small>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No data</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Recent Payments</h5>
+            @if (Model.RecentPayments != null && Model.RecentPayments.Any())
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>PaidAt</th>
+                            <th>Amount</th>
+                            <th>User</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.RecentPayments)
+                        {
+                            <tr>
+                                <td>@(p.PaidAt?.ToLocalTime().ToString("g"))</td>
+                                <td>@p.Amount.ToString("N0") đ</td>
+                                <td>@p.UserEmail</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No payments yet.</p>
+            }
+        </div>
+    </div>
+</div>

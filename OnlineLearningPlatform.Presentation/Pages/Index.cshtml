@@ -1,0 +1,32 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<h2>Khóa học đang mở</h2>
+
+@if (!Model.Courses.Any())
+{
+    <p>Chưa có khóa học nào</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var course in Model.Courses)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@course.Title</h5>
+                        <p class="card-text">@course.Description</p>
+                        <p class="fw-bold mt-auto">
+                            Giá: @course.Price.ToString("N0") đ
+                        </p>
+                        <a class="btn btn-primary mt-2" asp-page="/Courses/Detail" asp-route-id="@course.CourseId">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

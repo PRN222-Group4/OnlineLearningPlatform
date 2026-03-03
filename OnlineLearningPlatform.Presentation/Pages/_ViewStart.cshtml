@@ -1,0 +1,11 @@
+﻿@{
+    // Choose admin layout when user is authenticated and in Admin role
+    if (Context?.User?.Identity?.IsAuthenticated == true && Context.User.IsInRole("Admin"))
+    {
+        Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
+}

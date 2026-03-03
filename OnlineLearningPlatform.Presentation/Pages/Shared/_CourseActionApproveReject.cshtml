@@ -1,0 +1,38 @@
+@model OnlineLearningPlatform.BusinessObject.Responses.Course.CourseResponse
+
+@{ var id = Model.CourseId; }
+<form method="post" asp-page-handler="Approve" class="m-0 d-inline">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="CourseId" value="@id" />
+    <input type="hidden" name="Status" value="true" />
+    <button class="btn btn-sm btn-success">Approve</button>
+</form>
+
+<button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal-@id">Reject</button>
+
+@* Modal *@
+<div class="modal fade" id="rejectModal-@id" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Approve">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Reject course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="CourseId" value="@id" />
+                    <input type="hidden" name="Status" value="false" />
+                    <div class="mb-3">
+                        <label class="form-label">Reject reason</label>
+                        <textarea class="form-control" name="RejectReason" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-danger">Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

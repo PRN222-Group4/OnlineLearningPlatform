@@ -1,0 +1,23 @@
+@page
+@model OnlineLearningPlatform.Presentation.Pages.Account.ProfileModel
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="container">
+    <h2>Profile</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <img src="@Model.Avatar" class="img-thumbnail" />
+        </div>
+        <div class="col-md-8">
+            <h4>@Model.Name</h4>
+            <p class="text-muted">@Model.Email</p>
+
+            @if (User.IsInRole("Instructor"))
+            {
+                <a class="btn btn-primary" asp-page="/Admin/CoursesCreate">Create Course</a>
+            }
+        </div>
+    </div>
+</div>

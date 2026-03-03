@@ -1,0 +1,7 @@
+@model OnlineLearningPlatform.BusinessObject.Responses.Course.CourseResponse
+
+<form method="post" asp-page-handler="Delete" class="m-0">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.CourseId" />
+    <button class="btn btn-sm btn-danger" onclick="return confirm('Delete course?');">Delete</button>
+</form>

@@ -1,0 +1,57 @@
+﻿@page
+@model OnlineLearningPlatform.Presentation.Pages.Admin.DashboardModel
+@{
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid">
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    Revenue by Month
+                </div>
+                <div class="card-body">
+                    <div id="revenueChart" style="height:400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- ECharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+    <script>
+        const months = @Html.Raw(Json.Serialize(Model.Months));
+        const revenue = @Html.Raw(Json.Serialize(Model.RevenueData));
+
+        const chartDom = document.getElementById('revenueChart');
+        const myChart = echarts.init(chartDom);
+
+        const option = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: months
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: revenue,
+                type: 'line',
+                smooth: true,
+                areaStyle: {}
+            }]
+        };
+
+        myChart.setOption(option);
+    </script>
+}

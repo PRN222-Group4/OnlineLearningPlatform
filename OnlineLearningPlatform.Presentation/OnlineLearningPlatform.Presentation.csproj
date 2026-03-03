@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnlineLearningPlatform.BusinessObject\OnlineLearningPlatform.BusinessObject.csproj" />
+    <ProjectReference Include="..\OnlineLearningPlatform.DataAccess\OnlineLearningPlatform.DataAccess.csproj" />
+  </ItemGroup>
+	
+<ItemGroup>
+  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+  <PackageReference Include="payOS" />
+  <PackageReference Include="Quartz" />
+  <PackageReference Include="Quartz.Extensions.Hosting" />
+  <PackageReference Include="Swashbuckle.AspNetCore" />
+</ItemGroup>
+	
+<ItemGroup>
+  <Folder Include="Pages\Student\" />
+</ItemGroup>
+	
+<ItemGroup>
+  <None Include="Pages\Account\Logout.cshtml" />
+</ItemGroup>
+
+</Project>

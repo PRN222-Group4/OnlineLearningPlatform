@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="OnlineLearningPlatform.BusinessObject/OnlineLearningPlatform.BusinessObject.csproj" />
+  <Project Path="OnlineLearningPlatform.DataAccess/OnlineLearningPlatform.DataAccess.csproj" />
+  <Project Path="OnlineLearningPlatform.Presentation/OnlineLearningPlatform.Presentation.csproj" />
+  <Project Path="OnlineLearningPlatform.Tests/OnlineLearningPlatform.Tests.csproj" />
+</Solution>
