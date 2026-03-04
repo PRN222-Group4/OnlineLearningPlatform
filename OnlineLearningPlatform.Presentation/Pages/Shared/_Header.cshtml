@@ -1,95 +1,197 @@
 ﻿@using System.Security.Claims
 
-<header class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
-    <div class="container-fluid d-flex align-items-center">
-        <a class="navbar-brand" href="/">Edu Platform</a>
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-50 font-sans"
+     x-data="{ mobileOpen: false }">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 gap-4">
 
-        <nav class="d-flex align-items-center gap-2 mx-auto flex-wrap" aria-label="Main menu">
-            <a class="btn btn-sm btn-outline-light" asp-page="/Courses/Index" asp-route-category="english">📘 English Courses</a>
-            <a class="btn btn-sm btn-outline-light" asp-page="/Learning/Vocabulary">🧠 Vocabulary</a>
-            <a class="btn btn-sm btn-outline-light" asp-page="/Learning/Grammar">✏️ Grammar</a>
-            <a class="btn btn-sm btn-outline-light" asp-page="/Learning/Speaking">🗣️ Speaking</a>
-            <a class="btn btn-sm btn-outline-light" asp-page="/Learning/Assessments">🧾 Assessments</a>
-            <a class="btn btn-sm btn-outline-light" asp-page="/Learning/Certificates">🏅 Certificates</a>
-        </nav>
-
-        <div id="headerUserArea" class="d-flex align-items-center gap-3">
-            @if (User.Identity?.IsAuthenticated ?? false)
-            {
-                var avatar = User.FindFirst("Avatar")?.Value ?? "/images/default-avatar.png";
-                var name = User.Identity?.Name ?? "User";
-
-                <div class="dropdown">
-                    <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
-                       href="#"
-                       role="button"
-                       id="userDropdown"
-                       data-bs-toggle="dropdown"
-                       aria-expanded="false">
-
-                        <img src="@avatar"
-                             width="36"
-                             height="36"
-                             class="rounded-circle"
-                             style="object-fit:cover" />
-                        <span class="d-none d-md-inline ms-2 fw-medium">@name</span>
-                    </a>
-
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li class="px-3 py-2">
-                            <div class="fw-semibold">@name</div>
-                            <small class="text-muted">
-                                @User.FindFirst(ClaimTypes.Role)?.Value
-                            </small>
-                        </li>
-
-                        <li><hr class="dropdown-divider" /></li>
-
-                        <!-- Menu chung cho user -->
-                        <li>
-                            <a class="dropdown-item" asp-page="/Learning/MyCourses">
-                                📚 My Courses
-                            </a>
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item" asp-page="/Account/Profile">
-                                👤 Profile
-                            </a>
-                        </li>
-
-                        <!-- Teacher -->
-                        @if (User.IsInRole("Instructor"))
-                        {
-                            <li>
-                                <a class="dropdown-item" asp-page="/Teacher/Dashboard">
-                                    🎓 Teacher Dashboard
-                                </a>
-                            </li>
-                        }
-
-                        <li><hr class="dropdown-divider" /></li>
-
-                        <li>
-                            <form method="post" action="/Account/Logout" class="m-0">
-                                <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right me-2" viewBox="0 0 16 16" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M10 13.5a.5.5 0 0 1-.5.5H3.5A1.5 1.5 0 0 1 2 12.5v-9A1.5 1.5 0 0 1 3.5 2h6a.5.5 0 0 1 0 1h-6A.5.5 0 0 0 3 3.5v9a.5.5 0 0 0 .5.5h6a.5.5 0 0 1 .5.5z"/>
-                                        <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L14.293 7.5H6.5a.5.5 0 0 0 0 1h7.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-                                    </svg>
-                                    <span>Logout</span>
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+            <!-- Brand -->
+            <a asp-page="/Index" class="flex items-center gap-2 shrink-0 no-underline group">
+                <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center group-hover:bg-primary-600 transition-colors shadow-sm">
+                    <i class="fas fa-layer-group text-white text-sm"></i>
                 </div>
-            }
-            else
-            {
-                // ajax-nav class will be intercepted by layout script to load the page into the main content area
-                <a class="btn btn-outline-light ajax-nav" asp-page="/Account/Login">Login</a>
-                <a class="btn btn-warning text-dark" asp-page="/Account/Register">Sign up</a>
-            }
+                <span class="font-display font-bold text-lg text-slate-900 tracking-tight">CourseSphere</span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <div class="hidden md:flex items-center gap-1 shrink-0">
+                <a asp-page="/Index"
+                   class="px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                          @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index"
+                            ? "text-primary-600 bg-primary-50"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100")">
+                    Home
+                </a>
+                <a asp-page="/Courses/Index"
+                   class="px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                          @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Courses") == true
+                            ? "text-primary-600 bg-primary-50"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100")">
+                    Explore
+                </a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-page="/Learning/MyCourses"
+                       class="px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                              @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Learning") == true
+                                ? "text-primary-600 bg-primary-50"
+                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100")">
+                        My Learning
+                    </a>
+                }
+                @if (User.IsInRole("Instructor"))
+                {
+                    <a asp-page="/Teacher/Dashboard"
+                       class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+                        <i class="fas fa-chalkboard-teacher text-xs mr-1"></i> Teach
+                    </a>
+                }
+            </div>
+
+            <!-- Search -->
+            <div class="hidden lg:flex flex-1 max-w-sm">
+                <div class="relative w-full">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                    <input type="text" placeholder="Search courses..."
+                           class="w-full pl-8 pr-4 py-2 text-sm bg-slate-100 border border-transparent rounded-full
+                                  focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-primary-100 transition-all" />
+                </div>
+            </div>
+
+            <!-- Right: auth -->
+            <div class="flex items-center gap-2 shrink-0">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    
+                        var avatarUrl = User.FindFirst("Avatar")?.Value;
+                        var fullName  = User.Identity?.Name ?? "User";
+                        var email     = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                        var initial   = fullName.Length > 0 ? fullName[0].ToString().ToUpper() : "U";
+                    
+
+                    <!-- Notification bell -->
+                    <button class="relative p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors">
+                        <i class="far fa-bell text-base"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+                    </button>
+
+                    <!-- User dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @@click="open = !open" @@click.away="open = false"
+                                class="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-slate-100 transition-colors focus:outline-none">
+                            @if (!string.IsNullOrEmpty(avatarUrl))
+                            {
+                                <img src="@avatarUrl" alt="@fullName"
+                                     class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm" />
+                            }
+                            else
+                            {
+                                <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-sm border border-slate-200">
+                                    @initial
+                                </div>
+                            }
+                            <span class="hidden sm:block text-sm font-semibold text-slate-700 max-w-[100px] truncate">@fullName</span>
+                            <i class="fas fa-chevron-down text-[9px] text-slate-400 transition-transform duration-150"
+                               :class="open ? 'rotate-180' : ''"></i>
+                        </button>
+
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl ring-1 ring-slate-200 divide-y divide-slate-100 z-50 origin-top-right">
+
+                            <!-- Profile header -->
+                            <div class="px-4 py-3 flex items-center gap-3">
+                                @if (!string.IsNullOrEmpty(avatarUrl))
+                                {
+                                    <img src="@avatarUrl" class="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />
+                                }
+                                else
+                                {
+                                    <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold shrink-0">@initial</div>
+                                }
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-slate-900 truncate">@fullName</p>
+                                    <p class="text-xs text-slate-400 truncate">@email</p>
+                                </div>
+                            </div>
+
+                            <!-- Nav items -->
+                            <div class="py-1.5">
+                                <a asp-page="/Learning/MyCourses"
+                                   class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <i class="fas fa-graduation-cap text-slate-400 w-4 text-center text-xs"></i> My Learning
+                                </a>
+                                <a asp-page="/Account/Profile"
+                                   class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <i class="fas fa-user text-slate-400 w-4 text-center text-xs"></i> Profile
+                                </a>
+                                @if (User.IsInRole("Instructor"))
+                                {
+                                    <a asp-page="/Teacher/Dashboard"
+                                       class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                        <i class="fas fa-chalkboard-teacher text-slate-400 w-4 text-center text-xs"></i> Teacher Dashboard
+                                    </a>
+                                    <a asp-page="/Teacher/CreateCourse"
+                                       class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                        <i class="fas fa-plus-circle text-slate-400 w-4 text-center text-xs"></i> Create Course
+                                    </a>
+                                }
+                            </div>
+
+                            <!-- Logout -->
+                            <div class="py-1.5">
+                                <form method="post" action="/Account/Logout">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors">
+                                        <i class="fas fa-sign-out-alt w-4 text-center text-xs"></i> Sign out
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a asp-page="/Account/Login"
+                       class="hidden sm:block px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                        Log in
+                    </a>
+                    <a asp-page="/Account/Register"
+                       class="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-primary-600 transition-colors shadow-sm">
+                        Sign up
+                    </a>
+                }
+
+                <!-- Mobile toggle -->
+                <button @@click="mobileOpen = !mobileOpen"
+                        class="md:hidden p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i class="fas" :class="mobileOpen ? 'fa-times' : 'fa-bars'"></i>
+                </button>
+            </div>
         </div>
     </div>
-</header>
+
+    <!-- Mobile menu -->
+    <div x-show="mobileOpen" x-cloak
+         class="md:hidden bg-white border-t border-slate-100 shadow-lg px-4 py-3 space-y-1">
+        <a asp-page="/Index"          class="block px-3 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">Home</a>
+        <a asp-page="/Courses/Index"  class="block px-3 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">Explore</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-page="/Learning/MyCourses" class="block px-3 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">My Learning</a>
+        }
+        @if (User.Identity?.IsAuthenticated != true)
+        {
+            <div class="pt-2 flex gap-2 border-t border-slate-100">
+                <a asp-page="/Account/Login"    class="flex-1 text-center px-4 py-2 text-sm font-medium border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">Log in</a>
+                <a asp-page="/Account/Register" class="flex-1 text-center px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800">Sign up</a>
+            </div>
+        }
+    </div>
+</nav>

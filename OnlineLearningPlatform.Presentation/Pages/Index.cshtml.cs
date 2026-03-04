@@ -1,3 +1,4 @@
+//Index.cshtml.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
@@ -42,3 +43,31 @@ namespace OnlineLearningPlatform.Presentation.Pages
         }
     }
 }
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.AspNetCore.Mvc.RazorPages;
+//using OnlineLearningPlatform.BusinessObject.IServices;
+//using OnlineLearningPlatform.BusinessObject.Responses.Course;
+
+//namespace OnlineLearningPlatform.Presentation.Pages
+//{
+//    public class IndexModel : PageModel
+//    {
+//        private readonly ICourseService _service;
+//        public IndexModel(ICourseService service) => _service = service;
+
+//        public List<CourseResponse> Courses { get; set; } = new();
+
+//        public async Task<IActionResult> OnGetAsync()
+//        {
+//            // Redirect admin to admin panel
+//            if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+//                return RedirectToPage("/Admin/Overview");
+
+//            var resp = await _service.GetCoursesByStatusAsync(2); // Status 2 = Published
+//            if (resp?.IsSuccess == true && resp.Result is List<CourseResponse> list)
+//                Courses = list;
+
+//            return Page();
+//        }
+//    }
+//}

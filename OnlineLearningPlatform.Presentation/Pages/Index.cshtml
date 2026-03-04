@@ -1,32 +1,308 @@
 ﻿@page
-@model IndexModel
+@model OnlineLearningPlatform.Presentation.Pages.IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Home";
+
+    var categories = new[] { "All", "Web Dev", "Data Science", "Design", "Marketing", "Mobile", "DevOps" };
 }
 
-<h2>Khóa học đang mở</h2>
+<!-- ══════ HERO ══════ -->
+<section class="relative overflow-hidden bg-white pt-16 pb-20 lg:pt-24 lg:pb-32">
+    <!-- Background decoration -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-32 -right-32 w-[600px] h-[600px] bg-primary-50 rounded-full opacity-60 blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-blue-50 rounded-full opacity-50 blur-3xl"></div>
+    </div>
 
-@if (!Model.Courses.Any())
-{
-    <p>Chưa có khóa học nào</p>
-}
-else
-{
-    <div class="row">
-        @foreach (var course in Model.Courses)
-        {
-            <div class="col-md-4 mb-3">
-                <div class="card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">@course.Title</h5>
-                        <p class="card-text">@course.Description</p>
-                        <p class="fw-bold mt-auto">
-                            Giá: @course.Price.ToString("N0") đ
-                        </p>
-                        <a class="btn btn-primary mt-2" asp-page="/Courses/Detail" asp-route-id="@course.CourseId">Xem chi tiết</a>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+
+            <!-- Left: Text -->
+            <div class="max-w-xl">
+                <div class="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+                    <span class="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse"></span>
+                    New courses added every week
+                </div>
+
+                <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight mb-6">
+                    Learn without<br />
+                    <span class="text-primary-600">limits.</span>
+                </h1>
+
+                <p class="text-lg text-slate-600 leading-relaxed mb-8">
+                    Build real-world skills with hands-on courses from expert instructors.
+                    Learn at your own pace, earn certificates, and advance your career.
+                </p>
+
+                <!-- Search bar hero -->
+                <div class="flex flex-col sm:flex-row gap-3 mb-10">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                        <input type="text" placeholder="What do you want to learn?"
+                               class="w-full pl-11 pr-4 py-3.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                      focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all shadow-sm" />
+                    </div>
+                    <a asp-page="/Courses/Index"
+                       class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl
+                              hover:bg-primary-700 transition-colors shadow-lg shadow-primary-500/25 shrink-0">
+                        <i class="fas fa-arrow-right text-xs"></i> Explore
+                    </a>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-6 border-t border-slate-100 pt-8">
+                    <div>
+                        <p class="text-3xl font-display font-extrabold text-slate-900">10k+</p>
+                        <p class="text-sm text-slate-500 font-medium mt-0.5">Students</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-display font-extrabold text-slate-900">500+</p>
+                        <p class="text-sm text-slate-500 font-medium mt-0.5">Courses</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-display font-extrabold text-slate-900">100+</p>
+                        <p class="text-sm text-slate-500 font-medium mt-0.5">Instructors</p>
                     </div>
                 </div>
             </div>
+
+            <!-- Right: Image -->
+            <div class="relative hidden lg:block">
+                <div class="relative rounded-2xl overflow-hidden ring-1 ring-slate-200/50 shadow-2xl bg-slate-100">
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80"
+                         alt="Students learning"
+                         class="w-full h-auto object-cover aspect-[4/3]" />
+                </div>
+                <!-- Floating card -->
+                <div class="absolute -bottom-5 -left-6 bg-white rounded-2xl shadow-xl border border-slate-100 px-4 py-3 flex items-center gap-3 max-w-[220px]">
+                    <div class="flex -space-x-2 shrink-0">
+                        <img class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/100?img=1" alt="">
+                        <img class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/100?img=2" alt="">
+                        <img class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/100?img=3" alt="">
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-900">2k+ learners</p>
+                        <div class="flex text-yellow-400 text-[10px] mt-0.5">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- Badge -->
+                <div class="absolute -top-4 -right-4 bg-primary-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                    🎓 Certified
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════ TRUSTED BY ══════ -->
+<section class="bg-slate-50 border-y border-slate-200 py-8">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-6">Trusted by learners from</p>
+        <div class="flex flex-wrap justify-center items-center gap-8 grayscale opacity-50">
+            <span class="text-lg font-extrabold text-slate-700 font-display">Google</span>
+            <span class="text-lg font-extrabold text-slate-700 font-display">Microsoft</span>
+            <span class="text-lg font-extrabold text-slate-700 font-display">Amazon</span>
+            <span class="text-lg font-extrabold text-slate-700 font-display">Meta</span>
+            <span class="text-lg font-extrabold text-slate-700 font-display">Netflix</span>
+            <span class="text-lg font-extrabold text-slate-700 font-display">Spotify</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══════ POPULAR COURSES ══════ -->
+<section id="courses" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Section header -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+            <div>
+                <p class="text-xs font-semibold text-primary-600 uppercase tracking-widest mb-2">Popular Courses</p>
+                <h2 class="font-display text-3xl font-extrabold text-slate-900">Learn from the best</h2>
+                <p class="text-slate-500 mt-2">Explore our highest-rated courses updated for @DateTime.Now.Year</p>
+            </div>
+            <a asp-page="/Courses/Index"
+               class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 group shrink-0">
+                View all courses
+                <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </a>
+        </div>
+
+        <!-- Course grid -->
+        @if (Model.Courses.Any())
+        {
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach (var course in Model.Courses.Take(8))
+                {
+                    <a asp-page="/Courses/Detail" asp-route-id="@course.CourseId"
+                       class="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1
+                                      transition-all duration-200 overflow-hidden flex flex-col no-underline">
+
+                        <!-- Thumbnail -->
+                        <div class="relative h-44 overflow-hidden bg-slate-100">
+                            @if (!string.IsNullOrEmpty(course.Image))
+                            {
+                                <img src="@course.Image" alt="@course.Title"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            }
+                            else
+                            {
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <i class="fas fa-book-open text-slate-300 text-4xl"></i>
+                                </div>
+                            }
+                            <!-- Price badge -->
+                            <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-slate-900 shadow-sm">
+                                @(course.Price == 0 ? "Free" : course.Price.ToString("N0") + " ₫")
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-4 flex flex-col flex-1">
+                            <h3 class="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-primary-600 transition-colors leading-snug mb-2">
+                                @course.Title
+                            </h3>
+                            @if (!string.IsNullOrEmpty(course.Description))
+                            {
+                                <p class="text-xs text-slate-400 line-clamp-2 mb-3 leading-relaxed">@course.Description</p>
+                            }
+                            <div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-3">
+                                <div class="flex items-center gap-1 text-yellow-400 text-xs">
+                                    <i class="fas fa-star"></i>
+                                    <span class="text-slate-600 font-semibold">4.8</span>
+                                    <span class="text-slate-400">(1.2k)</span>
+                                </div>
+                                <span class="text-xs font-semibold text-primary-600 flex items-center gap-1">
+                                    Enroll <i class="fas fa-arrow-right text-[9px]"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="py-20 text-center">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-book-open text-slate-300 text-2xl"></i>
+                </div>
+                <p class="text-slate-500 font-medium">No courses available right now</p>
+                <p class="text-slate-400 text-sm mt-1">Check back soon — new courses are added every week!</p>
+            </div>
         }
     </div>
-}
+</section>
+
+<!-- ══════ WHY COURSESPHERE ══════ -->
+<section class="py-20 bg-slate-50 border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-14">
+            <p class="text-xs font-semibold text-primary-600 uppercase tracking-widest mb-2">Why us</p>
+            <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-3">Everything you need to succeed</h2>
+            <p class="text-slate-500 text-lg">We give you the tools, instructors, and community to reach your goals.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @{
+                var features = new[]
+                {
+                        new { Icon = "fa-laptop-code",        Color = "blue",   Title = "Learn Anywhere",         Desc = "Access your courses on any device — desktop, tablet, or mobile — anytime you want." },
+                        new { Icon = "fa-certificate",        Color = "violet", Title = "Earn Certificates",      Desc = "Complete courses and earn recognized certificates to showcase your skills to employers." },
+                        new { Icon = "fa-chalkboard-teacher", Color = "emerald",Title = "Expert Instructors",     Desc = "Learn from industry professionals who are passionate about teaching real-world skills." },
+                        new { Icon = "fa-clock",              Color = "amber",  Title = "Self-Paced Learning",    Desc = "No deadlines. Learn at your own speed and revisit content as many times as you need." },
+                        new { Icon = "fa-users",              Color = "rose",   Title = "Community Support",      Desc = "Join a global community of learners. Ask questions, share knowledge, and grow together." },
+                        new { Icon = "fa-infinity",           Color = "indigo", Title = "Lifetime Access",        Desc = "Once enrolled, you have lifetime access to course content including all future updates." },
+                        };
+
+                var colorMap = new Dictionary<string, (string bg, string text)>
+                {
+                    ["blue"] = ("bg-blue-100", "text-blue-600"),
+                    ["violet"] = ("bg-violet-100", "text-violet-600"),
+                    ["emerald"] = ("bg-emerald-100", "text-emerald-600"),
+                    ["amber"] = ("bg-amber-100", "text-amber-600"),
+                    ["rose"] = ("bg-rose-100", "text-rose-600"),
+                    ["indigo"] = ("bg-indigo-100", "text-indigo-600"),
+                };
+            }
+            @foreach (var f in features)
+            {
+                var (bg, text) = colorMap[f.Color];
+                <div class="bg-white rounded-2xl border border-slate-100 p-7 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-11 h-11 @bg rounded-xl flex items-center justify-center @text text-lg mb-5">
+                        <i class="fas @f.Icon"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base mb-2">@f.Title</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">@f.Desc</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ══════ HOW IT WORKS ══════ -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-xs font-semibold text-primary-600 uppercase tracking-widest mb-2">Simple process</p>
+        <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-14">Start learning in 3 steps</h2>
+
+        <div class="grid md:grid-cols-3 gap-8 relative">
+            <!-- connector line -->
+            <div class="hidden md:block absolute top-9 left-1/3 right-1/3 h-0.5 bg-slate-100"></div>
+
+            @{
+                var steps = new[]
+                {
+                        new { Num = "01", Icon = "fa-search",        Title = "Browse Courses",   Desc = "Explore hundreds of courses across different categories and skill levels." },
+                        new { Num = "02", Icon = "fa-shopping-cart", Title = "Enroll Instantly",  Desc = "Sign up and get immediate access to all course content and resources." },
+                        new { Num = "03", Icon = "fa-graduation-cap",Title = "Earn Certificate",  Desc = "Complete lessons, pass assessments, and earn your certificate." },
+                        };
+            }
+            @foreach (var s in steps)
+            {
+                <div class="flex flex-col items-center text-center">
+                    <div class="relative w-18 h-18 mb-5">
+                        <div class="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30 mx-auto">
+                            <i class="fas @s.Icon text-white text-xl"></i>
+                        </div>
+                        <span class="absolute -top-2 -right-2 w-6 h-6 bg-slate-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">@s.Num</span>
+                    </div>
+                    <h3 class="font-bold text-slate-900 mb-2">@s.Title</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">@s.Desc</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ══════ CTA ══════ -->
+<section class="py-20 bg-slate-900 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary-600 opacity-10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-blue-400 opacity-10 rounded-full blur-3xl"></div>
+    </div>
+    <div class="relative max-w-4xl mx-auto px-4 text-center">
+        <p class="text-xs font-semibold text-primary-400 uppercase tracking-widest mb-4">Get started today</p>
+        <h2 class="font-display text-4xl md:text-5xl font-extrabold text-white mb-5 leading-tight">
+            Ready to transform<br />your career?
+        </h2>
+        <p class="text-lg text-slate-400 mb-10 max-w-xl mx-auto leading-relaxed">
+            Join thousands of learners worldwide and build the skills that employers are looking for.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a asp-page="/Account/Register"
+               class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 text-white font-bold text-base rounded-xl
+                      hover:bg-primary-500 transition-colors shadow-2xl shadow-primary-900/50">
+                <i class="fas fa-rocket text-sm"></i> Start for Free
+            </a>
+            <a asp-page="/Courses/Index"
+               class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 text-white font-bold text-base rounded-xl
+                      hover:bg-white/20 border border-white/20 transition-colors backdrop-blur-sm">
+                <i class="fas fa-search text-sm"></i> Browse Courses
+            </a>
+        </div>
+        <p class="text-xs text-slate-500 mt-5">No credit card required · Cancel anytime</p>
+    </div>
+</section>
