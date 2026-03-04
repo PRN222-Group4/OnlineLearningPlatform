@@ -1,4 +1,5 @@
-﻿using OnlineLearningPlatform.BusinessObject.IServices;
+﻿//AuthService.cs
+using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.DataAccess.UnitOfWork;
 using OnlineLearningPlatform.DataAccess.Entities;
 using Microsoft.IdentityModel.Tokens;
@@ -147,6 +148,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 new Claim("Email" , user.Email!),
                 new Claim("Role", roleName),
                 new Claim("UserId", user.UserId.ToString()),
+                new Claim("Avatar", user.Image ?? string.Empty),
             };
 
 

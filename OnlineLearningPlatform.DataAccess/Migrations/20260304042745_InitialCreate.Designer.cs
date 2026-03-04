@@ -12,8 +12,8 @@ using OnlineLearningPlatform.DataAccess;
 namespace OnlineLearningPlatform.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260213203341_InitialBaseline")]
-    partial class InitialBaseline
+    [Migration("20260304042745_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -280,48 +280,6 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("GradedItems");
-                });
-
-            modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Language", b =>
-                {
-                    b.Property<Guid>("LanguageId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("LanguageId");
-
-                    b.HasIndex(new[] { "Code" }, "IX_Languages_Code")
-                        .IsUnique();
-
-                    b.HasIndex(new[] { "Name" }, "IX_Languages_Name")
-                        .IsUnique();
-
-                    b.ToTable("Languages");
                 });
 
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Lesson", b =>
@@ -887,17 +845,6 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Course", b =>
-                {
-                    b.HasOne("OnlineLearningPlatform.DataAccess.Entities.Language", "Language")
-                        .WithMany("Courses")
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Enrollment", b =>
                 {
                     b.HasOne("OnlineLearningPlatform.DataAccess.Entities.Course", "Course")
@@ -1144,11 +1091,6 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.Navigation("GradedAttempt");
 
                     b.Navigation("Questions");
-                });
-
-            modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Language", b =>
-                {
-                    b.Navigation("Courses");
                 });
 
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Lesson", b =>
