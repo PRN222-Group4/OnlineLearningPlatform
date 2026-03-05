@@ -2,96 +2,330 @@
 @model OnlineLearningPlatform.Presentation.Pages.Admin.CoursesModel
 @{
     Layout = "~/Pages/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "Admin - Courses";
+    ViewData["Title"] = "Courses Management";
+
+    string StatusBadgeClass(int s) => s switch
+    {
+        0 => "bg-zinc-100 text-zinc-500",
+        1 => "bg-blue-100 text-blue-600",
+        2 => "bg-emerald-100 text-emerald-700",
+        3 => "bg-red-100 text-red-600",
+        _ => "bg-zinc-100 text-zinc-500"
+    };
+    string StatusLabel(int s) => s switch
+    {
+        0 => "Draft",
+        1 => "Pending",
+        2 => "Published",
+        3 => "Rejected",
+        _ => "Unknown"
+    };
+    string StatusIcon(int s) => s switch
+    {
+        0 => "fa-file",
+        1 => "fa-clock",
+        2 => "fa-check-circle",
+        3 => "fa-times-circle",
+        _ => "fa-circle"
+    };
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="m-0">Courses Management</h3>
-        <div class="d-flex gap-2 align-items-center">
-            <form method="get" class="d-flex gap-2 align-items-center m-0">
-                <input type="hidden" name="status" value="-1" />
-                <button class="btn btn-outline-secondary btn-sm" type="submit">All</button>
-            </form>
-            <form method="get" class="d-flex gap-2 align-items-center m-0">
-                <input type="hidden" name="status" value="0" />
-                <button class="btn btn-outline-warning btn-sm" type="submit">Draft</button>
-            </form>
-            <form method="get" class="d-flex gap-2 align-items-center m-0">
-                <input type="hidden" name="status" value="1" />
-                <button class="btn btn-outline-info btn-sm" type="submit">Pending</button>
-            </form>
-            <form method="get" class="d-flex gap-2 align-items-center m-0">
-                <input type="hidden" name="status" value="2" />
-                <button class="btn btn-outline-success btn-sm" type="submit">Published</button>
-            </form>
-            <a class="btn btn-primary" asp-page="/Admin/CoursesCreate">Create Course</a>
+<!-- Toast khi có lỗi ModelState -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div id="toast" class="fixed top-5 right-5 z-[100] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-medium bg-red-50 border-red-200 text-red-700">
+        <i class="fas fa-times-circle text-red-500"></i>
+        @(ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "An error occurred.")
+    </div>
+    <script>setTimeout(() => document.getElementById('toast')?.remove(), 4000);</script>
+}
+
+<div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
+                <i class="fas fa-book-open text-amber-600 text-sm"></i>
+            </div>
+            <div>
+                <h2 class="text-base font-semibold text-zinc-900">Courses Management</h2>
+                <p class="text-xs text-zinc-400">@Model.Courses.Count course(s) shown</p>
+            </div>
         </div>
+        <a asp-page="/Admin/CoursesCreate"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+            <i class="fas fa-plus text-xs"></i> Create Course
+        </a>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th style="width:96px;"></th>
-                    <th>Title &amp; Description</th>
-                    <th style="width:120px;">Price</th>
-                    <th style="width:140px;">Status</th>
-                    <th style="width:90px;">Show</th>
-                    <th style="width:180px;">Approve / Reject</th>
-                    <th style="width:90px;">Delete</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var c in Model.Courses)
-                {
+    <!-- Filter — dùng form GET giống .cshtml.cs cũ (SupportsGet = true, name="status") -->
+    <div class="px-6 py-3 bg-zinc-50 border-b border-zinc-100 flex gap-2 flex-wrap">
+        <form method="get" class="contents">
+            <input type="hidden" name="status" value="-1" />
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                           @(Model.Status == -1 ? "bg-zinc-800 text-white" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-100")">
+                All
+            </button>
+        </form>
+        <form method="get" class="contents">
+            <input type="hidden" name="status" value="0" />
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                           @(Model.Status == 0 ? "bg-zinc-700 text-white" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-100")">
+                <i class="fas fa-file text-[9px]"></i> Draft
+            </button>
+        </form>
+        <form method="get" class="contents">
+            <input type="hidden" name="status" value="1" />
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                           @(Model.Status == 1 ? "bg-blue-600 text-white" : "bg-white text-blue-600 border border-blue-200 hover:bg-blue-50")">
+                <i class="fas fa-clock text-[9px]"></i> Pending
+            </button>
+        </form>
+        <form method="get" class="contents">
+            <input type="hidden" name="status" value="2" />
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                           @(Model.Status == 2 ? "bg-emerald-600 text-white" : "bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50")">
+                <i class="fas fa-check-circle text-[9px]"></i> Published
+            </button>
+        </form>
+        <form method="get" class="contents">
+            <input type="hidden" name="status" value="3" />
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                           @(Model.Status == 3 ? "bg-red-500 text-white" : "bg-white text-red-500 border border-red-200 hover:bg-red-50")">
+                <i class="fas fa-times-circle text-[9px]"></i> Rejected
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    @if (Model.Courses.Any())
+    {
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-zinc-50 border-b border-zinc-100">
                     <tr>
-                        <td>
-                            <img src="@(string.IsNullOrEmpty(c.Image) ? "/images/default-course.png" : c.Image)" alt="thumb" class="img-fluid rounded" style="width:96px;height:64px;object-fit:cover;" />
-                        </td>
-                        <td>
-                            <div class="fw-semibold">@c.Title</div>
-                            <div class="text-muted small">@c.Description</div>
-                        </td>
-                        <td class="fw-semibold">@c.Price.ToString("N0") đ</td>
-                        <td>
-                            @if (c.Status == 2)
-                            {
-                                <span class="badge bg-success">Published</span>
-                            }
-                            else if (c.Status == 1)
-                            {
-                                <span class="badge bg-info text-dark">Pending</span>
-                            }
-                            else if (c.Status == 0)
-                            {
-                                <span class="badge bg-secondary">Draft</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">Rejected</span>
-                            }
-                        </td>
-                        <td>
-                            <partial name="_CourseActionShow" model="c" />
-                        </td>
-
-                        <td>
-                            @* For Pending, Draft or Rejected allow Approve/Reject flows *@
-                            @if (c.Status == 1 || c.Status == 0 || c.Status == 3)
-                            {
-                                <partial name="_CourseActionApproveReject" model="c" />
-                            }
-                        </td>
-
-                        <td>
-                            <partial name="_CourseActionDelete" model="c" />
-                        </td>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider w-20">Image</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Course</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider w-32">Price</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider w-28">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider w-56">Actions</th>
                     </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                    @foreach (var c in Model.Courses)
+                    {
+                        <tr class="hover:bg-zinc-50 transition-colors duration-150">
 
-                    
-                }
-            </tbody>
-        </table>
+                            <!-- Thumbnail -->
+                            <td class="px-4 py-4">
+                                @if (!string.IsNullOrEmpty(c.Image))
+                                {
+                                    <img src="@c.Image" alt="@c.Title"
+                                         class="w-16 h-11 object-cover rounded-lg border border-zinc-200" />
+                                }
+                                else
+                                {
+                                    <div class="w-16 h-11 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center">
+                                        <i class="fas fa-image text-zinc-300 text-lg"></i>
+                                    </div>
+                                }
+                            </td>
+
+                            <!-- Title + Description -->
+                            <td class="px-4 py-4 max-w-xs">
+                                <p class="text-sm font-semibold text-zinc-900 truncate">@c.Title</p>
+                                @if (!string.IsNullOrEmpty(c.Description))
+                                {
+                                    <p class="text-xs text-zinc-400 mt-0.5 line-clamp-2">@c.Description</p>
+                                }
+                            </td>
+
+                            <!-- Price -->
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="text-sm font-semibold text-zinc-900">@c.Price.ToString("N0") ₫</span>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold @StatusBadgeClass(c.Status)">
+                                    <i class="fas @StatusIcon(c.Status) text-[9px]"></i>
+                                    @StatusLabel(c.Status)
+                                </span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-1.5">
+
+                                    <!-- Edit -->
+                                    <a asp-page="/Admin/CoursesEdit" asp-route-id="@c.CourseId"
+                                       class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+
+                                    <!-- Approve / Reject — chỉ hiện khi Status == 1 (Pending), 0 (Draft), 3 (Rejected) -->
+                                    @if (c.Status == 1 || c.Status == 0 || c.Status == 3)
+                                    {
+                                        @if (c.Status == 1)
+                                        {
+                                            <button type="button"
+                                                    onclick="openApproveModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))',true)"
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-600 text-xs font-medium rounded-lg hover:bg-emerald-600 hover:text-white transition-colors"
+                                                    title="Approve">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        <button type="button"
+                                                onclick="openApproveModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))',false)"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-600 text-xs font-medium rounded-lg hover:bg-amber-600 hover:text-white transition-colors"
+                                                title="Reject">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    }
+
+                                    <!-- Delete -->
+                                    <button type="button"
+                                            onclick="openDeleteModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))')"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-500 text-xs font-medium rounded-lg hover:bg-red-500 hover:text-white transition-colors">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="px-6 py-16 text-center">
+            <div class="w-14 h-14 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-book-open text-zinc-400 text-xl"></i>
+            </div>
+            <p class="text-sm font-medium text-zinc-500">No courses found</p>
+            <p class="text-xs text-zinc-400 mt-1">Try switching the filter or create a new course</p>
+        </div>
+    }
+</div>
+
+<!-- ══════ MODAL: APPROVE / REJECT
+     handler: OnPostApproveAsync([FromForm] Guid CourseId, [FromForm] bool Status, [FromForm] string? RejectReason)
+══════ -->
+<div id="approveModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-zinc-100 w-full max-w-md">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+            <h3 id="approveModalTitle" class="text-base font-semibold text-zinc-900"></h3>
+            <button onclick="closeModal('approveModal')" class="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="post" asp-page-handler="Approve" class="px-6 py-5 space-y-4">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="approveCourseId" name="CourseId" />
+            <input type="hidden" id="approveStatus" name="Status" />
+            <p id="approveDesc" class="text-sm text-zinc-500"></p>
+            <div id="rejectReasonWrap" class="hidden">
+                <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">
+                    Reject Reason <span class="text-red-400">*</span>
+                </label>
+                <textarea name="RejectReason" id="rejectReason" rows="3"
+                          placeholder="Explain why this course is being rejected..."
+                          class="w-full px-3 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 transition resize-none"></textarea>
+            </div>
+            <div class="flex gap-3 pt-1">
+                <button type="button" onclick="closeModal('approveModal')"
+                        class="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-700 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" id="approveSubmitBtn"
+                        class="flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-colors">
+                    Confirm
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+
+<!-- ══════ MODAL: DELETE
+     handler: OnPostDeleteAsync(Guid id)
+══════ -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-zinc-100 w-full max-w-sm">
+        <div class="px-6 py-6 text-center">
+            <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trash text-red-500 text-xl"></i>
+            </div>
+            <h3 class="text-base font-semibold text-zinc-900 mb-1">Delete Course</h3>
+            <p class="text-sm text-zinc-500 mb-5">
+                Are you sure you want to delete
+                <span id="deleteCourseTitle" class="font-semibold text-zinc-800"></span>?
+                This cannot be undone.
+            </p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('deleteModal')"
+                        class="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-700 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors">
+                    Cancel
+                </button>
+                <form method="post" asp-page-handler="Delete" class="flex-1">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteCourseId" name="id" />
+                    <button type="submit"
+                            class="w-full px-4 py-2.5 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openModal(id)  { const el = document.getElementById(id); el.classList.remove('hidden'); el.classList.add('flex'); }
+        function closeModal(id) { const el = document.getElementById(id); el.classList.add('hidden'); el.classList.remove('flex'); }
+
+        ['approveModal','deleteModal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', e => { if (e.target.id === id) closeModal(id); });
+        });
+
+        // Approve modal — name="Status" nhận bool (true/false) theo .cshtml.cs cũ
+        function openApproveModal(courseId, title, isApprove) {
+            document.getElementById('approveCourseId').value = courseId;
+            document.getElementById('approveStatus').value   = isApprove ? 'true' : 'false';
+
+            const rw  = document.getElementById('rejectReasonWrap');
+            const rr  = document.getElementById('rejectReason');
+            const btn = document.getElementById('approveSubmitBtn');
+
+            if (isApprove) {
+                document.getElementById('approveModalTitle').textContent = 'Approve Course';
+                document.getElementById('approveDesc').textContent = `Approve "${title}"? It will be published and visible to students.`;
+                rw.classList.add('hidden');
+                rr.required     = false;
+                btn.className   = 'flex-1 px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors';
+                btn.textContent = 'Approve';
+            } else {
+                document.getElementById('approveModalTitle').textContent = 'Reject Course';
+                document.getElementById('approveDesc').textContent = `Reject "${title}"? Please provide a reason below.`;
+                rw.classList.remove('hidden');
+                rr.required     = true;
+                btn.className   = 'flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors';
+                btn.textContent = 'Reject';
+            }
+            openModal('approveModal');
+        }
+
+        function openDeleteModal(courseId, title) {
+            document.getElementById('deleteCourseTitle').textContent = title;
+            document.getElementById('deleteCourseId').value          = courseId;
+            openModal('deleteModal');
+        }
+    </script>
+}

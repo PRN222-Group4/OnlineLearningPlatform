@@ -1,26 +1,89 @@
-@page "{id:guid}"
+﻿@page "{id:guid}"
 @model OnlineLearningPlatform.Presentation.Pages.Admin.CoursesEditModel
 @{
     Layout = "~/Pages/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "Admin - Edit Course";
+    ViewData["Title"] = "Edit Course";
 }
 
-<div class="container-fluid">
-    <h3>Edit Course</h3>
-    <form method="post" enctype="multipart/form-data">
-        <input type="hidden" asp-for="Request.CourseId" />
-        <div class="mb-3">
-            <label class="form-label">Title</label>
-            <input class="form-control" asp-for="Request.Title" />
+<div class="max-w-2xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-page="/Admin/Courses"
+           class="p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 transition-colors">
+            <i class="fas fa-arrow-left text-sm"></i>
+        </a>
+        <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-edit text-blue-600 text-sm"></i>
+            </div>
+            <div>
+                <h2 class="text-base font-semibold text-zinc-900">Edit Course</h2>
+                <p class="text-xs text-zinc-400">Update course information</p>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea class="form-control" asp-for="Request.Description"></textarea>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Price</label>
-            <input class="form-control" asp-for="Request.Price" />
-        </div>
-        <button class="btn btn-primary" type="submit">Save</button>
-    </form>
+    </div>
+
+    <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+        <form method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <!-- CourseId hidden — asp-for="Request.CourseId" giống .cshtml.cs cũ -->
+            <input type="hidden" asp-for="Request.CourseId" />
+
+            <div class="px-6 py-6 space-y-5">
+
+                <!-- Title -->
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">
+                        Title <span class="text-red-400">*</span>
+                    </label>
+                    <input class="w-full px-3 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 transition"
+                           asp-for="Request.Title" placeholder="Course title..." />
+                    <span asp-validation-for="Request.Title" class="text-xs text-red-500 mt-1 block"></span>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Description</label>
+                    <textarea class="w-full px-3 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 transition resize-none"
+                              asp-for="Request.Description" rows="4"
+                              placeholder="Short description..."></textarea>
+                </div>
+
+                <!-- Price -->
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">
+                        Price (₫) <span class="text-red-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <input class="w-full px-3 py-2.5 pr-8 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 transition"
+                               asp-for="Request.Price" type="number" min="0" placeholder="0" />
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-medium">₫</span>
+                    </div>
+                    <span asp-validation-for="Request.Price" class="text-xs text-red-500 mt-1 block"></span>
+                </div>
+
+                <!-- Error Summary -->
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="flex items-start gap-2.5 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        <i class="fas fa-exclamation-circle mt-0.5 shrink-0"></i>
+                        <div asp-validation-summary="ModelOnly"></div>
+                    </div>
+                }
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-zinc-100 bg-zinc-50 flex items-center justify-between">
+                <a asp-page="/Admin/Courses"
+                   class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-zinc-700 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors">
+                    <i class="fas fa-arrow-left text-xs"></i> Cancel
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                    <i class="fas fa-save text-xs"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
 </div>

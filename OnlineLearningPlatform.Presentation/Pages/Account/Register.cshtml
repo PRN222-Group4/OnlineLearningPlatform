@@ -1,100 +1,182 @@
-@page
+﻿@page
 @model OnlineLearningPlatform.Presentation.Pages.Account.RegisterModel
 @{
-    Layout = "_Layout";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
     ViewData["Title"] = "Register";
 }
-<div class="row justify-content-center align-items-center" style="min-height:70vh;">
-    <div class="col-lg-8">
-        <div class="card shadow-sm overflow-hidden">
-            <div class="row g-0">
-                <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center login-illustration">
-                    <div class="text-center text-white px-3">
-                        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <rect width="24" height="24" rx="4" fill="rgba(255,255,255,0.08)" />
-                            <path d="M7 12h10M7 8h10M7 16h6" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <h4 class="mt-3">Join Edu Platform</h4>
-                        <p class="small opacity-75">Create an account and start learning today.</p>
+
+<div class="min-h-[calc(100vh-64px)] flex items-center justify-center bg-slate-50 py-12 px-4">
+    <div class="w-full max-w-4xl">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex">
+
+            <!-- Left panel -->
+            <div class="hidden md:flex md:w-5/12 bg-gradient-to-br from-slate-800 to-slate-900 flex-col items-center justify-center p-10 text-white relative overflow-hidden">
+                <div class="absolute -top-16 -left-16 w-48 h-48 bg-white/5 rounded-full"></div>
+                <div class="absolute -bottom-10 -right-10 w-36 h-36 bg-white/5 rounded-full"></div>
+                <div class="relative z-10 text-center">
+                    <svg width="96" height="96" viewBox="0 0 24 24" fill="none" class="mx-auto mb-5 opacity-90" aria-hidden="true">
+                        <rect width="24" height="24" rx="5" fill="rgba(255,255,255,0.12)" />
+                        <path d="M7 12h10M7 8h10M7 16h6" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <h4 class="font-display text-xl font-bold mb-2">Join CourseSphere</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed">Create an account and start learning today.</p>
+                    <div class="mt-7 space-y-2.5 text-left">
+                        @foreach (var item in new[] {
+                                                ("fa-infinity",      "Lifetime course access"),
+                                                ("fa-mobile-alt",    "Learn on any device"),
+                                                ("fa-shield-alt",    "100% secure sign-up"),
+                                                })
+                        {
+                            <div class="flex items-center gap-3 bg-white/8 rounded-xl px-4 py-2.5 text-sm border border-white/10">
+                                <i class="fas @item.Item1 text-slate-400 w-4 text-center text-xs"></i>
+                                <span class="text-slate-300">@item.Item2</span>
+                            </div>
+                        }
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card-body p-4">
-                        <div class="text-center mb-4">
-                            <a href="/" class="text-decoration-none"><h3 class="m-0">Edu Platform</h3></a>
-                            <p class="text-muted small">Register a new account</p>
+            </div>
+
+            <!-- Right panel -->
+            <div class="flex-1 p-8 sm:p-10 overflow-y-auto">
+                <div class="text-center mb-6">
+                    <a href="/" class="inline-flex items-center gap-2 no-underline group mb-3">
+                        <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center group-hover:bg-primary-600 transition-colors">
+                            <i class="fas fa-layer-group text-white text-sm"></i>
                         </div>
-
-                        <form id="registerForm" method="post" enctype="multipart/form-data">
-                            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
-                            @Html.AntiForgeryToken()
-                            <div class="mb-3 form-floating">
-                                <input asp-for="Input.FullName" class="form-control" id="fullName" placeholder="Full name" required />
-                                <label for="fullName">Full name</label>
-                                <span asp-validation-for="Input.FullName" class="text-danger small"></span>
-                            </div>
-
-                            <div class="mb-3 form-floating">
-                                <input asp-for="Input.Email" class="form-control" id="email" placeholder="name@example.com" type="email" required />
-                                <label for="email">Email address</label>
-                                <span asp-validation-for="Input.Email" class="text-danger small"></span>
-                            </div>
-
-                            <div class="mb-3 form-floating">
-                                <input asp-for="Input.PhoneNumber" class="form-control" id="phone" placeholder="Phone number" />
-                                <label for="phone">Phone</label>
-                                <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
-                            </div>
-
-                            <div class="mb-3 form-floating">
-                                <input asp-for="Input.Password" class="form-control" id="password" placeholder="Password" type="password" required />
-                                <label for="password">Password</label>
-                                <span asp-validation-for="Input.Password" class="text-danger small"></span>
-                            </div>
-
-                            <div class="mb-3 form-floating">
-                                <input asp-for="Input.ConfirmPassword" class="form-control" id="confirmPassword" placeholder="Confirm password" type="password" required />
-                                <label for="confirmPassword">Confirm password</label>
-                                <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label small">Avatar (optional)</label>
-                                <input asp-for="Input.ImageFile" class="form-control" type="file" id="imageFile" accept="image/*" />
-                                <span asp-validation-for="Input.ImageFile" class="text-danger small"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="role" class="form-label small">Register as</label>
-                                <select asp-for="Input.Role" class="form-select" id="role" required>
-                                    <option value="Student">Student</option>
-                                    <option value="Instructor">Instructor</option>
-                                </select>
-                                <span asp-validation-for="Input.Role" class="text-danger small"></span>
-                            </div>
-
-                            <div class="d-grid mb-3">
-                                <button type="submit" class="btn btn-success btn-lg" id="registerBtn">
-                                    <span id="registerBtnText">Create account</span>
-                                    <span id="registerSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
-                                </button>
-                            </div>
-
-                            <div class="text-center">
-                                <small class="text-muted">Already have an account? <a asp-page="/Account/Login">Sign in</a></small>
-                            </div>
-                        </form>
-
-                        <div id="registerMessage" class="mt-3"></div>
-                    </div>
+                        <span class="font-display font-bold text-lg text-slate-900">CourseSphere</span>
+                    </a>
+                    <p class="text-slate-500 text-sm mt-1">Register a new account</p>
                 </div>
+
+                <form id="registerForm" method="post" enctype="multipart/form-data" class="space-y-4">
+                    <div asp-validation-summary="ModelOnly"
+                         class="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700"></div>
+                    @Html.AntiForgeryToken()
+
+                    <!-- Full Name -->
+                    <div>
+                        <label for="fullName" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Full name</label>
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            <input asp-for="Input.FullName" id="fullName" placeholder="Full name" required
+                                   class="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                          focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all" />
+                        </div>
+                        <span asp-validation-for="Input.FullName" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Email address</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            <input asp-for="Input.Email" id="email" placeholder="name@example.com" type="email" required
+                                   class="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                          focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all" />
+                        </div>
+                        <span asp-validation-for="Input.Email" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <!-- Phone -->
+                    <div>
+                        <label for="phone" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Phone <span class="text-slate-300 font-normal normal-case">(optional)</span></label>
+                        <div class="relative">
+                            <i class="fas fa-phone absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            <input asp-for="Input.PhoneNumber" id="phone" placeholder="Phone number"
+                                   class="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                          focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all" />
+                        </div>
+                        <span asp-validation-for="Input.PhoneNumber" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            <input asp-for="Input.Password" id="password" placeholder="Password" type="password" required
+                                   class="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                          focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all" />
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div>
+                        <label for="confirmPassword" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Confirm password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            <input asp-for="Input.ConfirmPassword" id="confirmPassword" placeholder="Confirm password" type="password" required
+                                   class="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                          focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all" />
+                        </div>
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <!-- Avatar -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Avatar <span class="text-slate-300 font-normal normal-case">(optional)</span></label>
+                        <input asp-for="Input.ImageFile" class="w-full text-sm text-slate-500 border border-slate-200 rounded-xl bg-slate-50 px-3 py-2
+                               file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold
+                               file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100 transition-all cursor-pointer"
+                               type="file" id="imageFile" accept="image/*" />
+                        <span asp-validation-for="Input.ImageFile" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <!-- Role -->
+                    <div>
+                        <label for="role" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Register as</label>
+                        <select asp-for="Input.Role" id="role" required
+                                class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                       focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all">
+                            <option value="Student">Student</option>
+                            <option value="Instructor">Instructor</option>
+                        </select>
+                        <span asp-validation-for="Input.Role" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" id="registerBtn"
+                            class="w-full flex items-center justify-center gap-2 py-3 bg-slate-900 text-white text-sm font-semibold rounded-xl
+                                   hover:bg-slate-800 focus:ring-4 focus:ring-slate-200 transition-colors shadow-lg">
+                        <span id="registerBtnText">Create account</span>
+                        <span id="registerSpinner" class="d-none hidden w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" role="status" aria-hidden="true"></span>
+                    </button>
+
+                    <!-- Message — id giữ nguyên để JS cũ inject vào -->
+                    <div id="registerMessage" class="mt-1"></div>
+
+                    <p class="text-center text-sm text-slate-500">
+                        Already have an account?
+                        <a asp-page="/Account/Login" class="text-primary-600 font-semibold hover:text-primary-700 no-underline">Sign in</a>
+                    </p>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <style>
+        .d-none {
+            display: none !important;
+        }
+
+        #registerMessage .alert-danger {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #b91c1c;
+            margin-top: 4px;
+        }
+    </style>
     <script>
+        /* JS GIỮ NGUYÊN HOÀN TOÀN TỪ FILE CŨ */
         (function () {
             const form = document.getElementById('registerForm');
             form.addEventListener('submit', async function (e) {
@@ -121,7 +203,6 @@
                         return;
                     }
 
-                    // On success, navigate to login and refresh header
                     try {
                         const hres = await fetch('/api/ui/header', { credentials: 'same-origin' });
                         if (hres.ok) {
@@ -131,7 +212,6 @@
                         }
                     } catch (e) { }
 
-                    // navigate to login page
                     const loginRes = await fetch('/Account/Login', { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
                     if (loginRes.ok) {
                         const text = await loginRes.text();

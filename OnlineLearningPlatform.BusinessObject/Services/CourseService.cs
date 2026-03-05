@@ -139,8 +139,8 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 // status == -1 means return all courses regardless of status
                 var courses = status == -1
-                    ? await _unitOfWork.Courses.GetAllAsync(null)
-                    : await _unitOfWork.Courses.GetAllAsync(c => c.Status == status);
+                    ? await _unitOfWork.Courses.GetAllAsync(c => !c.IsDeleted)
+                    : await _unitOfWork.Courses.GetAllAsync(c => !c.IsDeleted && c.Status == status);
                 if (courses == null) return null;
 
                 var result = new List<GetAllCourseForAdminResponse>();
