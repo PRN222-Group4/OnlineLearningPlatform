@@ -1,0 +1,86 @@
+@page
+@model OnlineLearningPlatform.Presentation.Pages.Learning.MyCoursesModel
+@{
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Courses";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8 anim-fade-down">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                <i class="bi bi-book text-ocean-500"></i> My Courses
+            </h2>
+            <p class="text-gray-500 mt-1">Continue learning where you left off</p>
+        </div>
+        <a href="/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-ocean-600 border border-ocean-200 hover:bg-ocean-50 hover:border-ocean-300 transition-all duration-200">
+            <i class="bi bi-plus-lg"></i> Browse More
+        </a>
+    </div>
+
+    @if (Model.ErrorMessage != null)
+    {
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm">@Model.ErrorMessage</div>
+    }
+
+    @if (Model.Enrollments == null || !Model.Enrollments.Any())
+    {
+        <div class="text-center py-20 anim-fade-up">
+            <div class="w-20 h-20 bg-ocean-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <i class="bi bi-journal-bookmark text-3xl text-ocean-300"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-600">No courses yet</h3>
+            <p class="text-gray-400 mt-1 mb-4">You haven't enrolled in any courses.</p>
+            <a href="/" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-ocean-500 to-cyan-500 shadow-lg shadow-ocean-200 hover:scale-[1.02] transition-all duration-300">
+                <i class="bi bi-search"></i> Browse Courses
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
+            @{ var idx = 0; }
+            @foreach (var e in Model.Enrollments)
+            {
+                <div class="anim-fade-up delay-@(idx % 4 * 100 + 100)">
+                    <div class="group bg-white rounded-2xl border border-gray-100 overflow-hidden card-shine hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-500">
+                        <div class="relative overflow-hidden h-44">
+                            @if (!string.IsNullOrEmpty(e.CourseImage))
+                            {
+                                <img src="@e.CourseImage" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            }
+                            else
+                            {
+                                <div class="w-full h-full bg-gradient-to-br from-ocean-100 to-cyan-50 flex items-center justify-center">
+                                    <i class="bi bi-book text-4xl text-ocean-300"></i>
+                                </div>
+                            }
+                            <!-- Progress overlay -->
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                                <div class="flex items-center justify-between text-white text-xs mb-1.5">
+                                    <span class="font-medium">Progress</span>
+                                    <span class="font-bold">@e.ProgressPercent%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-white/30 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-cyan-400 to-ocean-400 rounded-full transition-all duration-700"
+                                         style="width:@(e.ProgressPercent)%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5">
+                            <h3 class="font-bold text-gray-900 line-clamp-2 group-hover:text-ocean-600 transition-colors">@e.CourseTitle</h3>
+
+                            <a asp-page="/Learning/Course" asp-route-courseId="@e.CourseId"
+                               class="mt-4 w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-ocean-500 to-cyan-500 hover:from-ocean-600 hover:to-cyan-600 shadow-md shadow-ocean-200 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
+                                <i class="bi bi-play-circle-fill"></i> Continue Learning
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                idx++;
+            }
+        </div>
+    }
+</div>

@@ -66,6 +66,7 @@ builder.Services.AddScoped<ILessonResourceService, LessonResourceService>();
 builder.Services.AddScoped<IModuleService, ModuleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<OnlineLearningPlatform.BusinessObject.IServices.IAdminService, OnlineLearningPlatform.BusinessObject.Services.AdminService>();
+builder.Services.AddScoped<IUserLessonProgressService, UserLessonProgressService>();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));

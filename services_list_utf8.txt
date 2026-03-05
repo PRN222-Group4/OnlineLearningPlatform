@@ -1,0 +1,95 @@
+﻿
+## IAdminService.cs
+- Task<AdminOverviewResponse> GetOverviewAsync(int recentPayments = 10);
+
+## IAIService.cs
+- Task<string> GetAIResponseAsync(string prompt);
+
+## IAuthService.cs
+- Task<ApiResponse> LoginAsync(LoginRequest request);
+- Task<ApiResponse> RegisterAsync(RegisterRequest request);
+- Task<ApiResponse> ProfileAsync();
+
+## IClaimService.cs
+- ClaimDTO GetUserClaim();
+
+## ICourseService.cs
+- Task<ApiResponse> CreateNewCourseAsync(CreateNewCourseRequest request);
+- Task<ApiResponse> GetAllCourseAsync();
+- Task<ApiResponse> GetCourseDetailAsync(Guid courseId);
+- Task<ApiResponse> GetAllCourseForAdminAsync(int status);
+- Task<ApiResponse> GetCoursesByInstructorAsync();
+- Task<ApiResponse> GetEnrolledCoursesForStudentAsync();
+- Task<ApiResponse> ApproveCourseAsync(ApproveCourseRequest request);
+- Task<ApiResponse> SubmitCourseForReviewAsync(Guid courseId);
+- Task<ApiResponse> GetCoursesByStatusAsync(int status);
+- Task<ApiResponse> GetCourseByIdAsync(Guid courseId);
+- Task<ApiResponse> UpdateCourseAsync(OnlineLearningPlatform.BusinessObject.Requests.Course.UpdateCourseRequest request);
+- Task<ApiResponse> DeleteCourseAsync(Guid courseId);
+- Task<ApiResponse> GetCourseDetailForStudentAsync(Guid courseId);
+
+## IEmailService.cs
+- Task<ApiResponse> SendRejectCourseEmail(string receiverName, string receiverEmail, string rejectReason, string courseTitle);
+- Task<ApiResponse> SendApproveCourseEmail(string receiverName, string receiverEmail, string courseTitle);
+- Task<ApiResponse> SendShortAnswerNotifyToInstructor(
+
+## IEnrollmentService.cs
+- Task<ApiResponse> EnrollStudentDirectlyAsync(Guid courseId);
+- Task<ApiResponse> GetStudentEnrollmentsAsync();
+- Task<bool> CheckEnrollmentAsync(Guid courseId);
+
+## IFirebaseStorageService.cs
+- Task<string> UploadCourseImage(string courseName, IFormFile? file);
+- Task<string> UploadUserImage(string userName, IFormFile? file);
+- Task<string> UploadQuestionSubmissionFile(IFormFile? file);
+- Task<(string Url, int Type)> UploadLessonResourceAsync(
+
+## IGradedAttemptService.cs
+- Task<ApiResponse> StartAttemptAsync(Guid gradedItemId);
+- Task<ApiResponse> SubmitShortAnswerAsync(Guid attemptId, Guid questionId, string answer, IFormFile? file);
+- Task<ApiResponse> SubmitAttemptAsync(Guid attemptId);
+- Task<ApiResponse> GradeAssignmentAsync(Guid attemptId, decimal score);
+
+## IGradedItemService.cs
+
+## ILessonItemService.cs
+
+## ILessonResourceService.cs
+- Task<ApiResponse> CreateLessonResourceAsync(CreateLessonResourceRequest request);
+- Task<ApiResponse> GetResourcesByLessonItemAsync(Guid lessonItemId);
+- Task<ApiResponse> UpdateLessonResourceAsync(Guid resourceId, UpdateLessonResourceRequest request);
+- Task<ApiResponse> DeleteLessonResourceAsync(Guid resourceId);
+
+## ILessonService.cs
+- Task<ApiResponse> CreateNewLessonForModuleAsync(CreateNewLessonForModuleRequest request);
+- Task<ApiResponse> UpdateLessonAsync(Guid lessonId, UpdateLessonRequest request);
+- Task<ApiResponse> DeleteLessonAsync(Guid lessonId);
+- Task<ApiResponse> GetLessonDetailAsync(Guid lessonId);
+- Task<ApiResponse> GetLessonsByModuleAsync(Guid moduleId);
+
+## IModuleService.cs
+- Task<ApiResponse> CreateNewModuleForCourseAsync(CreateNewModuleForCourseRequest request);
+- Task<ApiResponse> GetModulesByCourseAsync(Guid courseId);
+- Task<ApiResponse> GetModuleDetailAsync(Guid moduleId);
+- Task<ApiResponse> UpdateModuleAsync(UpdateModuleRequest request);
+- Task<ApiResponse> DeleteModuleAsync(Guid moduleId);
+
+## IPaymentService.cs
+- Task<ApiResponse> PaymentExecuteAsync(IQueryCollection collection);*/
+- Task<PaymentResponse> CreatePayOSPaymentAsync(CreateNewPaymentRequest request);
+- Task HandlePayOSWebhookAsync(WebhookData data);
+- Task ExpirePendingPaymentAsync();
+- Task<ApiResponse> GetSuccessfulPaymentsAsync();
+- Task<ApiResponse> GetSuccessfulPaymentRecordsAsync();
+- Task<OnlineLearningPlatform.BusinessObject.Responses.Admin.TopCourseResponse> GetTopCourseByEnrollmentsAsync();
+- Task<OnlineLearningPlatform.BusinessObject.Responses.Admin.TopInstructorResponse> GetTopInstructorByStudentsAsync();
+
+## IQuestionService.cs
+- Task<ApiResponse> CreateQuestionAsync(CreateQuestionRequest request);
+
+## IUserLessonProgressService.cs
+- Task<ApiResponse> StartOrUpdateProgressAsync(UpdateUserLessonProgressRequest request);
+- Task<ApiResponse> MarkLessonCompletedAsync(Guid lessonId);
+- Task<ApiResponse> GetLessonProgressAsync(Guid lessonId);
+- Task<ApiResponse> GetLessonProgressByUserAsync(Guid userId);
+

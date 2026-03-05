@@ -22,12 +22,14 @@ namespace OnlineLearningPlatform.BusinessObject.Services
         private readonly IUnitOfWork _uow;
         private readonly IClaimService _service;
         private readonly AppSettings _appSettings;
+        private readonly IEnrollmentService _enrollmentService;
 
-        public PaymentService(IUnitOfWork uow, IClaimService service, AppSettings appSettings)
+        public PaymentService(IUnitOfWork uow, IClaimService service, AppSettings appSettings, IEnrollmentService enrollmentService)
         {
             _uow = uow;
             _service = service;
             _appSettings = appSettings;
+            _enrollmentService = enrollmentService;
         }
 
         public async Task<ApiResponse> GetSuccessfulPaymentRecordsAsync()
@@ -102,6 +104,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var userId = _service.GetUserClaim().UserId;
             var course = await _uow.Courses.GetAsync(c => c.CourseId == request.CourseId) ?? throw new NotFoundException("Course not found");
 
+            // Always use server-side price from DB — never trust client-submitted amount
+            var coursePrice = course.Price;
+
             var alreadyEnrolled = await _uow.Enrollments.AnyAsync(e =>
                 e.UserId == userId &&
                 e.CourseId == request.CourseId &&
@@ -130,14 +135,15 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 _appSettings.PayOS.ChecksumKey
             );
 
+            var expireMinutes = 15;
             var requestData = new CreatePaymentLinkRequest
             {
                 OrderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                Amount = (int)request.Amount,
+                Amount = (int)coursePrice,
                 Description = $"Course: {course.Title}",
                 ReturnUrl = _appSettings.PayOS.ReturnUrl,
                 CancelUrl = _appSettings.PayOS.CancelUrl,
-                ExpiredAt = DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds()
+                ExpiredAt = DateTimeOffset.UtcNow.AddMinutes(expireMinutes).ToUnixTimeSeconds()
             };
 
             var response = await payOS.PaymentRequests.CreateAsync(requestData);
@@ -146,14 +152,15 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 PaymentId = Guid.NewGuid(),
                 UserId = userId,
                 CourseId = course.CourseId,
-                Amount = request.Amount,
+                Amount = coursePrice,
                 Status = 0,
                 OrderCode = requestData.OrderCode,
                 PaymentLinkId = response.PaymentLinkId,
                 CheckoutUrl = response.CheckoutUrl,
                 Currency = "VND",
                 Method = "PayOS",
-                Type = 0
+                Type = 0,
+                ExpiredAt = DateTime.UtcNow.AddMinutes(expireMinutes)
             };
 
             await _uow.Payments.AddAsync(payment);
@@ -224,6 +231,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     };
 
                     await _uow.Enrollments.AddAsync(enrollment);
+
+                    // Initialize lesson progress records so MarkLessonCompleted works
+                    await _enrollmentService.InitializeLessonProgressAsync(payment.UserId, payment.CourseId!.Value);
                 }
 
                 // 💰 Wallet

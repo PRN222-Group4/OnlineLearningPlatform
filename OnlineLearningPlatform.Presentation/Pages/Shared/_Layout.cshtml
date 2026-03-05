@@ -1,34 +1,107 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - OnlineLearningPlatform.Presentation</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - EduSphere</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+                    colors: {
+                        ocean: {
+                            50:  '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd',
+                            300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9',
+                            600: '#0284c7', 700: '#0369a1', 800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Flowbite -->
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+
+    <!-- Custom animations & utilities -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/OnlineLearningPlatform.Presentation.styles.css" asp-append-version="true" />
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
 </head>
-<body>
-    <header>
+<body class="bg-gray-50 font-sans text-gray-900 antialiased" x-data="{ mobileMenu: false }">
+
+    <!-- ═══════════ HEADER ═══════════ -->
     <partial name="_Header" />
-    </header>
 
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <!-- ═══════════ MAIN ═══════════ -->
+    <main class="min-h-screen">
+        @RenderBody()
+    </main>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - OnlineLearningPlatform.Presentation - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <!-- ═══════════ FOOTER ═══════════ -->
+    <footer class="bg-gray-900 text-gray-400 mt-20">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Brand -->
+                <div class="md:col-span-2">
+                    <a href="/" class="flex items-center gap-2 mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-ocean-500 to-cyan-400 rounded-xl flex items-center justify-center text-white">
+                            <i class="bi bi-mortarboard-fill text-lg"></i>
+                        </div>
+                        <span class="text-xl font-extrabold text-white">Edu<span class="text-ocean-400">Sphere</span></span>
+                    </a>
+                    <p class="text-sm leading-relaxed max-w-sm">
+                        Empower your learning journey with expert-led courses.
+                        Build real skills that matter for your career.
+                    </p>
+                </div>
+                <!-- Links -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Platform</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/" class="hover:text-ocean-400 transition">Browse Courses</a></li>
+                        <li><a href="/Learning/MyCourses" class="hover:text-ocean-400 transition">My Learning</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Teaching</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/Teacher/Dashboard" class="hover:text-ocean-400 transition">Teacher Dashboard</a></li>
+                        <li><a href="/Teacher/CreateCourse" class="hover:text-ocean-400 transition">Create Course</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-sm">&copy; @DateTime.Now.Year <span class="text-white font-semibold">EduSphere</span>. All rights reserved.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-ocean-600 flex items-center justify-center transition">
+                        <i class="bi bi-github text-sm"></i>
+                    </a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-ocean-600 flex items-center justify-center transition">
+                        <i class="bi bi-facebook text-sm"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Flowbite JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

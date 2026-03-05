@@ -23,28 +23,24 @@ namespace OnlineLearningPlatform.Presentation.Pages.Courses
 
         [BindProperty]
         public Guid CourseId { get; set; }
-        [BindProperty]
-        public decimal Amount { get; set; }
+
         public async Task OnGetAsync(Guid id)
         {
-
             var resp = await _courseService.GetCourseDetailAsync(id);
             if (resp != null && resp.IsSuccess && resp.Result != null)
             {
                 var json = System.Text.Json.JsonSerializer.Serialize(resp.Result);
                 Course = System.Text.Json.JsonSerializer.Deserialize<CourseDetailResponse>(json);
                 CourseId = id;
-                Amount = Course.Price;
             }
         }
 
         public async Task<IActionResult> OnPostPayAsync()
         {
-            // create payment via payment service
+            // Amount is now determined server-side from course.Price — no client input
             var resp = await _paymentService.CreatePayOSPaymentAsync(new OnlineLearningPlatform.BusinessObject.Requests.Payment.CreateNewPaymentRequest
             {
-                CourseId = CourseId,
-                Amount = Amount
+                CourseId = CourseId
             });
 
             if (resp != null)

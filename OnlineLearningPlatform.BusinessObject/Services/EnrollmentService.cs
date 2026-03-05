@@ -115,7 +115,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             }
         }
 
-        private async Task InitializeLessonProgressAsync(Guid userId, Guid courseId)
+        public async Task InitializeLessonProgressAsync(Guid userId, Guid courseId)
         {
             // Lấy tất cả Module -> Lấy tất cả Lesson -> Tạo record Progress = 0%
             var modules = await _unitOfWork.Modules.GetAllAsync(m => m.CourseId == courseId);

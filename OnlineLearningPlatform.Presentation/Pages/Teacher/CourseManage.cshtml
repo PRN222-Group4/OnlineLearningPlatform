@@ -1,0 +1,210 @@
+@page "{courseId:guid}"
+@model OnlineLearningPlatform.Presentation.Pages.Teacher.CourseManageModel
+@{
+    Layout = "~/Pages/Teacher/_TeacherLayout.cshtml";
+    ViewData["Title"] = "Manage Course";
+}
+
+<!-- Course Header Card -->
+<div class="bg-white rounded-2xl border border-gray-100 p-6 mb-6 shadow-sm anim-fade-down">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-extrabold text-gray-900">@Model.CourseTitle</h2>
+            <p class="text-sm text-gray-500 mt-1">@Model.CourseDescription</p>
+            @{
+                var (label, bgClass, dotClass) = Model.CourseStatus switch
+                {
+                    0 => ("Draft", "bg-gray-100 text-gray-600", "bg-gray-400"),
+                    1 => ("Pending Review", "bg-amber-100 text-amber-700", "bg-amber-400"),
+                    2 => ("Published", "bg-emerald-100 text-emerald-700", "bg-emerald-400"),
+                    3 => ("Rejected", "bg-red-100 text-red-700", "bg-red-400"),
+                    _ => ("Unknown", "bg-gray-100 text-gray-600", "bg-gray-400"),
+                };
+            }
+            <div class="mt-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold @bgClass">
+                    <span class="w-1.5 h-1.5 rounded-full @dotClass"></span> @label
+                </span>
+            </div>
+        </div>
+        @if (Model.CourseStatus == 0 || Model.CourseStatus == 3)
+        {
+            <form method="post" asp-page-handler="SubmitForReview">
+                <input type="hidden" name="courseId" value="@Model.CourseId" />
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-ocean-500 to-cyan-500 shadow-lg shadow-ocean-200 hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+                    <i class="bi bi-send-fill"></i> Submit for Review
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- Alerts -->
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm anim-scale">@Model.ErrorMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl mb-4 text-sm anim-scale">
+        <i class="bi bi-check-circle-fill mr-1"></i> @Model.SuccessMessage
+    </div>
+}
+
+<!-- Modules & Lessons Header -->
+<div class="flex items-center justify-between mb-4 anim-fade-up delay-100">
+    <h3 class="text-lg font-extrabold text-gray-900 flex items-center gap-2">
+        <i class="bi bi-boxes text-ocean-500"></i> Modules & Lessons
+    </h3>
+    <button type="button" onclick="document.getElementById('addModuleModal').classList.remove('hidden')"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-ocean-600 border border-ocean-200 hover:bg-ocean-50 hover:border-ocean-300 transition-all duration-200">
+        <i class="bi bi-plus-lg"></i> Add Module
+    </button>
+</div>
+
+<!-- Modules -->
+@if (Model.Modules == null || !Model.Modules.Any())
+{
+    <div class="text-center py-16 anim-fade-up">
+        <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i class="bi bi-folder-plus text-2xl text-gray-300"></i>
+        </div>
+        <h3 class="text-base font-bold text-gray-600">No modules yet</h3>
+        <p class="text-sm text-gray-400 mt-1">Add modules to organize your course content.</p>
+    </div>
+}
+else
+{
+    <div class="space-y-4" x-data="{ open: 0 }">
+        @{ var mIdx = 0; }
+        @foreach (var module in Model.Modules)
+        {
+            <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm anim-fade-up delay-@(mIdx * 100 + 100)">
+                <!-- Module header -->
+                <div class="flex items-center justify-between px-5 py-4 bg-gray-50/80 cursor-pointer hover:bg-gray-100/80 transition-colors"
+                     @@click="open = open === @mIdx ? -1 : @mIdx">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-ocean-100 text-ocean-600 flex items-center justify-center text-sm font-bold">
+                            @(mIdx + 1)
+                        </div>
+                        <div>
+                            <span class="font-bold text-gray-900">@module.Title</span>
+                            <span class="text-xs text-gray-400 ml-2">(@(module.Lessons?.Count ?? 0) lessons)</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <form method="post" asp-page-handler="DeleteModule" class="inline" @@click.stop>
+                            <input type="hidden" name="moduleId" value="@module.ModuleId" />
+                            <input type="hidden" name="courseId" value="@Model.CourseId" />
+                            <button type="submit" onclick="return confirm('Delete this module?')"
+                                    class="w-8 h-8 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center transition">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        <i class="bi bi-chevron-down text-gray-400 transition-transform duration-300"
+                           :class="open === @mIdx ? 'rotate-180' : ''"></i>
+                    </div>
+                </div>
+
+                <!-- Lessons -->
+                <div x-show="open === @mIdx"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     style="display: none;">
+
+                    @if (module.Lessons != null && module.Lessons.Any())
+                    {
+                        @foreach (var lesson in module.Lessons)
+                        {
+                            <div class="flex items-center justify-between px-5 py-3 border-t border-gray-50 hover:bg-ocean-50/50 transition-colors group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm @(lesson.Type == 0 ? "bg-blue-50 text-blue-500" : "bg-emerald-50 text-emerald-500") group-hover:scale-110 transition-transform">
+                                        <i class="bi @(lesson.Type == 0 ? "bi-play-circle-fill" : "bi-file-text-fill")"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-semibold text-gray-900">@lesson.Title</div>
+                                        <div class="text-xs text-gray-400">@(lesson.Type == 0 ? "Video" : "Reading")</div>
+                                    </div>
+                                </div>
+                                <form method="post" asp-page-handler="DeleteLesson">
+                                    <input type="hidden" name="lessonId" value="@lesson.LessonId" />
+                                    <input type="hidden" name="courseId" value="@Model.CourseId" />
+                                    <button type="submit" onclick="return confirm('Delete this lesson?')"
+                                            class="w-7 h-7 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 flex items-center justify-center transition opacity-0 group-hover:opacity-100">
+                                        <i class="bi bi-trash text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    }
+
+                    <!-- Add Lesson form -->
+                    <div class="px-5 py-3 bg-gray-50/80 border-t border-gray-100">
+                        <form method="post" asp-page-handler="AddLesson" class="flex items-end gap-3">
+                            <input type="hidden" name="moduleId" value="@module.ModuleId" />
+                            <input type="hidden" name="courseId" value="@Model.CourseId" />
+                            <div class="flex-1">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Lesson Title</label>
+                                <input type="text" name="lessonTitle" required placeholder="Enter lesson title..."
+                                       class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition" />
+                            </div>
+                            <div class="w-28">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Type</label>
+                                <select name="lessonType" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-ocean-400 outline-none">
+                                    <option value="0">Video</option>
+                                    <option value="1">Reading</option>
+                                </select>
+                            </div>
+                            <button type="submit"
+                                    class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-ocean-500 to-cyan-500 hover:from-ocean-600 hover:to-cyan-600 shadow-md transition-all whitespace-nowrap">
+                                <i class="bi bi-plus"></i> Add
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            mIdx++;
+        }
+    </div>
+}
+
+<!-- Add Module Modal (Alpine.js powered) -->
+<div id="addModuleModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+     onclick="if(event.target===this) this.classList.add('hidden')">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 anim-scale" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-bold text-gray-900"><i class="bi bi-folder-plus text-ocean-500 mr-2"></i>Add New Module</h3>
+            <button onclick="this.closest('#addModuleModal').classList.add('hidden')"
+                    class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <i class="bi bi-x-lg text-gray-400"></i>
+            </button>
+        </div>
+        <form method="post" asp-page-handler="AddModule">
+            <div class="px-6 py-5 space-y-4">
+                <input type="hidden" name="courseId" value="@Model.CourseId" />
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Module Title</label>
+                    <input type="text" name="moduleTitle" required placeholder="e.g., Introduction to the Course"
+                           class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Description (optional)</label>
+                    <textarea name="moduleDescription" rows="3" placeholder="Brief description of this module"
+                              class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition resize-none"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
+                <button type="button" onclick="this.closest('#addModuleModal').classList.add('hidden')"
+                        class="px-5 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-5 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-ocean-500 to-cyan-500 shadow-md hover:shadow-lg transition-all">
+                    <i class="bi bi-check-lg mr-1"></i> Create Module
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

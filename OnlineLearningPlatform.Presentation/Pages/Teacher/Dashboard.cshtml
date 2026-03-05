@@ -2,55 +2,84 @@
 @model OnlineLearningPlatform.Presentation.Pages.Teacher.DashboardModel
 @{
     Layout = "~/Pages/Teacher/_TeacherLayout.cshtml";
-    ViewData["Title"] = "Teacher Dashboard";
+    ViewData["Title"] = "My Courses";
 }
 
-<div class="container">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2>Teacher Dashboard</h2>
-        <div>
-            <a class="btn btn-primary" asp-page="/Teacher/CreateCourse">＋ Create Course</a>
-        </div>
+<div class="flex items-center justify-between mb-6 anim-fade-down">
+    <div>
+        <h2 class="text-xl font-extrabold text-gray-900">My Courses</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Manage your courses and track enrollment</p>
     </div>
+    <a asp-page="/Teacher/CreateCourse"
+       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-ocean-500 to-cyan-500 shadow-lg shadow-ocean-200 hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+        <i class="bi bi-plus-lg"></i> Create Course
+    </a>
+</div>
 
-    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-        <div class="alert alert-danger">@Model.ErrorMessage</div>
-    }
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm">@Model.ErrorMessage</div>
+}
 
-    @if (Model.Courses == null || !Model.Courses.Any())
-    {
-        <div class="alert alert-info">You have not created any courses yet.</div>
-    }
-    else
-    {
-        <div class="row">
-            @foreach (var c in Model.Courses)
+@if (Model.Courses == null || !Model.Courses.Any())
+{
+    <div class="text-center py-20 anim-fade-up">
+        <div class="w-20 h-20 bg-ocean-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
+            <i class="bi bi-journal-plus text-3xl text-ocean-300"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-600">No courses yet</h3>
+        <p class="text-gray-400 mt-1">Start by creating your first course!</p>
+    </div>
+}
+else
+{
+    <div class="grid lg:grid-cols-3 md:grid-cols-2 gap-5">
+        @foreach (var c in Model.Courses)
+        {
+            var (label, bgClass, dotClass) = c.Status switch
             {
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="row g-0">
-                            <div class="col-4">
-                                <img src="@c.Image" class="img-fluid rounded-start" style="height:130px;object-fit:cover;" />
+                0 => ("Draft", "bg-gray-100 text-gray-600", "bg-gray-400"),
+                1 => ("Pending", "bg-amber-100 text-amber-700", "bg-amber-400"),
+                2 => ("Published", "bg-emerald-100 text-emerald-700", "bg-emerald-400"),
+                3 => ("Rejected", "bg-red-100 text-red-700", "bg-red-400"),
+                _ => ("Unknown", "bg-gray-100 text-gray-600", "bg-gray-400"),
+            };
+
+            <div class="anim-fade-up">
+                <div class="group bg-white rounded-2xl border border-gray-100 overflow-hidden card-shine hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-500">
+                    <div class="relative overflow-hidden h-40">
+                        @if (!string.IsNullOrEmpty(c.Image))
+                        {
+                            <img src="@c.Image" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        }
+                        else
+                        {
+                            <div class="w-full h-full bg-gradient-to-br from-ocean-100 to-cyan-50 flex items-center justify-center">
+                                <i class="bi bi-book text-4xl text-ocean-300"></i>
                             </div>
-                            <div class="col-8">
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title">@c.Title</h5>
-                                    <p class="card-text text-muted small mb-2">@c.Description</p>
-                                    <div class="mt-auto d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <small class="text-muted">Price: @c.Price.ToString("N0") đ</small>
-                                        </div>
-                                        <div>
-                                            <a class="btn btn-sm btn-outline-primary" asp-page="/Teacher/CoursesEdit" asp-route-id="@c.CourseId">Edit</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        }
+                        <!-- Status badge -->
+                        <div class="absolute top-3 right-3">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold @bgClass backdrop-blur-sm">
+                                <span class="w-1.5 h-1.5 rounded-full @dotClass"></span> @label
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 line-clamp-1 mb-1">@c.Title</h3>
+                        <p class="text-sm text-gray-500 line-clamp-2 mb-4">@c.Description</p>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-extrabold text-ocean-600">@c.Price.ToString("N0") <span class="text-xs text-gray-400 font-normal">đ</span></span>
+                            <a asp-page="/Teacher/CourseManage" asp-route-courseId="@c.CourseId"
+                               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-ocean-600 border border-ocean-200 hover:bg-ocean-50 hover:border-ocean-300 transition-all duration-200">
+                                <i class="bi bi-pencil-square"></i> Manage
+                            </a>
                         </div>
                     </div>
                 </div>
-            }
-        </div>
-    }
-</div>
+            </div>
+        }
+    </div>
+}
