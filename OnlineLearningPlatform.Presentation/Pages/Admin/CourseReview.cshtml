@@ -1,0 +1,237 @@
+@page "{courseId:guid}"
+@model OnlineLearningPlatform.Presentation.Pages.Admin.CourseReviewModel
+@{
+    ViewData["Title"] = "Review: " + Model.Course.Title;
+    var levelLabels = new[] { "Beginner", "Intermediate", "Advanced", "All Levels" };
+}
+
+<div class="max-w-5xl mx-auto" x-data="{ showReject: false }">
+    <!-- Notifications -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-6 rounded-xl bg-red-50 border border-red-100 p-4 flex items-center gap-3">
+            <i class="fas fa-exclamation-circle text-red-500"></i>
+            <span class="text-sm text-red-700 font-medium">@TempData["Error"]</span>
+        </div>
+    }
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <a asp-page="/Admin/Courses/Pending"
+           class="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-700 transition">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Pending
+        </a>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-bold border border-amber-100">
+            <i class="fas fa-clock text-[10px]"></i> Pending Review
+        </span>
+    </div>
+
+    <!-- ═══════════ COURSE INFO CARD ═══════════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden mb-6">
+        <div class="flex flex-col md:flex-row">
+            @if (!string.IsNullOrEmpty(Model.Course.Image))
+            {
+                <div class="md:w-72 shrink-0">
+                    <img src="@Model.Course.Image" alt="@Model.Course.Title" class="w-full h-48 md:h-full object-cover" />
+                </div>
+            }
+            <div class="flex-1 p-6">
+                <h1 class="text-2xl font-bold text-zinc-900">@Model.Course.Title</h1>
+                @if (!string.IsNullOrEmpty(Model.Course.Subtitle))
+                {
+                    <p class="text-zinc-500 mt-1">@Model.Course.Subtitle</p>
+                }
+                <div class="flex flex-wrap gap-3 mt-4 text-sm text-zinc-600">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-50 border border-zinc-100">
+                        <i class="fas fa-signal text-xs text-zinc-400"></i>
+                        @(Model.Course.Level >= 0 && Model.Course.Level < levelLabels.Length ? levelLabels[Model.Course.Level] : "Unknown")
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-50 border border-zinc-100">
+                        <i class="fas fa-tag text-xs text-zinc-400"></i>
+                        @Model.Course.Price.ToString("N0") VND
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-50 border border-zinc-100">
+                        <i class="fas fa-book text-xs text-zinc-400"></i>
+                        @Model.Lessons.Count lessons
+                    </span>
+                    @if (Model.Course.SubmittedAt.HasValue)
+                    {
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-50 border border-zinc-100">
+                            <i class="far fa-calendar text-xs text-zinc-400"></i>
+                            @Model.Course.SubmittedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Course.Tags))
+                {
+                    <div class="flex flex-wrap gap-1.5 mt-3">
+                        @foreach (var tag in Model.Course.Tags.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-xs font-medium border border-indigo-100">@tag</span>
+                        }
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Course.Description))
+                {
+                    <div class="mt-4 p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+                        <p class="text-sm text-zinc-700 leading-relaxed">@Model.Course.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ COURSE CONTENT ═══════════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden mb-6">
+        <div class="border-b border-zinc-100 px-6 py-4">
+            <h2 class="font-bold text-zinc-900 flex items-center gap-2">
+                <i class="fas fa-list-ol text-indigo-500"></i> Course Content
+            </h2>
+        </div>
+        <div class="p-6 space-y-4">
+            @foreach (var (lesson, lIndex) in Model.Lessons.Select((l, i) => (l, i)))
+            {
+                var materials = Model.LessonItems.Where(li => li.LessonId == lesson.LessonId).ToList();
+                <div class="border border-zinc-100 rounded-xl overflow-hidden" x-data="{ open: @(lIndex == 0 ? "true" : "false") }">
+                    <button @@click="open = !open"
+                            class="w-full flex items-center justify-between px-5 py-3.5 bg-zinc-50 hover:bg-zinc-100 transition text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-md bg-indigo-100 text-indigo-600 text-xs font-bold flex items-center justify-center">
+                                @(lIndex + 1)
+                            </div>
+                            <span class="font-semibold text-zinc-800 text-sm">@lesson.Title</span>
+                            <span class="text-[10px] text-zinc-400 font-medium">@materials.Count items · @lesson.EstimatedMinutes min</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-zinc-400 text-xs transition-transform" :class="open && 'rotate-180'"></i>
+                    </button>
+
+                    <div x-show="open" x-transition x-cloak class="px-5 py-4 space-y-3 border-t border-zinc-100">
+                        @if (!materials.Any())
+                        {
+                            <p class="text-xs text-zinc-400 italic">No materials in this lesson</p>
+                        }
+                        @foreach (var item in materials)
+                        {
+                            var resource = Model.LessonResources.FirstOrDefault(r => r.LessonItemId == item.LessonItemId);
+                            var typeLabel = item.Type == 0 ? "Video" : item.Type == 1 ? "Reading" : "Quiz";
+                            var typeIcon = item.Type == 0 ? "fa-play-circle" : item.Type == 1 ? "fa-book-open" : "fa-question-circle";
+                            var typeColor = item.Type == 0 ? "text-blue-500 bg-blue-50" : item.Type == 1 ? "text-emerald-500 bg-emerald-50" : "text-amber-500 bg-amber-50";
+
+                            <div class="p-3 rounded-lg border border-zinc-50 bg-white">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-7 h-7 rounded-md @typeColor flex items-center justify-center">
+                                        <i class="fas @typeIcon text-[11px]"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-zinc-800">@(resource?.Title ?? typeLabel)</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-300">@typeLabel</span>
+                                </div>
+
+                                @if (item.Type == 1 && resource != null && !string.IsNullOrEmpty(resource.TextContent))
+                                {
+                                    <div class="ml-10 p-3 bg-zinc-50 rounded-lg text-sm text-zinc-600 max-h-32 overflow-y-auto">
+                                        @Html.Raw(resource.TextContent)
+                                    </div>
+                                }
+                                @if (item.Type == 0 && resource != null)
+                                {
+                                    <div class="ml-10 text-xs text-zinc-500">
+                                        @if (resource.VideoSourceType == 1)
+                                        {
+                                            <span class="flex items-center gap-1.5">
+                                                <i class="fab fa-youtube text-red-500"></i> YouTube: @resource.ResourceUrl
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="flex items-center gap-1.5">
+                                                <i class="fas fa-file-video text-blue-400"></i> Uploaded MP4
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                @if (item.Type == 2)
+                                {
+                                    var gradedItem = Model.GradedItems.FirstOrDefault(g => g.LessonItemId == item.LessonItemId);
+                                    if (gradedItem != null)
+                                    {
+                                        var quizQuestions = Model.Questions.Where(q => q.GradedItemId == gradedItem.GradedItemId).ToList();
+                                        <div class="ml-10 space-y-2 mt-2">
+                                            @foreach (var (q, qi) in quizQuestions.Select((q, i) => (q, i)))
+                                            {
+                                                var opts = Model.AnswerOptions.Where(ao => ao.QuestionId == q.QuestionId).ToList();
+                                                <div class="p-3 bg-zinc-50 rounded-lg">
+                                                    <p class="text-sm font-medium text-zinc-700">Q@(qi + 1). @q.Content</p>
+                                                    <div class="mt-2 space-y-1">
+                                                        @foreach (var opt in opts)
+                                                        {
+                                                            <div class="flex items-center gap-2 text-xs @(opt.IsCorrect ? "text-emerald-600 font-semibold" : "text-zinc-500")">
+                                                                <i class="fas @(opt.IsCorrect ? "fa-check-circle text-emerald-500" : "fa-circle text-zinc-300") text-[10px]"></i>
+                                                                @opt.Text
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ═══════════ ACTION BUTTONS ═══════════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-zinc-100 p-6">
+        <div class="flex items-center justify-between">
+            <a asp-page="/Admin/Courses/Pending"
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition">
+                <i class="fas fa-arrow-left text-xs"></i> Back
+            </a>
+            <div class="flex items-center gap-3">
+                <button type="button" @@click="showReject = true"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 transition">
+                    <i class="fas fa-times-circle text-xs"></i> Reject
+                </button>
+                <form method="post" asp-page-handler="Approve" asp-route-courseId="@Model.Course.CourseId"
+                      onsubmit="return confirm('Are you sure you want to approve this course?')">
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition">
+                        <i class="fas fa-check-circle text-xs"></i> Approve & Publish
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ REJECT MODAL ═══════════ -->
+    <div x-show="showReject" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" x-cloak>
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4" @@click.away="showReject = false">
+            <div class="text-center mb-5">
+                <div class="w-14 h-14 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-times-circle text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-zinc-900">Reject Course</h3>
+                <p class="text-sm text-zinc-500 mt-1">
+                    Provide a reason so the instructor understands what needs to be changed.
+                </p>
+            </div>
+            <form method="post" asp-page-handler="Reject" asp-route-courseId="@Model.Course.CourseId">
+                <textarea name="RejectReason" rows="4" required placeholder="Explain why this course is being rejected..."
+                          class="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none text-sm resize-none"></textarea>
+                <div class="flex gap-3 mt-4">
+                    <button type="button" @@click="showReject = false"
+                            class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition">
+                        Confirm Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

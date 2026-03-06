@@ -1,0 +1,95 @@
+@page
+@model OnlineLearningPlatform.Presentation.Pages.Admin.Courses.PendingModel
+@{
+    ViewData["Title"] = "Pending Course Reviews";
+}
+
+<div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900 tracking-tight">Pending Reviews</h1>
+            <p class="text-sm text-zinc-500 mt-1">Review and approve or reject instructor-submitted courses</p>
+        </div>
+        <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-100">
+            <i class="fas fa-clock text-amber-500"></i>
+            <span class="text-sm font-semibold text-amber-700">@Model.PendingCourses.Count pending</span>
+        </div>
+    </div>
+
+    @if (!Model.PendingCourses.Any())
+    {
+        <div class="bg-white rounded-2xl shadow-sm border border-zinc-100 p-16 text-center">
+            <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check-double text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-zinc-900">All caught up!</h3>
+            <p class="text-sm text-zinc-500 mt-1">There are no courses pending review at the moment.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid gap-4">
+            @foreach (var course in Model.PendingCourses)
+            {
+                var levelLabels = new[] { "Beginner", "Intermediate", "Advanced", "All Levels" };
+                var levelLabel = course.Level >= 0 && course.Level < levelLabels.Length ? levelLabels[course.Level] : "Unknown";
+
+                <div class="bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden hover:shadow-md transition-shadow group">
+                    <div class="flex">
+                        <div class="w-48 shrink-0 bg-zinc-100">
+                            @if (!string.IsNullOrEmpty(course.Image))
+                            {
+                                <img src="@course.Image" alt="@course.Title" class="w-full h-full object-cover" />
+                            }
+                            else
+                            {
+                                <div class="w-full h-full flex items-center justify-center text-zinc-300 min-h-[120px]">
+                                    <i class="fas fa-image text-3xl"></i>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="flex-1 p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-zinc-900 text-lg group-hover:text-indigo-600 transition-colors">
+                                        @course.Title
+                                    </h3>
+                                    @if (!string.IsNullOrEmpty(course.Subtitle))
+                                    {
+                                        <p class="text-sm text-zinc-500 mt-0.5">@course.Subtitle</p>
+                                    }
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-bold border border-amber-100">
+                                    <i class="fas fa-clock text-[10px]"></i> Pending
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-4 mt-3 text-xs text-zinc-500">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fas fa-signal w-3 text-center"></i> @levelLabel
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fas fa-tag w-3 text-center"></i> @course.Price.ToString("N0") VND
+                                </span>
+                                @if (course.SubmittedAt.HasValue)
+                                {
+                                    <span class="flex items-center gap-1.5">
+                                        <i class="far fa-calendar w-3 text-center"></i> Submitted @course.SubmittedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="flex items-center justify-end mt-4">
+                                <a asp-page="/Admin/Courses/Review" asp-route-courseId="@course.CourseId"
+                                   class="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm transition">
+                                    <i class="fas fa-eye text-xs"></i> Review
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

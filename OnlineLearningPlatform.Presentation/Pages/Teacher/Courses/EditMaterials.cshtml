@@ -1,0 +1,341 @@
+@page
+@model OnlineLearningPlatform.Presentation.Pages.Teacher.Courses.EditMaterialsModel
+@{
+    ViewData["Title"] = "Manage Materials";
+    var currentStep = 3;
+}
+
+<div class="max-w-5xl mx-auto py-8 px-4">
+    <!-- ═══════════ STEPPER ═══════════ -->
+    <nav class="mb-10">
+        <ol class="flex items-center w-full">
+            @for (int i = 1; i <= 3; i++)
+            {
+                var stepNames = new[] { "", "Course Info", "Lessons", "Materials" };
+                var icons = new[] { "", "fa-info-circle", "fa-list-ol", "fa-puzzle-piece" };
+                var isActive = i == currentStep;
+                var isCompleted = i < currentStep;
+                <li class="flex items-center @(i < 3 ? "flex-1" : "")">
+                    <div class="flex flex-col items-center gap-1.5">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
+                            @(isActive ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200 ring-4 ring-indigo-100"
+                                : isCompleted ? "bg-emerald-500 text-white"
+                                : "bg-zinc-100 text-zinc-400 border border-zinc-200")">
+                            @if (isCompleted) { <i class="fas fa-check text-xs"></i> }
+                            else { <i class="fas @icons[i] text-xs"></i> }
+                        </div>
+                        <span class="text-xs font-semibold @(isActive ? "text-indigo-600" : isCompleted ? "text-emerald-600" : "text-zinc-400")">
+                            @stepNames[i]
+                        </span>
+                    </div>
+                    @if (i < 3)
+                    {
+                        <div class="flex-1 mx-3 h-0.5 rounded @(i < currentStep ? "bg-emerald-400" : "bg-zinc-200")"></div>
+                    }
+                </li>
+            }
+        </ol>
+    </nav>
+
+    <!-- ═══════════ NOTIFICATIONS ═══════════ -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-6 rounded-xl bg-emerald-50 border border-emerald-100 p-4 flex items-center gap-3">
+            <i class="fas fa-check-circle text-emerald-500"></i>
+            <span class="text-sm text-emerald-700 font-medium">@TempData["Success"]</span>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-6 rounded-xl bg-red-50 border border-red-100 p-4 flex items-center gap-3">
+            <i class="fas fa-exclamation-circle text-red-500"></i>
+            <span class="text-sm text-red-700 font-medium">@TempData["Error"]</span>
+        </div>
+    }
+
+    <!-- ═══════════ MAIN CARD ═══════════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden">
+        <div class="border-b border-zinc-100 px-8 py-5 bg-gradient-to-r from-indigo-50/50 to-white">
+            <h2 class="text-xl font-bold text-zinc-900 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                    <i class="fas fa-puzzle-piece text-sm"></i>
+                </div>
+                Add Materials to Lessons
+            </h2>
+            <p class="text-sm text-zinc-500 mt-1 ml-11">Add reading content, videos, and quizzes to each lesson</p>
+        </div>
+
+        <div class="p-8 space-y-6" x-data="materialManager()">
+            @if (Model.IsReadOnly)
+            {
+                <div class="rounded-xl bg-zinc-100 border border-zinc-200 p-4 text-sm text-zinc-600 flex items-center gap-2">
+                    <i class="fas fa-lock"></i> This course is read-only because it is not in Draft status.
+                </div>
+            }
+            @if (!Model.Lessons.Any())
+            {
+                <div class="text-center py-12 text-zinc-400">
+                    <i class="fas fa-inbox text-4xl mb-3 block"></i>
+                    <p class="font-medium">No lessons found</p>
+                    <p class="text-sm mt-1">Go back and add lessons first</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var (lesson, lIndex) in Model.Lessons.Select((l, i) => (l, i)))
+                {
+                    var lessonMaterials = Model.LessonItems.Where(li => li.LessonId == lesson.LessonId).ToList();
+                    <div class="border border-zinc-200 rounded-xl overflow-hidden" x-data="{ open: true }">
+                        <!-- Lesson Header -->
+                        <button @@click="open = !open"
+                                class="w-full flex items-center justify-between px-6 py-4 bg-zinc-50 hover:bg-zinc-100 transition text-left">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 text-xs font-bold flex items-center justify-center">
+                                    @(lIndex + 1)
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-zinc-800 text-sm">@lesson.Title</span>
+                                    <span class="text-xs text-zinc-400 ml-2">(@lessonMaterials.Count materials)</span>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down text-zinc-400 text-xs transition-transform" :class="open && 'rotate-180'"></i>
+                        </button>
+
+                        <!-- Lesson Content -->
+                        <div x-show="open" x-transition x-cloak class="px-6 py-5 space-y-4 border-t border-zinc-100">
+                            <!-- Existing Materials -->
+                            @foreach (var item in lessonMaterials)
+                            {
+                                var resource = Model.LessonResources.FirstOrDefault(r => r.LessonItemId == item.LessonItemId);
+                                var typeLabel = item.Type == 0 ? "Video" : item.Type == 1 ? "Reading" : "Quiz";
+                                var typeIcon = item.Type == 0 ? "fa-play-circle" : item.Type == 1 ? "fa-book-open" : "fa-question-circle";
+                                var typeColor = item.Type == 0 ? "text-blue-500 bg-blue-50" : item.Type == 1 ? "text-emerald-500 bg-emerald-50" : "text-amber-500 bg-amber-50";
+
+                                <div class="flex items-center justify-between p-3 rounded-lg bg-white border border-zinc-100 group">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg @typeColor flex items-center justify-center">
+                                            <i class="fas @typeIcon text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-medium text-zinc-800">@(resource?.Title ?? typeLabel)</span>
+                                            <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2">@typeLabel</span>
+                                        </div>
+                                    </div>
+                                    @if (!Model.IsReadOnly)
+                                    {
+                                        <form method="post" asp-page-handler="DeleteMaterial"
+                                              asp-route-courseId="@Model.CourseId" asp-route-lessonItemId="@item.LessonItemId"
+                                              onsubmit="return confirm('Xóa tài liệu này?')">
+                                            <button type="submit"
+                                                    class="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition">
+                                                <i class="fas fa-trash-alt text-xs"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Add Material Buttons -->
+                            @if (!Model.IsReadOnly)
+                            {
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                <button type="button" @@click="openAddForm('@lesson.LessonId', 'reading')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition border border-emerald-100">
+                                    <i class="fas fa-book-open"></i> + Reading
+                                </button>
+                                <button type="button" @@click="openAddForm('@lesson.LessonId', 'video')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition border border-blue-100">
+                                    <i class="fas fa-play-circle"></i> + Video
+                                </button>
+                                <button type="button" @@click="openAddForm('@lesson.LessonId', 'quiz')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition border border-amber-100">
+                                    <i class="fas fa-question-circle"></i> + Quiz
+                                </button>
+                            </div>
+                            }
+
+                            <!-- ─── ADD READING FORM ─── -->
+                            <template x-if="activeLessonId === '@lesson.LessonId' && activeType === 'reading'">
+                                <form method="post" asp-page-handler="AddReading" asp-route-courseId="@Model.CourseId"
+                                      class="mt-4 p-5 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-3">
+                                    <input type="hidden" name="lessonId" value="@lesson.LessonId" />
+                                    <h4 class="text-sm font-bold text-emerald-700 flex items-center gap-2">
+                                        <i class="fas fa-book-open"></i> Add Reading
+                                    </h4>
+                                    <input type="text" name="title" required placeholder="Title"
+                                           class="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none" />
+                                    <textarea name="content" required rows="4" placeholder="Reading content (supports HTML)"
+                                              class="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none resize-none"></textarea>
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" @@click="closeForm()" class="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50">Cancel</button>
+                                        <button type="submit" class="px-4 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">Save Reading</button>
+                                    </div>
+                                </form>
+                            </template>
+
+                            <!-- ─── ADD VIDEO FORM ─── -->
+                            <template x-if="activeLessonId === '@lesson.LessonId' && activeType === 'video'">
+                                <form method="post" asp-page-handler="AddVideo" asp-route-courseId="@Model.CourseId" enctype="multipart/form-data"
+                                      class="mt-4 p-5 bg-blue-50/50 rounded-xl border border-blue-100 space-y-3" x-data="{ vType: 1 }">
+                                    <input type="hidden" name="lessonId" value="@lesson.LessonId" />
+                                    <h4 class="text-sm font-bold text-blue-700 flex items-center gap-2">
+                                        <i class="fas fa-play-circle"></i> Add Video
+                                    </h4>
+                                    <input type="text" name="title" required placeholder="Video title"
+                                           class="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none" />
+                                    <div class="flex gap-4">
+                                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                            <input type="radio" name="videoSourceType" value="1" x-model.number="vType" checked class="accent-blue-600" /> YouTube
+                                        </label>
+                                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                            <input type="radio" name="videoSourceType" value="2" x-model.number="vType" class="accent-blue-600" /> Upload Mp4
+                                        </label>
+                                    </div>
+                                    <template x-if="vType === 1">
+                                        <input type="url" name="videoUrl" placeholder="https://youtube.com/watch?v=..."
+                                               class="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none" />
+                                    </template>
+                                    <template x-if="vType === 2">
+                                        <input type="file" name="videoFile" accept="video/mp4"
+                                               class="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm bg-white" />
+                                    </template>
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" @@click="closeForm()" class="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50">Cancel</button>
+                                        <button type="submit" class="px-4 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Video</button>
+                                    </div>
+                                </form>
+                            </template>
+
+                            <!-- ─── ADD QUIZ FORM ─── -->
+                            <template x-if="activeLessonId === '@lesson.LessonId' && activeType === 'quiz'">
+                                <form method="post" asp-page-handler="AddQuiz" asp-route-courseId="@Model.CourseId"
+                                      class="mt-4 p-5 bg-amber-50/50 rounded-xl border border-amber-100 space-y-4"
+                                      x-data="quizForm()">
+                                    <input type="hidden" name="lessonId" value="@lesson.LessonId" />
+                                    <h4 class="text-sm font-bold text-amber-700 flex items-center gap-2">
+                                        <i class="fas fa-question-circle"></i> Add Quiz
+                                    </h4>
+                                    <input type="text" name="quizTitle" required placeholder="Quiz title"
+                                           class="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none" />
+
+                                    <template x-for="(q, qi) in questions" :key="qi">
+                                        <div class="p-4 bg-white rounded-lg border border-amber-100 space-y-3">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs font-bold text-amber-600" x-text="'Question ' + (qi + 1)"></span>
+                                                <button type="button" @@click="removeQuestion(qi)" x-show="questions.length > 1"
+                                                        class="text-red-400 hover:text-red-600 text-xs"><i class="fas fa-times"></i></button>
+                                            </div>
+                                            <input type="text" :name="'questionContents[' + qi + ']'" x-model="q.content" required placeholder="Question content"
+                                                   class="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm focus:border-amber-400 outline-none" />
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                <template x-for="(opt, oi) in 4" :key="oi">
+                                                    <div class="flex items-center gap-2">
+                                                        <input type="radio" :name="'correctOptions[' + qi + ']'" :value="oi"
+                                                               :checked="q.correct === oi" @@change="q.correct = oi"
+                                                               class="accent-amber-600" />
+                                                        <input type="text"
+                                                               :name="'option' + (oi+1) + 'Texts[' + qi + ']'"
+                                                               :placeholder="'Option ' + (oi + 1)"
+                                                               class="flex-1 px-2.5 py-1.5 rounded-lg border border-zinc-200 text-sm outline-none focus:border-amber-400" />
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <p class="text-[10px] text-zinc-400">Select the radio button next to the correct answer</p>
+                                        </div>
+                                    </template>
+
+                                    <button type="button" @@click="addQuestion()"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition">
+                                        <i class="fas fa-plus"></i> Add Question
+                                    </button>
+
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" @@click="$dispatch('close-form')" class="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50">Cancel</button>
+                                        <button type="submit" class="px-4 py-1.5 text-xs font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition">Save Quiz</button>
+                                    </div>
+                                </form>
+                            </template>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- ─── Navigation & Submit ─── -->
+        <div class="flex items-center justify-between px-8 py-5 border-t border-zinc-100 bg-zinc-50/50">
+            <a asp-page="/Teacher/Courses/EditLessons" asp-route-courseId="@Model.CourseId"
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-zinc-600 bg-white border border-zinc-200 hover:bg-zinc-50 transition">
+                <i class="fas fa-arrow-left text-xs"></i> Back to Lessons
+            </a>
+
+            @if (Model.Course?.Status == 0)
+            {
+                <div x-data="{ showConfirm: false }">
+                    <button type="button" @@click="showConfirm = true"
+                            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition">
+                        <i class="fas fa-paper-plane text-xs"></i> Submit for Review
+                    </button>
+
+                    <!-- Confirm Modal -->
+                    <div x-show="showConfirm" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" x-cloak>
+                        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4" @@click.away="showConfirm = false">
+                            <div class="text-center">
+                                <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-paper-plane text-xl"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-zinc-900">Submit for Review?</h3>
+                                <p class="text-sm text-zinc-500 mt-2">
+                                    Once submitted, you won't be able to edit the course until an admin reviews it.
+                                    Make sure all content is complete.
+                                </p>
+                            </div>
+                            <div class="flex gap-3 mt-6">
+                                <button type="button" @@click="showConfirm = false"
+                                        class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition">
+                                    Cancel
+                                </button>
+                                <form method="post" asp-page-handler="SubmitForReview" asp-route-courseId="@Model.CourseId" class="flex-1">
+                                    <button type="submit"
+                                            class="w-full px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">
+                                        Submit Now
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function materialManager() {
+            return {
+                activeLessonId: null,
+                activeType: null,
+                openAddForm(lessonId, type) {
+                    this.activeLessonId = lessonId;
+                    this.activeType = type;
+                },
+                closeForm() {
+                    this.activeLessonId = null;
+                    this.activeType = null;
+                }
+            };
+        }
+
+        function quizForm() {
+            return {
+                questions: [{ content: '', correct: 0 }],
+                addQuestion() {
+                    this.questions.push({ content: '', correct: 0 });
+                },
+                removeQuestion(index) {
+                    this.questions.splice(index, 1);
+                }
+            };
+        }
+    </script>
+}

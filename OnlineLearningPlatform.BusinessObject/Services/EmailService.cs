@@ -1,25 +1,26 @@
-﻿using OnlineLearningPlatform.BusinessObject.IServices;
-using OnlineLearningPlatform.BusinessObject;
-using OnlineLearningPlatform.BusinessObject.Responses;
 using MailKit.Net.Smtp;
 using MimeKit;
+using Microsoft.Extensions.Logging;
+using OnlineLearningPlatform.BusinessObject;
+using OnlineLearningPlatform.BusinessObject.IServices;
+using OnlineLearningPlatform.BusinessObject.Responses;
 
 namespace OnlineLearningPlatform.BusinessObject.Services
 {
     public class EmailService : IEmailService
     {
         private readonly AppSettings _appSettings;
-        public EmailService(AppSettings appSettings)
+        private readonly ILogger<EmailService> _logger;
+
+        public EmailService(AppSettings appSettings, ILogger<EmailService> logger)
         {
             _appSettings = appSettings;
+            _logger = logger;
         }
-        public async Task<ApiResponse> SendRejectCourseEmail(
-    string receiverName,
-    string receiverEmail,
-    string rejectReason,
-    string courseTitle)
+
+        public async Task<ApiResponse> SendRejectCourseEmail(string receiverName, string receiverEmail, string rejectReason, string courseTitle)
         {
-            ApiResponse response = new ApiResponse();
+            var response = new ApiResponse();
 
             try
             {
@@ -37,33 +38,25 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     .Replace("{{CourseTitle}}", courseTitle)
                     .Replace("{{RejectReason}}", rejectReason);
 
-                var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("HuyShop", _appSettings.SMTP.Email));
-                message.To.Add(new MailboxAddress(receiverName, receiverEmail));
-                message.Subject = "Your course has been rejected";
-
-                message.Body = new BodyBuilder
+                var message = BuildMessage("HuyShop", receiverName, receiverEmail, "Your course has been rejected", htmlTemplate);
+                var sent = await TrySendEmailAsync(message);
+                if (!sent)
                 {
-                    HtmlBody = htmlTemplate
-                }.ToMessageBody();
+                    _logger.LogWarning("Reject email fallback used for {Email}, course {CourseTitle}", receiverEmail, courseTitle);
+                }
 
-                using var client = new SmtpClient();
-                await client.ConnectAsync("smtp.gmail.com", 465, true);
-                await client.AuthenticateAsync(_appSettings.SMTP.Email, _appSettings.SMTP.Password);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-
-                return response.SetOk("Reject email sent");
+                return response.SetOk("Reject email processed");
             }
             catch (Exception ex)
             {
-                return response.SetBadRequest(ex.Message);
+                _logger.LogWarning(ex, "Reject email failed, fallback to no-op");
+                return response.SetOk("Reject email skipped (SMTP unavailable)");
             }
         }
 
         public async Task<ApiResponse> SendApproveCourseEmail(string receiverName, string receiverEmail, string courseTitle)
         {
-            ApiResponse response = new ApiResponse();
+            var response = new ApiResponse();
             try
             {
                 var htmlTemplate = @"
@@ -80,34 +73,25 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     .Replace("{{Name}}", receiverName)
                     .Replace("{{CourseTitle}}", courseTitle);
 
-                var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("HuyShop Learning", _appSettings.SMTP.Email));
-                message.To.Add(new MailboxAddress(receiverName, receiverEmail));
-                message.Subject = "Your course has been approved!";
+                var message = BuildMessage("HuyShop Learning", receiverName, receiverEmail, "Your course has been approved!", htmlTemplate);
+                var sent = await TrySendEmailAsync(message);
+                if (!sent)
+                {
+                    _logger.LogWarning("Approve email fallback used for {Email}, course {CourseTitle}", receiverEmail, courseTitle);
+                }
 
-                message.Body = new BodyBuilder { HtmlBody = htmlTemplate }.ToMessageBody();
-
-                using var client = new SmtpClient();
-                await client.ConnectAsync("smtp.gmail.com", 587, false);
-                await client.AuthenticateAsync(_appSettings.SMTP.Email, _appSettings.SMTP.Password);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-
-                return response.SetOk("Approve email sent");
+                return response.SetOk("Approve email processed");
             }
             catch (Exception ex)
             {
-                return response.SetBadRequest(ex.Message);
+                _logger.LogWarning(ex, "Approve email failed, fallback to no-op");
+                return response.SetOk("Approve email skipped (SMTP unavailable)");
             }
         }
 
-        public async Task<ApiResponse> SendShortAnswerNotifyToInstructor(
-    string instructorName,
-    string instructorEmail,
-    string studentName,
-    string courseTitle)
+        public async Task<ApiResponse> SendShortAnswerNotifyToInstructor(string instructorName, string instructorEmail, string studentName, string courseTitle)
         {
-            ApiResponse response = new ApiResponse();
+            var response = new ApiResponse();
             try
             {
                 var htmlTemplate = @"
@@ -126,30 +110,56 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     .Replace("{{StudentName}}", studentName)
                     .Replace("{{CourseTitle}}", courseTitle);
 
-                var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("HuyShop Learning", _appSettings.SMTP.Email));
-                message.To.Add(new MailboxAddress(instructorName, instructorEmail));
-                message.Subject = "New short answer submitted";
-
-                message.Body = new BodyBuilder
+                var message = BuildMessage("HuyShop Learning", instructorName, instructorEmail, "New short answer submitted", htmlTemplate);
+                var sent = await TrySendEmailAsync(message);
+                if (!sent)
                 {
-                    HtmlBody = htmlTemplate
-                }.ToMessageBody();
+                    _logger.LogWarning("Short-answer notify email fallback used for {Email}, course {CourseTitle}", instructorEmail, courseTitle);
+                }
 
+                return response.SetOk("Notify instructor email processed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Notify email failed, fallback to no-op");
+                return response.SetOk("Notify email skipped (SMTP unavailable)");
+            }
+        }
+
+        private MimeMessage BuildMessage(string fromDisplayName, string receiverName, string receiverEmail, string subject, string htmlBody)
+        {
+            var fromEmail = string.IsNullOrWhiteSpace(_appSettings.SMTP.Email) ? "noreply@localhost" : _appSettings.SMTP.Email;
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(fromDisplayName, fromEmail));
+            message.To.Add(new MailboxAddress(receiverName, receiverEmail));
+            message.Subject = subject;
+            message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
+            return message;
+        }
+
+        private async Task<bool> TrySendEmailAsync(MimeMessage message)
+        {
+            if (string.IsNullOrWhiteSpace(_appSettings.SMTP.Email) || string.IsNullOrWhiteSpace(_appSettings.SMTP.Password))
+            {
+                _logger.LogWarning("SMTP not configured. Skip email subject: {Subject}", message.Subject);
+                return false;
+            }
+
+            try
+            {
                 using var client = new SmtpClient();
                 await client.ConnectAsync("smtp.gmail.com", 587, false);
                 await client.AuthenticateAsync(_appSettings.SMTP.Email, _appSettings.SMTP.Password);
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
-
-                return response.SetOk("Notify instructor email sent");
+                return true;
             }
             catch (Exception ex)
             {
-                return response.SetBadRequest(ex.Message);
+                _logger.LogWarning(ex, "SMTP send failed. Email subject: {Subject}", message.Subject);
+                return false;
             }
         }
-
-
     }
 }

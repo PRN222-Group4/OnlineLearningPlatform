@@ -20,6 +20,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<GradedItem> GradedItems { get; set; }
 
+    public virtual DbSet<Language> Languages { get; set; }
+
     public virtual DbSet<Lesson> Lessons { get; set; }
 
     public virtual DbSet<LessonItem> LessonItems { get; set; }
@@ -49,6 +51,7 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<AnswerOption>(entity =>
         {
             entity.HasIndex(e => e.QuestionId, "IX_AnswerOptions_QuestionId");
+            entity.HasIndex(e => new { e.QuestionId, e.OrderIndex }, "IX_AnswerOptions_QuestionId_OrderIndex");
 
             entity.Property(e => e.AnswerOptionId).ValueGeneratedNever();
 
@@ -58,8 +61,12 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Course>(entity =>
         {
             entity.HasIndex(e => e.LanguageId, "IX_Courses_LanguageId");
+            entity.HasIndex(e => e.CreatedBy, "IX_Courses_CreatedBy");
+            entity.HasIndex(e => e.Status, "IX_Courses_Status");
 
             entity.Property(e => e.CourseId).ValueGeneratedNever();
+
+            entity.HasOne(d => d.Language).WithMany(p => p.Courses).HasForeignKey(d => d.LanguageId);
         });
 
         modelBuilder.Entity<Enrollment>(entity =>
@@ -98,6 +105,7 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Lesson>(entity =>
         {
             entity.HasIndex(e => e.ModuleId, "IX_Lessons_ModuleId");
+            entity.HasIndex(e => new { e.ModuleId, e.OrderIndex }, "IX_Lessons_ModuleId_OrderIndex");
 
             entity.Property(e => e.LessonId).ValueGeneratedNever();
 
@@ -156,6 +164,7 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Question>(entity =>
         {
             entity.HasIndex(e => e.GradedItemId, "IX_Questions_GradedItemId");
+            entity.HasIndex(e => new { e.GradedItemId, e.OrderIndex }, "IX_Questions_GradedItemId_OrderIndex");
 
             entity.Property(e => e.QuestionId).ValueGeneratedNever();
 

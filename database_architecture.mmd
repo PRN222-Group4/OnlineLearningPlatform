@@ -1,0 +1,311 @@
+erDiagram
+
+    %% ── USERS & AUTH ──────────────────────────────────────────
+    User {
+        Guid     UserId        PK
+        string   FullName
+        string   Email         "UNIQUE"
+        string   PhoneNumber
+        byte[]   PasswordHash
+        byte[]   PasswordSalt
+        string   Image
+        bool     IsVerfied
+        int      Role
+        string   Bio
+        string   Title
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    Wallet {
+        Guid     WalletId        PK
+        Guid     UserId          FK
+        decimal  Balance
+        decimal  PendingBalance
+        decimal  TotalEarnings
+        decimal  TotalWithdrawn
+        int      Status
+        DateTime CreatedAt
+        DateTime UpdatedAt
+    }
+
+    %% ── LOOKUP ────────────────────────────────────────────────
+    Language {
+        Guid     LanguageId  PK
+        string   Code
+        string   Name
+        bool     IsActive
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    %% ── COURSE CONTENT ────────────────────────────────────────
+    Course {
+        Guid     CourseId      PK
+        Guid     LanguageId    FK
+        string   Title
+        string   Subtitle
+        string   Description
+        string   Image
+        int      Status
+        decimal  Price
+        string   RejectReason
+        int      Level
+        string   Tags
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        DateTime SubmittedAt
+        DateTime PublishedAt
+        DateTime RejectedAt
+        bool     IsDeleted
+    }
+
+    Module {
+        Guid     ModuleId    PK
+        Guid     CourseId    FK
+        string   Name
+        string   Description
+        int      Index
+        bool     IsPublished
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    Lesson {
+        Guid     LessonId          PK
+        Guid     ModuleId          FK
+        string   Title
+        string   Description
+        int      EstimatedMinutes
+        int      OrderIndex
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    LessonItem {
+        Guid     LessonItemId  PK
+        Guid     LessonId      FK
+        int      Type
+        int      OrderIndex
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    LessonResource {
+        Guid     LessonResourceId   PK
+        Guid     LessonItemId       FK
+        string   Title
+        int      ResourceType
+        string   ResourceUrl
+        int      OrderIndex
+        string   TextContent
+        long     DurationInSeconds
+        int      VideoSourceType
+        bool     IsDownloadable
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    %% ── ASSESSMENT & GRADING ──────────────────────────────────
+    GradedItem {
+        Guid     GradedItemId          PK
+        Guid     LessonItemId          FK
+        int      MaxScore
+        bool     IsAutoGraded
+        int      GradedItemType
+        string   SubmissionGuidelines
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    Question {
+        Guid     QuestionId    PK
+        Guid     GradedItemId  FK
+        string   Content
+        int      Type
+        decimal  Points
+        int      OrderIndex
+        bool     IsRequired
+        string   Explanation
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    AnswerOption {
+        Guid     AnswerOptionId  PK
+        Guid     QuestionId      FK
+        string   Text
+        string   Explanation
+        int      OrderIndex
+        bool     IsCorrect
+        decimal  Weight
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    GradedAttempt {
+        Guid     GradedAttemptId  PK
+        Guid     UserId           FK
+        Guid     GradedItemId     FK
+        int      AttemptNumber
+        int      Status
+        DateTime SubmittedAt
+        DateTime GradedAt
+        decimal  Score
+        int      MaxScore
+        bool     IsPassed
+        string   SubmittedText
+        string   FileUrl
+        string   AudioUrl
+        string   Feedback
+        Guid     GradedBy
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    QuestionSubmission {
+        Guid     QuestionSubmissionId  PK
+        Guid     GradedAttemptId       FK
+        Guid     QuestionId            FK
+        string   AnswerText
+        decimal  Score
+        bool     IsAutoGraded
+        string   Feedback
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    SubmissionAnswerOption {
+        Guid     SubmissionAnswerOptionId  PK
+        Guid     QuestionSubmissionId      FK
+        Guid     AnswerOptionId            FK
+        decimal  Score
+    }
+
+    %% ── ENROLLMENT & PROGRESS ─────────────────────────────────
+    Enrollment {
+        Guid     EnrollmentId     PK
+        Guid     UserId           FK
+        Guid     CourseId         FK
+        int      Status
+        decimal  ProgressPercent
+        DateTime CompletedAt
+        DateTime EnrolledAt
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    UserLessonProgress {
+        Guid     LessonProgressId   PK
+        Guid     UserId             FK
+        Guid     LessonId           FK
+        bool     IsCompleted
+        DateTime CompletedAt
+        DateTime LastAccessedAt
+        int      LastWatchedSecond
+        int      CompletionPercent
+    }
+
+    %% ── PAYMENT & WALLET ──────────────────────────────────────
+    Payment {
+        Guid     PaymentId               PK
+        Guid     UserId                  FK
+        Guid     CourseId                FK
+        Guid     EnrollmentId            FK
+        long     OrderCode
+        string   PaymentLinkId
+        string   CheckoutUrl
+        decimal  Amount
+        string   Currency
+        string   Reference
+        string   CounterAccountNumber
+        string   CounterAccountName
+        string   CounterAccountBankName
+        string   Method
+        int      Status
+        int      Type
+        DateTime PaidAt
+        DateTime ExpiredAt
+        string   RawWebhookData
+        Guid     CreatedBy
+        Guid     UpdatedBy
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        bool     IsDeleted
+    }
+
+    WalletTransaction {
+        Guid     WalletTransactionId      PK
+        Guid     WalletId                 FK
+        Guid     PaymentId                FK
+        decimal  Amount
+        int      TransactionType
+        string   Description
+        decimal  BalanceAfterTransaction
+        DateTime CreatedAt
+    }
+
+    %% ── RELATIONSHIPS ─────────────────────────────────────────
+
+    User          ||--o|  Wallet              : "has (1-1)"
+    Language      ||--o{  Course              : "used in"
+    Course        ||--o{  Module              : "contains"
+    Module        ||--o{  Lesson              : "contains"
+    Lesson        ||--o{  LessonItem          : "contains"
+    LessonItem    ||--o{  LessonResource      : "has"
+    LessonItem    ||--o|  GradedItem          : "may have (1-1)"
+    GradedItem    ||--o|  GradedAttempt       : "tracked by (1-1)"
+    GradedItem    ||--o{  Question            : "has"
+    Question      ||--o{  AnswerOption        : "has"
+    User          ||--o{  GradedAttempt       : "makes"
+    GradedAttempt ||--o{  QuestionSubmission  : "contains"
+    Question      ||--o{  QuestionSubmission  : "answered by"
+    QuestionSubmission ||--o{ SubmissionAnswerOption : "selects"
+    AnswerOption  ||--o{  SubmissionAnswerOption     : "selected in"
+    User          ||--o{  Enrollment          : "enrolls"
+    Course        ||--o{  Enrollment          : "enrolled in"
+    User          ||--o{  UserLessonProgress  : "tracks"
+    Lesson        ||--o{  UserLessonProgress  : "tracked by"
+    User          ||--o{  Payment             : "makes"
+    Course        ||--o{  Payment             : "paid for"
+    Enrollment    ||--o{  Payment             : "triggers"
+    Wallet        ||--o{  WalletTransaction   : "records"
+    Payment       ||--o{  WalletTransaction   : "generates"

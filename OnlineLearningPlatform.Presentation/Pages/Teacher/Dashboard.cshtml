@@ -9,7 +9,7 @@
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h2>Teacher Dashboard</h2>
         <div>
-            <a class="btn btn-primary" asp-page="/Teacher/CreateCourse">＋ Create Course</a>
+            <a class="btn btn-primary" asp-page="/Teacher/Courses/Create">＋ Create Course</a>
         </div>
     </div>
 
@@ -42,7 +42,7 @@
                                             <small class="text-muted">Price: @c.Price.ToString("N0") đ</small>
                                         </div>
                                         <div>
-                                            <a class="btn btn-sm btn-outline-primary" asp-page="/Teacher/CoursesEdit" asp-route-id="@c.CourseId">Edit</a>
+                                            <a class="btn btn-sm btn-outline-primary" asp-page="/Teacher/Courses/Edit" asp-route-courseId="@c.CourseId">Edit</a>
                                         </div>
                                     </div>
                                 </div>
