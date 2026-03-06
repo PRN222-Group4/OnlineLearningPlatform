@@ -21,6 +21,8 @@ public partial class LessonResource
 
     public long? DurationInSeconds { get; set; }
 
+    public int VideoSourceType { get; set; }
+
     public bool IsDownloadable { get; set; }
 
     public Guid CreatedBy { get; set; }

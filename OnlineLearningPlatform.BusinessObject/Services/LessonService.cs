@@ -28,8 +28,10 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             try
             {
                 var claim = _service.GetUserClaim();
-                var module = await _unitOfWork.Modules.GetAsync(m => m.ModuleId == request.ModuleId);
+                var module = await _unitOfWork.Modules.GetAsync(m => m.ModuleId == request.ModuleId && !m.IsDeleted);
                 if (module == null) return response.SetNotFound("Module not found!");
+                var verifyResult = await VerifyCanEditModuleAsync(module, claim.UserId);
+                if (verifyResult != null) return verifyResult;
 
                 var existingLessons = await _unitOfWork.Lessons.GetAllAsync(l => l.ModuleId == request.ModuleId && !l.IsDeleted);
                 int newOrderIndex = existingLessons.Any() ? existingLessons.Max(l => l.OrderIndex) + 1 : 1;
@@ -59,12 +61,15 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             ApiResponse response = new ApiResponse();
             try
             {
-                var lesson = await _unitOfWork.Lessons.GetAsync(l => l.LessonId == lessonId);
+                var lesson = await _unitOfWork.Lessons.GetAsync(l => l.LessonId == lessonId && !l.IsDeleted);
                 if (lesson == null)
                     return response.SetNotFound("Lesson not found");
+                var claim = _service.GetUserClaim();
+                var verifyResult = await VerifyCanEditLessonAsync(lesson, claim.UserId);
+                if (verifyResult != null) return verifyResult;
 
                 _mapper.Map(request, lesson);
-                lesson.UpdatedBy = _service.GetUserClaim().UserId;
+                lesson.UpdatedBy = claim.UserId;
 
                 await _unitOfWork.SaveChangeAsync();
                 return response.SetOk("Lesson updated successfully");
@@ -80,13 +85,16 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             ApiResponse response = new ApiResponse();
             try
             {
+                var claim = _service.GetUserClaim();
                 var lesson = await _unitOfWork.Lessons.GetAsync(l => l.LessonId == lessonId && !l.IsDeleted);
                 if (lesson == null)
                     return response.SetNotFound("Lesson not found");
+                var verifyResult = await VerifyCanEditLessonAsync(lesson, claim.UserId);
+                if (verifyResult != null) return verifyResult;
 
                 // Soft delete instead of hard delete to avoid FK constraint with UserLessonProgress
                 lesson.IsDeleted = true;
-                lesson.UpdatedBy = _service.GetUserClaim().UserId;
+                lesson.UpdatedBy = claim.UserId;
                 await _unitOfWork.SaveChangeAsync();
 
                 return response.SetOk("Lesson deleted successfully");
@@ -144,6 +152,22 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 return response.SetBadRequest(ex.Message);
             }
+        }
+
+        private async Task<ApiResponse?> VerifyCanEditModuleAsync(Module module, Guid userId)
+        {
+            var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == module.CourseId && !c.IsDeleted);
+            if (course == null) return new ApiResponse().SetNotFound("Course not found");
+            if (course.CreatedBy != userId) return new ApiResponse().SetBadRequest(message: "Bạn không có quyền chỉnh sửa khóa học này");
+            if (course.Status != 0) return new ApiResponse().SetBadRequest(message: "Chỉ có thể chỉnh sửa khóa học ở trạng thái Draft");
+            return null;
+        }
+
+        private async Task<ApiResponse?> VerifyCanEditLessonAsync(Lesson lesson, Guid userId)
+        {
+            var module = await _unitOfWork.Modules.GetAsync(m => m.ModuleId == lesson.ModuleId && !m.IsDeleted);
+            if (module == null) return new ApiResponse().SetNotFound("Module not found");
+            return await VerifyCanEditModuleAsync(module, userId);
         }
     }
 }

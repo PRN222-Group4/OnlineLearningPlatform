@@ -1,0 +1,30 @@
+@page "{courseId:guid}"
+@model OnlineLearningPlatform.Presentation.Pages.Teacher.Courses.EditModel
+@{
+    ViewData["Title"] = "Course Wizard";
+}
+
+<div class="max-w-4xl mx-auto py-8 px-4">
+    <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
+        <h1 class="text-xl font-bold text-zinc-900">@Model.Course.Title</h1>
+        <p class="text-sm text-zinc-500 mt-1">Continue course setup by selecting a step below.</p>
+
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a asp-page="/Teacher/Courses/Create" asp-route-courseId="@Model.CourseId"
+               class="p-4 rounded-xl border border-zinc-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition">
+                <p class="text-xs font-semibold text-zinc-500">Step 1</p>
+                <p class="font-semibold text-zinc-900 mt-1">Metadata</p>
+            </a>
+            <a asp-page="/Teacher/Courses/EditLessons" asp-route-courseId="@Model.CourseId"
+               class="p-4 rounded-xl border border-zinc-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition">
+                <p class="text-xs font-semibold text-zinc-500">Step 2</p>
+                <p class="font-semibold text-zinc-900 mt-1">Lessons</p>
+            </a>
+            <a asp-page="/Teacher/Courses/EditMaterials" asp-route-courseId="@Model.CourseId"
+               class="p-4 rounded-xl border border-zinc-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition">
+                <p class="text-xs font-semibold text-zinc-500">Step 3</p>
+                <p class="font-semibold text-zinc-900 mt-1">Materials</p>
+            </a>
+        </div>
+    </div>
+</div>

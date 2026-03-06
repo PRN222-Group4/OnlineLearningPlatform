@@ -30,17 +30,22 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             ApiResponse response = new ApiResponse();
             try
             {
+                var claim = _service.GetUserClaim();
                 var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == request.CourseId);
                 if (course == null)
                 {
                     return response.SetNotFound(message: "Course not found or may have been automatically deleted due to inactivity!!!");
                 }
+                if (course.CreatedBy != claim.UserId)
+                    return response.SetBadRequest(message: "Bạn không có quyền chỉnh sửa khóa học này");
+                if (course.Status != 0)
+                    return response.SetBadRequest(message: "Chỉ có thể chỉnh sửa khóa học ở trạng thái Draft");
 
                 var existingModules = await _unitOfWork.Modules.GetAllAsync(m => m.CourseId == request.CourseId && !m.IsDeleted);
                 int newIndex = existingModules.Any() ? existingModules.Max(m => m.Index) + 1 : 1;
 
                 var module = _mapper.Map<Module>(request);
-                module.CreatedBy = _service.GetUserClaim().UserId;
+                module.CreatedBy = claim.UserId;
                 module.Index = newIndex;
 
                 await _unitOfWork.Modules.AddAsync(module);
@@ -60,14 +65,21 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             ApiResponse response = new ApiResponse();
             try
             {
+                var claim = _service.GetUserClaim();
                 var module = await _unitOfWork.Modules.GetAsync(m => m.ModuleId == moduleId && !m.IsDeleted);
 
                 if (module == null)
                     return response.SetNotFound("Module not found");
+                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == module.CourseId && !c.IsDeleted);
+                if (course == null) return response.SetNotFound("Course not found");
+                if (course.CreatedBy != claim.UserId)
+                    return response.SetBadRequest(message: "Bạn không có quyền chỉnh sửa khóa học này");
+                if (course.Status != 0)
+                    return response.SetBadRequest(message: "Chỉ có thể chỉnh sửa khóa học ở trạng thái Draft");
 
                 module.IsDeleted = true;
                 module.UpdatedAt = DateTime.UtcNow;
-                module.UpdatedBy = _service.GetUserClaim().UserId;
+                module.UpdatedBy = claim.UserId;
 
                 _unitOfWork.Modules.Update(module);
                 await _unitOfWork.SaveChangeAsync();
@@ -135,14 +147,21 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
             try
             {
+                var claim = _service.GetUserClaim();
                 var module = await _unitOfWork.Modules.GetAsync(m => m.ModuleId == request.ModuleId && !m.IsDeleted);
 
                 if (module == null)
                     return response.SetNotFound("Module not found");
+                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == module.CourseId && !c.IsDeleted);
+                if (course == null) return response.SetNotFound("Course not found");
+                if (course.CreatedBy != claim.UserId)
+                    return response.SetBadRequest(message: "Bạn không có quyền chỉnh sửa khóa học này");
+                if (course.Status != 0)
+                    return response.SetBadRequest(message: "Chỉ có thể chỉnh sửa khóa học ở trạng thái Draft");
 
                 _mapper.Map(request, module);
                 module.UpdatedAt = DateTime.UtcNow;
-                module.UpdatedBy = _service.GetUserClaim().UserId;
+                module.UpdatedBy = claim.UserId;
 
                 _unitOfWork.Modules.Update(module);
                 await _unitOfWork.SaveChangeAsync();

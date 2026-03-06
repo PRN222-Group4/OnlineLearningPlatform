@@ -35,18 +35,40 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 var course = _mapper.Map<Course>(request);
                 course.CourseId = Guid.NewGuid();
                 course.CreatedBy = claim.UserId;
+                course.Status = 0; // Draft
+                course.CreatedAt = DateTime.UtcNow;
+                course.Subtitle = request.Subtitle;
+                course.Tags = request.Tags;
+
                 if (request.ImageFile != null)
                 {
                     var imageUrl = await _firebaseStorageService.UploadCourseImage(request.Title, request.ImageFile);
                     course.Image = imageUrl;
                 }
+
+                await _unitOfWork.BeginTransactionAsync();
                 await _unitOfWork.Courses.AddAsync(course);
-                await _unitOfWork.SaveChangeAsync();
+
+                // Auto-create a default Module
+                var defaultModule = new Module
+                {
+                    ModuleId = Guid.NewGuid(),
+                    CourseId = course.CourseId,
+                    Name = "Main",
+                    Description = "Default module",
+                    Index = 0,
+                    IsPublished = true,
+                    CreatedBy = claim.UserId,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _unitOfWork.Modules.AddAsync(defaultModule);
+                await _unitOfWork.CommitAsync();
 
                 return response.SetOk(course.CourseId);
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollbackAsync();
                 return response.SetBadRequest(message: ex.Message);
             }
         }
@@ -91,15 +113,29 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             ApiResponse response = new ApiResponse();
             try
             {
-                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == request.CourseId);
+                var claim = _service.GetUserClaim();
+                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == request.CourseId && !c.IsDeleted);
                 if (course == null)
                 {
                     return response.SetNotFound("Course not found");
                 }
-                var userId = _service.GetUserClaim().UserId;
+                if (course.CreatedBy != claim.UserId)
+                {
+                    return response.SetBadRequest(message: "Bạn không có quyền cập nhật khóa học này");
+                }
+                if (course.Status != 0)
+                {
+                    return response.SetBadRequest(message: "Chỉ có thể chỉnh sửa khóa học ở trạng thái Draft");
+                }
+
                 var updatedCourse = _mapper.Map(request, course);
+                if (request.ImageFile != null)
+                {
+                    var imageUrl = await _firebaseStorageService.UploadCourseImage(request.Title, request.ImageFile);
+                    updatedCourse.Image = imageUrl;
+                }
                 updatedCourse.UpdatedAt = DateTime.UtcNow;
-                updatedCourse.UpdatedBy = userId;
+                updatedCourse.UpdatedBy = claim.UserId;
 
                 _unitOfWork.Courses.Update(updatedCourse);
                 await _unitOfWork.SaveChangeAsync();
@@ -222,23 +258,34 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             ApiResponse response = new ApiResponse();
             try
             {
+                var claim = _service.GetUserClaim();
+                if (claim.Role != 0)
+                {
+                    return response.SetBadRequest(message: "Chỉ Admin có quyền duyệt khóa học");
+                }
+
                 var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == request.CourseId && !c.IsDeleted);
                 if (course == null) return response.SetNotFound("Course not found");
+                if (course.Status != 1) return response.SetBadRequest(message: "Chỉ có thể duyệt/từ chối khóa học ở trạng thái Pending");
 
                 var instructor = await _unitOfWork.Users.GetAsync(u => u.UserId == course.CreatedBy);
+                var adminId = claim.UserId;
 
                 if (!request.Status)
                 {
+                    // Reject → Draft
                     if (string.IsNullOrEmpty(request.RejectReason))
                         return response.SetBadRequest("Reject reason is required");
 
-                    course.Status = 3;
+                    course.Status = 0; // Back to Draft
                     course.RejectReason = request.RejectReason;
+                    course.RejectedAt = DateTime.UtcNow;
                     course.UpdatedAt = DateTime.UtcNow;
-                    course.UpdatedBy = _service.GetUserClaim().UserId;
+                    course.UpdatedBy = adminId;
 
+                    await _unitOfWork.BeginTransactionAsync();
                     _unitOfWork.Courses.Update(course);
-                    await _unitOfWork.SaveChangeAsync();
+                    await _unitOfWork.CommitAsync();
 
                     if (instructor != null)
                     {
@@ -249,14 +296,16 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 }
                 else
                 {
+                    // Approve → Published
                     course.Status = 2;
-                    course.RejectReason = string.Empty;
+                    course.RejectReason = null;
+                    course.PublishedAt = DateTime.UtcNow;
                     course.UpdatedAt = DateTime.UtcNow;
-                    course.UpdatedBy = _service.GetUserClaim().UserId;
+                    course.UpdatedBy = adminId;
 
+                    await _unitOfWork.BeginTransactionAsync();
                     _unitOfWork.Courses.Update(course);
-                    await _unitOfWork.SaveChangeAsync();
-
+                    await _unitOfWork.CommitAsync();
 
                     if (instructor != null)
                     {
@@ -272,6 +321,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollbackAsync();
                 return response.SetBadRequest(ex.Message);
             }
         }
@@ -281,15 +331,27 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var response = new ApiResponse();
             try
             {
-                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId);
+                var claim = _service.GetUserClaim();
+                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId && !c.IsDeleted);
                 if (course == null) return response.SetNotFound("Course not found");
-                course.Status = 1;
+                if (course.CreatedBy != claim.UserId)
+                    return response.SetBadRequest(message: "Bạn không có quyền submit khóa học này");
+                if (course.Status != 0)
+                    return response.SetBadRequest(message: "Chỉ có thể submit khóa học ở trạng thái Draft");
 
-                await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.BeginTransactionAsync();
+                course.Status = 1;
+                course.SubmittedAt = DateTime.UtcNow;
+                course.UpdatedAt = DateTime.UtcNow;
+                course.UpdatedBy = claim.UserId;
+                _unitOfWork.Courses.Update(course);
+
+                await _unitOfWork.CommitAsync();
                 return response.SetOk("Course submitted for review.");
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollbackAsync();
                 return response.SetBadRequest(ex.Message);
             }
         }
@@ -300,11 +362,12 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             try
             {
                 var courses = await _unitOfWork.Courses.GetAllAsync(c => c.Status == status && !c.IsDeleted);
-
-                var courseResponses = _mapper.Map<List<CourseResponse>>(courses);
-                //Console.WriteLine(courseResponses);
-
-                return response.SetOk(courseResponses);
+                if (status == 2)
+                {
+                    var courseResponses = _mapper.Map<List<CourseResponse>>(courses);
+                    return response.SetOk(courseResponses);
+                }
+                return response.SetOk(courses.ToList());
             }
             catch (Exception ex)
             {
@@ -360,5 +423,130 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             }
         }
 
+        public async Task<ApiResponse> GetCourseForEditAsync(Guid courseId)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var claim = _service.GetUserClaim();
+                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId && !c.IsDeleted);
+                if (course == null) return response.SetNotFound(message: "Không tìm thấy khóa học");
+
+                // Permission: owner (instructor) or admin (review)
+                if (course.CreatedBy != claim.UserId && claim.Role != 0)
+                    return response.SetBadRequest(message: "Bạn không có quyền chỉnh sửa khóa học này");
+
+                // Load modules + lessons + lesson items + resources + graded items + questions + answer options
+                var modules = (await _unitOfWork.Modules.GetAllAsync(m => m.CourseId == courseId && !m.IsDeleted))
+                    .OrderBy(m => m.Index).ToList();
+                var moduleIds = modules.Select(m => m.ModuleId).ToList();
+
+                var lessons = (await _unitOfWork.Lessons.GetAllAsync(l => moduleIds.Contains(l.ModuleId) && !l.IsDeleted))
+                    .OrderBy(l => l.OrderIndex).ToList();
+                var lessonIds = lessons.Select(l => l.LessonId).ToList();
+
+                var lessonItems = (await _unitOfWork.LessonItems.GetAllAsync(li => lessonIds.Contains(li.LessonId) && !li.IsDeleted))
+                    .OrderBy(li => li.OrderIndex).ToList();
+                var lessonItemIds = lessonItems.Select(li => li.LessonItemId).ToList();
+
+                var lessonResources = (await _unitOfWork.LessonResources.GetAllAsync(lr => lessonItemIds.Contains(lr.LessonItemId) && !lr.IsDeleted)).ToList();
+                var gradedItems = (await _unitOfWork.GradedItems.GetAllAsync(gi => lessonItemIds.Contains(gi.LessonItemId) && !gi.IsDeleted)).ToList();
+
+                var gradedItemIds = gradedItems.Select(gi => gi.GradedItemId).ToList();
+                var questions = (await _unitOfWork.Questions.GetAllAsync(q => gradedItemIds.Contains(q.GradedItemId) && !q.IsDeleted))
+                    .OrderBy(q => q.OrderIndex).ToList();
+                var questionIds = questions.Select(q => q.QuestionId).ToList();
+                var answerOptions = (await _unitOfWork.AnswerOptions.GetAllAsync(ao => questionIds.Contains(ao.QuestionId) && !ao.IsDeleted))
+                    .OrderBy(ao => ao.OrderIndex).ToList();
+
+                // Build result
+                var result = new CourseEditBundleResponse
+                {
+                    Course = course,
+                    Modules = modules,
+                    Lessons = lessons,
+                    LessonItems = lessonItems,
+                    LessonResources = lessonResources,
+                    GradedItems = gradedItems,
+                    Questions = questions,
+                    AnswerOptions = answerOptions
+                };
+
+                return response.SetOk(result);
+            }
+            catch (Exception ex)
+            {
+                return response.SetBadRequest(message: ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse> ValidateAndSubmitForReviewAsync(Guid courseId)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var claim = _service.GetUserClaim();
+                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId && !c.IsDeleted);
+                if (course == null) return response.SetNotFound(message: "Không tìm thấy khóa học");
+                if (course.CreatedBy != claim.UserId)
+                    return response.SetBadRequest(message: "Bạn không có quyền submit khóa học này");
+                if (course.Status != 0)
+                    return response.SetBadRequest(message: "Chỉ có thể submit khóa học ở trạng thái Draft");
+
+                // Validate: at least 1 lesson with at least 1 material
+                var modules = await _unitOfWork.Modules.GetAllAsync(m => m.CourseId == courseId && !m.IsDeleted);
+                var moduleIds = modules.Select(m => m.ModuleId).ToList();
+                var lessons = await _unitOfWork.Lessons.GetAllAsync(l => moduleIds.Contains(l.ModuleId) && !l.IsDeleted);
+
+                if (!lessons.Any())
+                    return response.SetBadRequest(message: "Khóa học cần ít nhất 1 bài học trước khi submit");
+
+                var lessonIds = lessons.Select(l => l.LessonId).ToList();
+                var lessonItems = await _unitOfWork.LessonItems.GetAllAsync(li => lessonIds.Contains(li.LessonId) && !li.IsDeleted);
+
+                foreach (var lesson in lessons)
+                {
+                    var itemsForLesson = lessonItems.Where(li => li.LessonId == lesson.LessonId).ToList();
+                    if (!itemsForLesson.Any())
+                        return response.SetBadRequest(message: $"Bài học '{lesson.Title}' cần ít nhất 1 tài liệu (material)");
+                }
+
+                // Transition Draft → Pending
+                await _unitOfWork.BeginTransactionAsync();
+                course.Status = 1; // Pending
+                course.SubmittedAt = DateTime.UtcNow;
+                course.UpdatedAt = DateTime.UtcNow;
+                course.RejectReason = null;
+                _unitOfWork.Courses.Update(course);
+                await _unitOfWork.CommitAsync();
+
+                return response.SetOk("Khóa học đã được gửi để duyệt thành công!");
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                return response.SetBadRequest(message: ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse> GetPendingCoursesForAdminAsync()
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var claim = _service.GetUserClaim();
+                if (claim.Role != 0)
+                {
+                    return response.SetBadRequest(message: "Chỉ Admin có quyền xem danh sách chờ duyệt");
+                }
+
+                var courses = await _unitOfWork.Courses.GetAllAsync(c => !c.IsDeleted && c.Status == 1);
+                return response.SetOk(courses.OrderByDescending(c => c.SubmittedAt).ToList());
+            }
+            catch (Exception ex)
+            {
+                return response.SetBadRequest(message: ex.Message);
+            }
+        }
     }
 }
