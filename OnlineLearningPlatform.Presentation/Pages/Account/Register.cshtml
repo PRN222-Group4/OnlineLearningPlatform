@@ -174,6 +174,76 @@
             color: #b91c1c;
             margin-top: 4px;
         }
+
+    </style>
+    <style>
+        /* nền mờ fade */
+        .success-overlay {
+            animation: overlayFade .25s ease;
+        }
+        @@keyframes overlayFade {
+            from
+
+        {
+            opacity: 0
+        }
+
+        to {
+            opacity: 1
+        }
+
+        }
+
+        /* popup scale */
+        .success-card {
+            animation: popScale .3s ease;
+        }
+        @@keyframes popScale {
+            0%
+
+        {
+            transform: scale(.85);
+            opacity: 0
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1
+        }
+
+        }
+
+        /* vòng tròn */
+        .check-circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            animation: drawCircle .6s ease forwards;
+        }
+
+        /* dấu tích */
+        .check-mark {
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: drawCheck .4s ease .55s forwards;
+        }
+
+        @@keyframes drawCircle {
+            to
+
+        {
+            stroke-dashoffset: 0
+        }
+
+        }
+
+        @@keyframes drawCheck {
+            to
+
+        {
+            stroke-dashoffset: 0
+        }
+
+        }
     </style>
     <script>
         /* JS GIỮ NGUYÊN HOÀN TOÀN TỪ FILE CŨ */
@@ -212,20 +282,64 @@
                         }
                     } catch (e) { }
 
-                    const loginRes = await fetch('/Account/Login', { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
-                    if (loginRes.ok) {
-                        const text = await loginRes.text();
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(text, 'text/html');
-                        const mainSelector = 'main[role="main"]';
-                        const newMain = doc.querySelector(mainSelector) || doc.querySelector('main');
-                        const mainEl = document.querySelector(mainSelector);
-                        if (newMain && mainEl) mainEl.innerHTML = newMain.innerHTML;
-                        const newTitle = doc.querySelector('title')?.innerText;
-                        if (newTitle) document.title = newTitle;
-                    } else {
-                        window.location.href = '/Account/Login';
-                    }
+                                            const box = document.createElement("div");
+        box.innerHTML = `
+        <div class="fixed inset-0 flex items-center justify-center bg-black/40 z-50 success-overlay">
+            <div class="bg-white rounded-2xl shadow-2xl p-7 w-80 text-center success-card">
+
+                <div class="flex justify-center mb-4">
+                    <svg width="72" height="72" viewBox="0 0 52 52">
+                        <circle class="check-circle"
+                                cx="26"
+                                cy="26"
+                                r="25"
+                                fill="none"
+                                stroke="#22c55e"
+                                stroke-width="3"/>
+
+                        <path class="check-mark"
+                              fill="none"
+                              stroke="#22c55e"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M14 27l7 7 16-16"/>
+                    </svg>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-1">
+                    Account Created
+                </h3>
+
+                <p class="text-sm text-slate-500">
+                    Redirecting to home...
+                </p>
+
+                <div class="mt-4 h-1 bg-slate-200 rounded overflow-hidden">
+                    <div id="redirectBar" class="h-full bg-green-500 w-0"></div>
+                </div>
+
+            </div>
+        </div>
+        `;
+
+        document.body.appendChild(box);
+
+        /* progress bar animation */
+        const bar = document.getElementById("redirectBar");
+        let progress = 0;
+
+        const interval = setInterval(()=>{
+            progress += 4;
+            bar.style.width = progress + "%";
+            if(progress >= 100){
+                clearInterval(interval);
+            }
+        },60);
+
+        setTimeout(()=>{
+            window.location.href = "/";
+        },1500);
 
                 } catch (err) {
                     document.getElementById('registerMessage').innerHTML = `<div class="alert alert-danger">Error</div>`;
