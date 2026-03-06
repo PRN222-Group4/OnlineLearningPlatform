@@ -43,7 +43,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
             if (account.IsVerfied == false)
             {
-                response.SetBadRequest(message: "Please Verify your email");
+                response.SetBadRequest(message: "Your account has been permanently banned!");
                 return response;
             }
             response.SetOk(CreateToken(account));
