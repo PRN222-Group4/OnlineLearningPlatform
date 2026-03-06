@@ -169,7 +169,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var users = await _uow.Users.GetAllAsync(u => true);
             var courses = await _uow.Courses.GetAllAsync(c => !c.IsDeleted);
             var enrollments = await _uow.Enrollments.GetAllAsync(e => true);
-            var payments = await _uow.Payments.GetAllAsync(p => p.Status == 1 && p.PaidAt != null);
+            var payments = await _uow.Payments.GetAllAsync(p => p.Status == 2 && p.PaidAt != null);
 
             resp.TotalUsers = users.Count;
             resp.TotalCourses = courses.Count;
@@ -202,7 +202,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
             // 1. Revenue theo thang (payments paid trong n?m)
             var payments = await _uow.Payments.GetAllAsync(p =>
-                p.Status == 1 && p.PaidAt != null && p.PaidAt.Value.Year == year);
+    p.Status == 2 && p.PaidAt != null && p.PaidAt.Value.Year == year);
 
             resp.RevenueMonths = monthNames.ToList();
             resp.RevenueData = Enumerable.Range(1, 12)
