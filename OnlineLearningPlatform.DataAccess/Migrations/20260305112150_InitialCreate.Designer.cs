@@ -12,7 +12,7 @@ using OnlineLearningPlatform.DataAccess;
 namespace OnlineLearningPlatform.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260304042745_InitialCreate")]
+    [Migration("20260305112150_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

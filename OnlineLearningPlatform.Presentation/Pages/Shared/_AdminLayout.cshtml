@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Admin Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.2/flowbite.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.2/flowbite.min.js"></script>
     <style>
         [x-cloak] {
             display: none !important;
@@ -95,6 +97,23 @@
                           @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses") == true
                                                    ? "text-zinc-900" : "text-zinc-400")"></i>
                     Courses
+                </a>
+
+                <a asp-page="/Admin/Courses/Pending"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                      @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/CoursesPending") == true
+                                           || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/CourseReview") == true
+                                           || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses/Pending") == true
+                                           || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses/Review") == true
+                                           ? "bg-zinc-100 text-zinc-900"
+                                           : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
+                    <i class="fas fa-clipboard-check w-4 text-center
+                          @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/CoursesPending") == true
+                                                   || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/CourseReview") == true
+                                                   || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses/Pending") == true
+                                                   || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses/Review") == true
+                                                   ? "text-zinc-900" : "text-zinc-400")"></i>
+                    Pending Reviews
                 </a>
 
                 <a asp-page="/Admin/Users"

@@ -63,6 +63,7 @@ builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IClaimService, ClaimService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<ILessonResourceService, LessonResourceService>();
+builder.Services.AddScoped<ILessonItemService, LessonItemService>();
 builder.Services.AddScoped<IModuleService, ModuleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<OnlineLearningPlatform.BusinessObject.IServices.IAdminService, OnlineLearningPlatform.BusinessObject.Services.AdminService>();

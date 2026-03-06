@@ -11,6 +11,8 @@ public partial class Course
 
     public string Title { get; set; } = null!;
 
+    public string? Subtitle { get; set; }
+
     public string? Description { get; set; }
 
     public string? Image { get; set; }
@@ -23,6 +25,8 @@ public partial class Course
 
     public int Level { get; set; }
 
+    public string? Tags { get; set; }
+
     public Guid CreatedBy { get; set; }
 
     public Guid? UpdatedBy { get; set; }
@@ -31,7 +35,15 @@ public partial class Course
 
     public DateTime? UpdatedAt { get; set; }
 
+    public DateTime? SubmittedAt { get; set; }
+
+    public DateTime? PublishedAt { get; set; }
+
+    public DateTime? RejectedAt { get; set; }
+
     public bool IsDeleted { get; set; }
+
+    public virtual Language Language { get; set; } = null!;
 
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
