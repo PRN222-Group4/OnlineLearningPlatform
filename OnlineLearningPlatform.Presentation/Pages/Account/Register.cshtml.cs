@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Requests.User;
+using OnlineLearningPlatform.BusinessObject.Responses.Auth;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Account
 {
@@ -97,15 +98,23 @@ namespace OnlineLearningPlatform.Presentation.Pages.Account
             // Auto sign-in after successful registration if the service returned a User
             try
             {
-                var created = result.Result;
-                var user = created as OnlineLearningPlatform.DataAccess.Entities.User;
+                var user = result.Result as RegisterResponse;
                 if (user != null)
                 {
+                    var roleName = user.Role switch
+                    {
+                        0 => "Admin",
+                        1 => "Instructor",
+                        2 => "Student",
+                        _ => "User"
+                    };
+
                     var claims = new List<System.Security.Claims.Claim>
                     {
                         new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.FullName ?? user.Email ?? ""),
                         new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                        new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, user.Role.ToString()),
+                        new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, roleName),
+                        new System.Security.Claims.Claim("Role", roleName),
                         new System.Security.Claims.Claim("Email", user.Email ?? ""),
                         new System.Security.Claims.Claim("UserId", user.UserId.ToString())
                     };

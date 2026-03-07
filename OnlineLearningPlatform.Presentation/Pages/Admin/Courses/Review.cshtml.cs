@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Requests.Course;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
-using OnlineLearningPlatform.DataAccess.Entities;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
 {
@@ -16,14 +15,14 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
             _courseService = courseService;
         }
 
-        public Course Course { get; set; } = null!;
-        public List<Module> Modules { get; set; } = new();
-        public List<Lesson> Lessons { get; set; } = new();
-        public List<LessonItem> LessonItems { get; set; } = new();
-        public List<LessonResource> LessonResources { get; set; } = new();
-        public List<GradedItem> GradedItems { get; set; } = new();
-        public List<Question> Questions { get; set; } = new();
-        public List<AnswerOption> AnswerOptions { get; set; } = new();
+        public CourseEditSummaryResponse Course { get; set; } = new();
+        public List<CourseModuleEditResponse> Modules { get; set; } = new();
+        public List<CourseLessonEditResponse> Lessons { get; set; } = new();
+        public List<CourseLessonItemEditResponse> LessonItems { get; set; } = new();
+        public List<CourseLessonResourceEditResponse> LessonResources { get; set; } = new();
+        public List<CourseGradedItemEditResponse> GradedItems { get; set; } = new();
+        public List<CourseQuestionEditResponse> Questions { get; set; } = new();
+        public List<CourseAnswerOptionEditResponse> AnswerOptions { get; set; } = new();
 
         [BindProperty]
         public string? RejectReason { get; set; }
@@ -39,13 +38,13 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
             var data = (CourseEditBundleResponse)editResult.Result;
             Course = data.Course;
             if (Course.Status != 1) return RedirectToPage("/Admin/Courses/Pending");
-            Modules = ((IEnumerable<Module>)data.Modules).ToList();
-            Lessons = ((IEnumerable<Lesson>)data.Lessons).ToList();
-            LessonItems = ((IEnumerable<LessonItem>)data.LessonItems).ToList();
-            LessonResources = ((IEnumerable<LessonResource>)data.LessonResources).ToList();
-            GradedItems = ((IEnumerable<GradedItem>)data.GradedItems).ToList();
-            Questions = ((IEnumerable<Question>)data.Questions).ToList();
-            AnswerOptions = ((IEnumerable<AnswerOption>)data.AnswerOptions).ToList();
+            Modules = data.Modules.ToList();
+            Lessons = data.Lessons.ToList();
+            LessonItems = data.LessonItems.ToList();
+            LessonResources = data.LessonResources.ToList();
+            GradedItems = data.GradedItems.ToList();
+            Questions = data.Questions.ToList();
+            AnswerOptions = data.AnswerOptions.ToList();
 
             return Page();
         }

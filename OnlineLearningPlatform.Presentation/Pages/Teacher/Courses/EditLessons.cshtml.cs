@@ -4,7 +4,6 @@ using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Requests.Lesson;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
 using OnlineLearningPlatform.BusinessObject.Responses.Module;
-using OnlineLearningPlatform.DataAccess.Entities;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
 {
@@ -21,9 +20,9 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
             _moduleService = moduleService;
         }
 
-        public Course Course { get; set; } = null!;
-        public List<Module> Modules { get; set; } = new();
-        public List<Lesson> Lessons { get; set; } = new();
+        public CourseEditSummaryResponse Course { get; set; } = new();
+        public List<CourseModuleEditResponse> Modules { get; set; } = new();
+        public List<CourseLessonEditResponse> Lessons { get; set; } = new();
         public Guid CourseId { get; set; }
         public bool IsReadOnly => Course?.Status != 0;
 
@@ -119,8 +118,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
 
             var data = (CourseEditBundleResponse)result.Result;
             Course = data.Course;
-            Modules = ((IEnumerable<Module>)data.Modules).ToList();
-            Lessons = ((IEnumerable<Lesson>)data.Lessons).ToList();
+            Modules = data.Modules.ToList();
+            Lessons = data.Lessons.ToList();
             return true;
         }
     }

@@ -1,5 +1,4 @@
-﻿using OnlineLearningPlatform.DataAccess.Entities;
-using OnlineLearningPlatform.BusinessObject.Requests.Course;
+﻿using OnlineLearningPlatform.BusinessObject.Requests.Course;
 using OnlineLearningPlatform.BusinessObject.Responses;
 
 namespace OnlineLearningPlatform.BusinessObject.IServices

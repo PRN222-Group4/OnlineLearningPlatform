@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
-using OnlineLearningPlatform.DataAccess.Entities;
-using OnlineLearningPlatform.Presentation.ViewModels.Course;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace OnlineLearningPlatform.Presentation.Pages
 {

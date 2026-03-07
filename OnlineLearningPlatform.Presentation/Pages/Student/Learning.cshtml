@@ -1,0 +1,171 @@
+@page "{courseId:guid}"
+@model OnlineLearningPlatform.Presentation.Pages.Student.LearningModel
+@{
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = Model.CourseDetail?.Title ?? "Learning";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="rounded-xl bg-red-50 border border-red-100 p-4 text-sm text-red-700">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    @if (Model.CourseDetail != null)
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <aside class="lg:col-span-4 xl:col-span-3 bg-white rounded-2xl border border-slate-200 overflow-hidden h-fit">
+                <div class="p-5 border-b border-slate-100">
+                    <h1 class="font-display text-lg font-bold text-slate-900 line-clamp-2">@Model.CourseDetail.Title</h1>
+                    <p class="text-xs text-slate-500 mt-2">Progress @Model.CourseDetail.ProgressPercent.ToString("0")%</p>
+                    <div class="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-primary-500" style="width:@Model.CourseDetail.ProgressPercent%"></div>
+                    </div>
+                </div>
+
+                <div class="max-h-[70vh] overflow-y-auto divide-y divide-slate-100">
+                    @foreach (var module in Model.CourseDetail.Modules.OrderBy(m => m.OrderIndex))
+                    {
+                        <div class="p-4">
+                            <h2 class="text-xs uppercase tracking-wide font-semibold text-slate-400 mb-2">@module.Title</h2>
+                            <div class="space-y-1.5">
+                                @foreach (var lesson in module.Lessons.OrderBy(l => l.OrderIndex))
+                                {
+                                    var isActive = Model.LessonId == lesson.LessonId;
+                                    <a asp-page="/Student/Learning"
+                                       asp-route-courseId="@Model.CourseId"
+                                       asp-route-lessonId="@lesson.LessonId"
+                                       class="flex items-start gap-2.5 p-2.5 rounded-lg transition-colors @(isActive ? "bg-primary-50 border border-primary-100" : "hover:bg-slate-50")">
+                                        <span class="mt-0.5 text-xs @(lesson.IsCompleted ? "text-emerald-500" : isActive ? "text-primary-500" : "text-slate-300")">
+                                            <i class="fas @(lesson.IsCompleted ? "fa-check-circle" : "fa-circle")"></i>
+                                        </span>
+                                        <span class="text-sm @(isActive ? "text-primary-700 font-semibold" : "text-slate-700")">@lesson.Title</span>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </aside>
+
+            <section class="lg:col-span-8 xl:col-span-9 bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                @if (Model.CurrentLesson != null)
+                {
+                    <div class="p-6 border-b border-slate-100 flex flex-wrap gap-3 items-start justify-between">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-slate-400">Lesson</p>
+                            <h2 class="text-2xl font-bold text-slate-900">@Model.CurrentLesson.Title</h2>
+                            @if (!string.IsNullOrEmpty(Model.CurrentLesson.Description))
+                            {
+                                <p class="text-sm text-slate-500 mt-1">@Model.CurrentLesson.Description</p>
+                            }
+                        </div>
+                        @if (!Model.CurrentLesson.IsCompleted)
+                        {
+                            <form method="post" asp-page-handler="MarkComplete" class="shrink-0">
+                                <input type="hidden" asp-for="CourseId" />
+                                <input type="hidden" name="lessonId" value="@Model.CurrentLesson.LessonId" />
+                                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition-colors">
+                                    <i class="fas fa-check"></i> Mark Complete
+                                </button>
+                            </form>
+                        }
+                    </div>
+
+                    <div class="p-6 space-y-6">
+                        @if (Model.CurrentLesson.Materials.Any())
+                        {
+                            @foreach (var material in Model.CurrentLesson.Materials.OrderBy(m => m.OrderIndex))
+                            {
+                                <article class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+                                        <span class="text-primary-500 text-sm">
+                                            <i class="fas @(material.Type == 0 ? "fa-play-circle" : material.Type == 1 ? "fa-book-open" : "fa-question-circle")"></i>
+                                        </span>
+                                        <h3 class="text-sm font-semibold text-slate-800">@material.Title</h3>
+                                    </div>
+
+                                    <div class="p-4">
+                                        @if (material.Type == 0)
+                                        {
+                                            @if (!string.IsNullOrWhiteSpace(material.VideoUrl))
+                                            {
+                                                <div class="aspect-video rounded-lg overflow-hidden bg-black">
+                                                    <video controls class="w-full h-full">
+                                                        <source src="@material.VideoUrl" type="video/mp4" />
+                                                    </video>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-sm text-slate-500">Video URL is not available.</p>
+                                            }
+                                        }
+                                        else if (material.Type == 1)
+                                        {
+                                            <div class="prose prose-slate max-w-none text-sm">
+                                                @Html.Raw(material.Content ?? "<p>No reading content available.</p>")
+                                            </div>
+                                        }
+                                        else if (material.Type == 2 && material.Quiz != null)
+                                        {
+                                            <div class="space-y-4">
+                                                @foreach (var question in material.Quiz.Questions.OrderBy(q => q.OrderIndex))
+                                                {
+                                                    <div class="rounded-lg border border-slate-100 p-3">
+                                                        <p class="text-sm font-semibold text-slate-800">@question.Content</p>
+                                                        <ul class="mt-2 space-y-1">
+                                                            @foreach (var option in question.Options.OrderBy(o => o.OrderIndex))
+                                                            {
+                                                                <li class="text-sm text-slate-600 flex items-start gap-2">
+                                                                    <i class="fas fa-circle text-[6px] mt-2 text-slate-300"></i>
+                                                                    <span>@option.Text</span>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </article>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-sm text-slate-500">No materials are available in this lesson yet.</p>
+                        }
+                    </div>
+
+                    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                        @if (Model.PreviousLessonId.HasValue)
+                        {
+                            <a asp-page="/Student/Learning" asp-route-courseId="@Model.CourseId" asp-route-lessonId="@Model.PreviousLessonId"
+                               class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900">
+                                <i class="fas fa-arrow-left text-xs"></i> Previous
+                            </a>
+                        }
+                        else
+                        {
+                            <span></span>
+                        }
+
+                        @if (Model.NextLessonId.HasValue)
+                        {
+                            <a asp-page="/Student/Learning" asp-route-courseId="@Model.CourseId" asp-route-lessonId="@Model.NextLessonId"
+                               class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors">
+                                Next <i class="fas fa-arrow-right text-xs"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-sm text-emerald-600 font-semibold">Course completed</span>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+    }
+</div>

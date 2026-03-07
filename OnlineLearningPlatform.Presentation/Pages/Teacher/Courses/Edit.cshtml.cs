@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
-using OnlineLearningPlatform.DataAccess.Entities;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
 {
@@ -16,7 +15,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
         }
 
         public Guid CourseId { get; set; }
-        public Course Course { get; set; } = null!;
+        public CourseEditSummaryResponse Course { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(Guid courseId, int? step)
         {

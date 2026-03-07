@@ -1,5 +1,4 @@
-﻿using OnlineLearningPlatform.DataAccess.Entities;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace OnlineLearningPlatform.BusinessObject.IServices
 {

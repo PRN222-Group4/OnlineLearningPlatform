@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
-using OnlineLearningPlatform.DataAccess.Entities;
+using OnlineLearningPlatform.BusinessObject.Responses.Course;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
 {
@@ -14,14 +14,14 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
             _courseService = courseService;
         }
 
-        public List<Course> PendingCourses { get; set; } = new();
+        public List<PendingCourseReviewResponse> PendingCourses { get; set; } = new();
 
         public async Task OnGetAsync()
         {
             var result = await _courseService.GetPendingCoursesForAdminAsync();
             if (result.IsSuccess && result.Result != null)
             {
-                PendingCourses = ((IEnumerable<Course>)result.Result).ToList();
+                PendingCourses = (result.Result as IEnumerable<PendingCourseReviewResponse>)?.ToList() ?? new List<PendingCourseReviewResponse>();
             }
         }
     }
