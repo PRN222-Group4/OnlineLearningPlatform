@@ -12,7 +12,7 @@ using OnlineLearningPlatform.DataAccess;
 namespace OnlineLearningPlatform.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260305112150_InitialCreate")]
+    [Migration("20260307084934_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -68,6 +68,8 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
 
                     b.HasIndex(new[] { "QuestionId" }, "IX_AnswerOptions_QuestionId");
 
+                    b.HasIndex(new[] { "QuestionId", "OrderIndex" }, "IX_AnswerOptions_QuestionId_OrderIndex");
+
                     b.ToTable("AnswerOptions");
                 });
 
@@ -100,11 +102,26 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("RejectReason")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("RejectedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Subtitle")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Tags")
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -118,7 +135,11 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
 
                     b.HasKey("CourseId");
 
+                    b.HasIndex(new[] { "CreatedBy" }, "IX_Courses_CreatedBy");
+
                     b.HasIndex(new[] { "LanguageId" }, "IX_Courses_LanguageId");
+
+                    b.HasIndex(new[] { "Status" }, "IX_Courses_Status");
 
                     b.ToTable("Courses");
                 });
@@ -282,6 +303,43 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.ToTable("GradedItems");
                 });
 
+            modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Language", b =>
+                {
+                    b.Property<Guid>("LanguageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("LanguageId");
+
+                    b.ToTable("Languages");
+                });
+
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Lesson", b =>
                 {
                     b.Property<Guid>("LessonId")
@@ -321,6 +379,8 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.HasKey("LessonId");
 
                     b.HasIndex(new[] { "ModuleId" }, "IX_Lessons_ModuleId");
+
+                    b.HasIndex(new[] { "ModuleId", "OrderIndex" }, "IX_Lessons_ModuleId_OrderIndex");
 
                     b.ToTable("Lessons");
                 });
@@ -405,6 +465,9 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
 
                     b.Property<Guid?>("UpdatedBy")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("VideoSourceType")
+                        .HasColumnType("integer");
 
                     b.HasKey("LessonResourceId");
 
@@ -591,6 +654,8 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.HasKey("QuestionId");
 
                     b.HasIndex(new[] { "GradedItemId" }, "IX_Questions_GradedItemId");
+
+                    b.HasIndex(new[] { "GradedItemId", "OrderIndex" }, "IX_Questions_GradedItemId_OrderIndex");
 
                     b.ToTable("Questions");
                 });
@@ -845,6 +910,17 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.Navigation("Question");
                 });
 
+            modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Course", b =>
+                {
+                    b.HasOne("OnlineLearningPlatform.DataAccess.Entities.Language", "Language")
+                        .WithMany("Courses")
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+                });
+
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Enrollment", b =>
                 {
                     b.HasOne("OnlineLearningPlatform.DataAccess.Entities.Course", "Course")
@@ -1091,6 +1167,11 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.Navigation("GradedAttempt");
 
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Language", b =>
+                {
+                    b.Navigation("Courses");
                 });
 
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Lesson", b =>

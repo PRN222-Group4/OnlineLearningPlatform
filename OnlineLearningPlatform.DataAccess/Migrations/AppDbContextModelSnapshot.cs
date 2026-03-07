@@ -65,6 +65,8 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
 
                     b.HasIndex(new[] { "QuestionId" }, "IX_AnswerOptions_QuestionId");
 
+                    b.HasIndex(new[] { "QuestionId", "OrderIndex" }, "IX_AnswerOptions_QuestionId_OrderIndex");
+
                     b.ToTable("AnswerOptions");
                 });
 
@@ -375,6 +377,8 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
 
                     b.HasIndex(new[] { "ModuleId" }, "IX_Lessons_ModuleId");
 
+                    b.HasIndex(new[] { "ModuleId", "OrderIndex" }, "IX_Lessons_ModuleId_OrderIndex");
+
                     b.ToTable("Lessons");
                 });
 
@@ -647,6 +651,8 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.HasKey("QuestionId");
 
                     b.HasIndex(new[] { "GradedItemId" }, "IX_Questions_GradedItemId");
+
+                    b.HasIndex(new[] { "GradedItemId", "OrderIndex" }, "IX_Questions_GradedItemId_OrderIndex");
 
                     b.ToTable("Questions");
                 });
