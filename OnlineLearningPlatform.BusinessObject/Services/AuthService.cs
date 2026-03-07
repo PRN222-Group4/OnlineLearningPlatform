@@ -10,6 +10,7 @@ using OnlineLearningPlatform.BusinessObject.Responses;
 using OnlineLearningPlatform.BusinessObject.Requests.User;
 using OnlineLearningPlatform.BusinessObject.DTOs;
 using AutoMapper;
+using OnlineLearningPlatform.BusinessObject.Responses.Auth;
 using OnlineLearningPlatform.BusinessObject.Responses.User;
 
 namespace OnlineLearningPlatform.BusinessObject.Services
@@ -90,7 +91,14 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     await _unitOfWork.Users.AddAsync(user);
                     await _unitOfWork.SaveChangeAsync();
 
-                    return response.SetOk(user);
+                    return response.SetOk(new RegisterResponse
+                    {
+                        UserId = user.UserId,
+                        FullName = user.FullName,
+                        Email = user.Email,
+                        Role = user.Role,
+                        Image = user.Image
+                    });
                 }
                 else
                 {
@@ -112,7 +120,14 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     await _unitOfWork.Users.AddAsync(user);
                     await _unitOfWork.SaveChangeAsync();
 
-                    return response.SetOk(user);
+                    return response.SetOk(new RegisterResponse
+                    {
+                        UserId = user.UserId,
+                        FullName = user.FullName,
+                        Email = user.Email,
+                        Role = user.Role,
+                        Image = user.Image
+                    });
                 }
             }
             catch (Exception ex)

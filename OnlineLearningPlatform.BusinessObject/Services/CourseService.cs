@@ -394,32 +394,175 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
         public async Task<ApiResponse> GetCourseDetailForStudentAsync(Guid courseId)
         {
+            var response = new ApiResponse();
             try
             {
-                var userId = _service.GetUserClaim().UserId;
-                // 1. Lấy thông tin Course
-                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId);
-                if (course == null) return new ApiResponse().SetNotFound("Course not found");
+                var claim = _service.GetUserClaim();
+                if (claim.Role != 2)
+                {
+                    return response.SetBadRequest(message: "Only students can access the learning page.");
+                }
 
-                var instructor = await _unitOfWork.Users.GetAsync(u => u.UserId == course.CreatedBy);
+                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId && !c.IsDeleted);
+                if (course == null)
+                {
+                    return response.SetNotFound("Course not found");
+                }
 
-                // 2. Lấy Modules & Lessons (Query thủ công để gom hết vào 1 cục)
-                var modules = await _unitOfWork.Modules.GetAllAsync(m => m.CourseId == courseId && !m.IsDeleted);
+                if (course.Status != 2)
+                {
+                    return response.SetBadRequest(message: "This course is not published yet.");
+                }
+
+                var enrollment = await _unitOfWork.Enrollments.GetAsync(e =>
+                    e.UserId == claim.UserId
+                    && e.CourseId == courseId
+                    && (e.Status == 1 || e.Status == 2)
+                    && !e.IsDeleted);
+
+                if (enrollment == null)
+                {
+                    return response.SetBadRequest(message: "You are not enrolled in this course.");
+                }
+
+                var hasSuccessfulPayment = await _unitOfWork.Payments.AnyAsync(p =>
+                    p.UserId == claim.UserId
+                    && p.CourseId == courseId
+                    && p.Status == 1
+                    && !p.IsDeleted);
+
+                if (course.Price > 0 && !hasSuccessfulPayment)
+                {
+                    return response.SetBadRequest(message: "Payment is required before accessing this course.");
+                }
+
+                var modules = (await _unitOfWork.Modules.GetAllAsync(m => m.CourseId == courseId && !m.IsDeleted))
+                    .OrderBy(m => m.Index)
+                    .ToList();
                 var moduleIds = modules.Select(m => m.ModuleId).ToList();
-                var lessons = await _unitOfWork.Lessons.GetAllAsync(l => moduleIds.Contains(l.ModuleId) && !l.IsDeleted);
-                var lessonIds = lessons.Select(l => l.LessonId).ToList();
-                var lessonItems = await _unitOfWork.LessonItems.GetAllAsync(li => lessonIds.Contains(li.LessonId) && !li.IsDeleted);
-                var lessonItemIds = lessonItems.Select(li => li.LessonItemId).ToList();
-                var lessonResources = await _unitOfWork.LessonResources.GetAllAsync(lr => lessonItemIds.Contains(lr.LessonItemId) && !lr.IsDeleted);
-                var gradedItems = await _unitOfWork.GradedItems.GetAllAsync(gi => lessonItemIds.Contains(gi.LessonItemId));
-                var attempt = await _unitOfWork.GradedAttempts.GetAllAsync(ga => ga.UserId == userId && gradedItems.Select(gi => gi.GradedItemId).Contains(ga.GradedItemId));
 
-                var response = _mapper.Map<StudentCourseDetailResponse>(course);
-                return new ApiResponse().SetOk(response);
+                var lessons = (await _unitOfWork.Lessons.GetAllAsync(l => moduleIds.Contains(l.ModuleId) && !l.IsDeleted))
+                    .OrderBy(l => l.OrderIndex)
+                    .ToList();
+                var lessonIds = lessons.Select(l => l.LessonId).ToList();
+
+                var lessonItems = (await _unitOfWork.LessonItems.GetAllAsync(li => lessonIds.Contains(li.LessonId) && !li.IsDeleted))
+                    .OrderBy(li => li.OrderIndex)
+                    .ToList();
+                var lessonItemIds = lessonItems.Select(li => li.LessonItemId).ToList();
+
+                var lessonResources = (await _unitOfWork.LessonResources.GetAllAsync(lr => lessonItemIds.Contains(lr.LessonItemId) && !lr.IsDeleted))
+                    .OrderBy(lr => lr.OrderIndex)
+                    .ToList();
+
+                var gradedItems = await _unitOfWork.GradedItems.GetAllAsync(gi => lessonItemIds.Contains(gi.LessonItemId) && !gi.IsDeleted);
+                var gradedItemIds = gradedItems.Select(gi => gi.GradedItemId).ToList();
+
+                var questions = (await _unitOfWork.Questions.GetAllAsync(q => gradedItemIds.Contains(q.GradedItemId) && !q.IsDeleted))
+                    .OrderBy(q => q.OrderIndex)
+                    .ToList();
+                var questionIds = questions.Select(q => q.QuestionId).ToList();
+
+                var answerOptions = (await _unitOfWork.AnswerOptions.GetAllAsync(ao => questionIds.Contains(ao.QuestionId) && !ao.IsDeleted))
+                    .OrderBy(ao => ao.OrderIndex)
+                    .ToList();
+
+                var progressRows = await _unitOfWork.UserLessonProgresses.GetAllAsync(p =>
+                    p.UserId == claim.UserId
+                    && lessonIds.Contains(p.LessonId));
+
+                var progressByLesson = progressRows
+                    .GroupBy(p => p.LessonId)
+                    .ToDictionary(g => g.Key, g => g.Any(x => x.IsCompleted));
+                var gradedByLessonItem = gradedItems.ToDictionary(g => g.LessonItemId, g => g);
+
+                var result = new StudentLearningDetailResponse
+                {
+                    CourseId = course.CourseId,
+                    Title = course.Title,
+                    Description = course.Description,
+                    ProgressPercent = enrollment.ProgressPercent,
+                    Modules = modules.Select(module => new StudentLearningModuleResponse
+                    {
+                        ModuleId = module.ModuleId,
+                        Title = module.Name,
+                        OrderIndex = module.Index,
+                        Lessons = lessons
+                            .Where(lesson => lesson.ModuleId == module.ModuleId)
+                            .OrderBy(lesson => lesson.OrderIndex)
+                            .Select(lesson => new StudentLearningLessonResponse
+                            {
+                                LessonId = lesson.LessonId,
+                                Title = lesson.Title,
+                                Description = lesson.Description,
+                                OrderIndex = lesson.OrderIndex,
+                                EstimatedMinutes = lesson.EstimatedMinutes,
+                                IsCompleted = progressByLesson.TryGetValue(lesson.LessonId, out var isCompleted) && isCompleted,
+                                Materials = lessonItems
+                                    .Where(item => item.LessonId == lesson.LessonId)
+                                    .OrderBy(item => item.OrderIndex)
+                                    .Select(item =>
+                                    {
+                                        var firstResource = lessonResources
+                                            .Where(resource => resource.LessonItemId == item.LessonItemId)
+                                            .OrderBy(resource => resource.OrderIndex)
+                                            .FirstOrDefault();
+
+                                        var material = new StudentLearningMaterialResponse
+                                        {
+                                            LessonItemId = item.LessonItemId,
+                                            Type = item.Type,
+                                            OrderIndex = item.OrderIndex,
+                                            Title = firstResource?.Title ?? GetMaterialTypeLabel(item.Type),
+                                            Description = lesson.Description,
+                                            VideoUrl = firstResource?.ResourceUrl,
+                                            Content = firstResource?.TextContent
+                                        };
+
+                                        if (item.Type == 2 && gradedByLessonItem.TryGetValue(item.LessonItemId, out var gradedItem))
+                                        {
+                                            var quizQuestions = questions
+                                                .Where(question => question.GradedItemId == gradedItem.GradedItemId)
+                                                .OrderBy(question => question.OrderIndex)
+                                                .Select(question => new StudentLearningQuestionResponse
+                                                {
+                                                    QuestionId = question.QuestionId,
+                                                    Content = question.Content,
+                                                    OrderIndex = question.OrderIndex,
+                                                    Options = answerOptions
+                                                        .Where(option => option.QuestionId == question.QuestionId)
+                                                        .OrderBy(option => option.OrderIndex)
+                                                        .Select(option => new StudentLearningAnswerOptionResponse
+                                                        {
+                                                            AnswerOptionId = option.AnswerOptionId,
+                                                            Text = option.Text,
+                                                            OrderIndex = option.OrderIndex
+                                                        })
+                                                        .ToList()
+                                                })
+                                                .ToList();
+
+                                            material.Quiz = new StudentLearningQuizResponse
+                                            {
+                                                GradedItemId = gradedItem.GradedItemId,
+                                                Title = firstResource?.Title ?? "Quiz",
+                                                Questions = quizQuestions
+                                            };
+                                        }
+
+                                        return material;
+                                    })
+                                    .ToList()
+                            })
+                            .ToList()
+                    }).ToList()
+                };
+
+                return response.SetOk(result);
             }
             catch (Exception ex)
             {
-                return new ApiResponse().SetBadRequest(ex.Message);
+                return response.SetBadRequest(ex.Message);
             }
         }
 
@@ -459,17 +602,77 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 var answerOptions = (await _unitOfWork.AnswerOptions.GetAllAsync(ao => questionIds.Contains(ao.QuestionId) && !ao.IsDeleted))
                     .OrderBy(ao => ao.OrderIndex).ToList();
 
-                // Build result
                 var result = new CourseEditBundleResponse
                 {
-                    Course = course,
-                    Modules = modules,
-                    Lessons = lessons,
-                    LessonItems = lessonItems,
-                    LessonResources = lessonResources,
-                    GradedItems = gradedItems,
-                    Questions = questions,
-                    AnswerOptions = answerOptions
+                    Course = new CourseEditSummaryResponse
+                    {
+                        CourseId = course.CourseId,
+                        LanguageId = course.LanguageId,
+                        Title = course.Title,
+                        Subtitle = course.Subtitle,
+                        Description = course.Description,
+                        Image = course.Image,
+                        Status = course.Status,
+                        Price = course.Price,
+                        Level = course.Level,
+                        Tags = course.Tags,
+                        SubmittedAt = course.SubmittedAt
+                    },
+                    Modules = modules.Select(module => new CourseModuleEditResponse
+                    {
+                        ModuleId = module.ModuleId,
+                        CourseId = module.CourseId,
+                        Name = module.Name,
+                        Description = module.Description,
+                        Index = module.Index
+                    }).ToList(),
+                    Lessons = lessons.Select(lesson => new CourseLessonEditResponse
+                    {
+                        LessonId = lesson.LessonId,
+                        ModuleId = lesson.ModuleId,
+                        Title = lesson.Title,
+                        Description = lesson.Description,
+                        EstimatedMinutes = lesson.EstimatedMinutes,
+                        OrderIndex = lesson.OrderIndex
+                    }).ToList(),
+                    LessonItems = lessonItems.Select(item => new CourseLessonItemEditResponse
+                    {
+                        LessonItemId = item.LessonItemId,
+                        LessonId = item.LessonId,
+                        Type = item.Type,
+                        OrderIndex = item.OrderIndex
+                    }).ToList(),
+                    LessonResources = lessonResources.Select(resource => new CourseLessonResourceEditResponse
+                    {
+                        LessonResourceId = resource.LessonResourceId,
+                        LessonItemId = resource.LessonItemId,
+                        Title = resource.Title,
+                        ResourceType = resource.ResourceType,
+                        ResourceUrl = resource.ResourceUrl,
+                        TextContent = resource.TextContent,
+                        VideoSourceType = resource.VideoSourceType,
+                        OrderIndex = resource.OrderIndex
+                    }).ToList(),
+                    GradedItems = gradedItems.Select(item => new CourseGradedItemEditResponse
+                    {
+                        GradedItemId = item.GradedItemId,
+                        LessonItemId = item.LessonItemId
+                    }).ToList(),
+                    Questions = questions.Select(question => new CourseQuestionEditResponse
+                    {
+                        QuestionId = question.QuestionId,
+                        GradedItemId = question.GradedItemId,
+                        Content = question.Content,
+                        OrderIndex = question.OrderIndex
+                    }).ToList(),
+                    AnswerOptions = answerOptions.Select(option => new CourseAnswerOptionEditResponse
+                    {
+                        AnswerOptionId = option.AnswerOptionId,
+                        QuestionId = option.QuestionId,
+                        Text = option.Text,
+                        IsCorrect = option.IsCorrect,
+                        OrderIndex = option.OrderIndex
+                    }).ToList()
                 };
 
                 return response.SetOk(result);
@@ -541,12 +744,37 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 }
 
                 var courses = await _unitOfWork.Courses.GetAllAsync(c => !c.IsDeleted && c.Status == 1);
-                return response.SetOk(courses.OrderByDescending(c => c.SubmittedAt).ToList());
+                var result = courses
+                    .OrderByDescending(c => c.SubmittedAt)
+                    .Select(c => new PendingCourseReviewResponse
+                    {
+                        CourseId = c.CourseId,
+                        Title = c.Title,
+                        Subtitle = c.Subtitle,
+                        Image = c.Image,
+                        Level = c.Level,
+                        Price = c.Price,
+                        SubmittedAt = c.SubmittedAt
+                    })
+                    .ToList();
+
+                return response.SetOk(result);
             }
             catch (Exception ex)
             {
                 return response.SetBadRequest(message: ex.Message);
             }
+        }
+
+        private static string GetMaterialTypeLabel(int type)
+        {
+            return type switch
+            {
+                0 => "Video",
+                1 => "Reading",
+                2 => "Quiz",
+                _ => "Material"
+            };
         }
     }
 }

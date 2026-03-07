@@ -4,6 +4,7 @@ using AutoMapper;
 using OnlineLearningPlatform.DataAccess.Entities;
 using OnlineLearningPlatform.BusinessObject.Requests.Enrollment;
 using OnlineLearningPlatform.BusinessObject.Responses;
+using OnlineLearningPlatform.BusinessObject.Responses.Course;
 using Microsoft.EntityFrameworkCore;
 using OnlineLearningPlatform.DataAccess.UnitOfWork;
 
@@ -98,16 +99,30 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var response = new ApiResponse();
             try
             {
-                var userId = _service.GetUserClaim().UserId;
+                var claim = _service.GetUserClaim();
+                if (claim.Role != 2)
+                {
+                    return response.SetBadRequest(message: "Only students can access learning enrollments.");
+                }
 
                 // Lấy enrollment + Course info + Giảng viên
                 var enrollments = await _unitOfWork.Enrollments.GetQueryable()
                     .Include(e => e.Course)
-                    .Where(e => e.UserId == userId && e.Status == 1)
+                    .Where(e => e.UserId == claim.UserId && (e.Status == 1 || e.Status == 2) && !e.IsDeleted)
                     .OrderByDescending(e => e.EnrolledAt)
                     .ToListAsync();
 
-                return response.SetOk(enrollments);
+                var result = enrollments.Select(e => new StudentEnrollmentSummaryResponse
+                {
+                    EnrollmentId = e.EnrollmentId,
+                    CourseId = e.CourseId,
+                    CourseTitle = e.Course?.Title ?? "Untitled Course",
+                    CourseImage = e.Course?.Image,
+                    ProgressPercent = e.ProgressPercent,
+                    EnrolledAt = e.EnrolledAt
+                }).ToList();
+
+                return response.SetOk(result);
             }
             catch (Exception ex)
             {

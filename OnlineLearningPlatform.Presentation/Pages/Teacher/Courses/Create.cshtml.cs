@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Requests.Course;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
-using OnlineLearningPlatform.DataAccess.Entities;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
 {
@@ -22,7 +21,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
         public CreateNewCourseRequest Input { get; set; } = new();
 
         // For editing existing draft course
-        public Course? ExistingCourse { get; set; }
+        public CourseEditSummaryResponse? ExistingCourse { get; set; }
         public Guid? CourseId { get; set; }
 
         public async Task<IActionResult> OnGetAsync(Guid? courseId)

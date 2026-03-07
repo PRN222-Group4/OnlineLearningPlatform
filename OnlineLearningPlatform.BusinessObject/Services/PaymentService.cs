@@ -38,8 +38,13 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 var paymentList = await _uow.Payments.GetAllAsync(p => p.Status == 1 && p.PaidAt != null);
                 var result = paymentList.Select(p => new PaymentRecord
                 {
+                    PaymentId = p.PaymentId,
+                    OrderCode = p.OrderCode,
                     PaidAt = p.PaidAt,
-                    Amount = p.Amount
+                    Amount = p.Amount,
+                    Status = p.Status,
+                    CreatedAt = p.CreatedAt,
+                    ExpiredAt = p.ExpiredAt
                 }).ToList();
                 return response.SetOk(result);
             }
@@ -298,7 +303,16 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 var paymentList = await _uow.Payments.GetAllAsync(p => p.Status == 0);
 
                 // Map to DTO so business layer doesn't expose data entities to presentation
-                var result = paymentList.Select(p => new PaymentRecord { Amount = p.Amount, PaidAt = p.CreatedAt }).ToList();
+                var result = paymentList.Select(p => new PaymentRecord
+                {
+                    PaymentId = p.PaymentId,
+                    OrderCode = p.OrderCode,
+                    Amount = p.Amount,
+                    Status = p.Status,
+                    CreatedAt = p.CreatedAt,
+                    ExpiredAt = p.ExpiredAt,
+                    PaidAt = p.PaidAt
+                }).ToList();
                 return response.SetOk(result);
             }
             catch (Exception ex)

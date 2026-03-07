@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OnlineLearningPlatform.BusinessObject\OnlineLearningPlatform.BusinessObject.csproj" />
-    <ProjectReference Include="..\OnlineLearningPlatform.DataAccess\OnlineLearningPlatform.DataAccess.csproj" />
   </ItemGroup>
 	
 <ItemGroup>
