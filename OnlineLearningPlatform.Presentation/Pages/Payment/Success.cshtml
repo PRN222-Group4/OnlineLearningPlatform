@@ -1,8 +1,37 @@
-@page
-@model Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+﻿@page
+@model OnlineLearningPlatform.Presentation.Pages.Payment.SuccessModel
 @{
-    Layout = "_Layout";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Payment Successful";
 }
-<h2>Payment Successful</h2>
-<p>Your payment was successful. You can now access the course.</p>
-<a href="/">Return to home</a>
+
+<div class="min-h-[60vh] flex items-center justify-center px-4 py-20">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-md w-full p-10 text-center">
+
+        <!-- Icon -->
+        <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <i class="fas fa-check text-emerald-500 text-2xl"></i>
+        </div>
+
+        <h1 class="font-display text-2xl font-extrabold text-slate-900 mb-2">Payment Successful!</h1>
+        <p class="text-slate-500 text-sm mb-1">Your enrollment has been confirmed.</p>
+
+        @if (!string.IsNullOrEmpty(Model.OrderCode))
+        {
+            <p class="text-xs text-slate-400 mb-6">Order code: <span class="font-mono font-semibold text-slate-600">@Model.OrderCode</span></p>
+        }
+
+        <div class="flex flex-col sm:flex-row gap-3 mt-6">
+            <a asp-page="/Learning/MyCourses"
+               class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl
+                      hover:bg-primary-700 transition-colors no-underline">
+                <i class="fas fa-graduation-cap text-xs"></i> Go to My Courses
+            </a>
+            <a asp-page="/Index"
+               class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-xl
+                      hover:bg-slate-200 transition-colors no-underline">
+                <i class="fas fa-home text-xs"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
