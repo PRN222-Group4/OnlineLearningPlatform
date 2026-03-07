@@ -1,61 +1,158 @@
-@page
+﻿@page
 @model OnlineLearningPlatform.Presentation.Pages.Teacher.CreateCourseModel
 @{
     Layout = "~/Pages/Teacher/_TeacherLayout.cshtml";
     ViewData["Title"] = "Create Course";
 }
 
-<div class="container">
-    <div class="mb-4">
-        <h2>Create Course</h2>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-10">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <a asp-page="/Teacher/Dashboard"
+           class="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-700 text-sm transition-colors no-underline mb-4">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Dashboard
+        </a>
+        <h1 class="font-display text-2xl font-extrabold text-slate-900">Create New Course</h1>
+        <p class="text-slate-500 text-sm mt-1">Fill in the details below to publish your course</p>
     </div>
 
+    <!-- Error -->
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
-        <div class="alert alert-danger">@Model.ErrorMessage</div>
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 mb-6">
+            <i class="fas fa-exclamation-circle text-red-400 shrink-0"></i>
+            @Model.ErrorMessage
+        </div>
     }
 
-    <form method="post" enctype="multipart/form-data" class="row g-3">
-        <div class="col-12">
-            <label asp-for="Request.Title" class="form-label">Title</label>
-            <input asp-for="Request.Title" class="form-control" />
-            <span asp-validation-for="Request.Title" class="text-danger"></span>
-        </div>
+    <!-- Form card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <form method="post" enctype="multipart/form-data" class="divide-y divide-slate-100">
 
-        <div class="col-12">
-            <label asp-for="Request.Description" class="form-label">Description</label>
-            <textarea asp-for="Request.Description" class="form-control" rows="5"></textarea>
-            <span asp-validation-for="Request.Description" class="text-danger"></span>
-        </div>
+            <!-- Title -->
+            <div class="px-6 py-5">
+                <label asp-for="Request.Title"
+                       class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Course Title <span class="text-red-400">*</span>
+                </label>
+                <input asp-for="Request.Title" placeholder="e.g. Complete Web Development Bootcamp"
+                       class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                              focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all" />
+                <span asp-validation-for="Request.Title" class="text-xs text-red-500 mt-1 block"></span>
+            </div>
 
-        <div class="col-md-4">
-            <label asp-for="Request.Price" class="form-label">Price (VND)</label>
-            <input asp-for="Request.Price" class="form-control" />
-            <span asp-validation-for="Request.Price" class="text-danger"></span>
-        </div>
+            <!-- Description -->
+            <div class="px-6 py-5">
+                <label asp-for="Request.Description"
+                       class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Description
+                </label>
+                <textarea asp-for="Request.Description" rows="5"
+                          placeholder="Describe what students will learn in this course..."
+                          class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 resize-none
+                                 focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all"></textarea>
+                <span asp-validation-for="Request.Description" class="text-xs text-red-500 mt-1 block"></span>
+            </div>
 
-        <div class="col-md-4">
-            <label asp-for="Request.Level" class="form-label">Level</label>
-            <select asp-for="Request.Level" class="form-select">
-                <option value="0">Beginner</option>
-                <option value="1">Intermediate</option>
-                <option value="2">Advanced</option>
-            </select>
-        </div>
+            <!-- Price + Level -->
+            <div class="px-6 py-5 grid sm:grid-cols-2 gap-5">
 
-        <div class="col-md-4">
-            <label asp-for="Request.ImageFile" class="form-label">Image</label>
-            <input asp-for="Request.ImageFile" type="file" class="form-control" />
-        </div>
+                <!-- Price -->
+                <div>
+                    <label asp-for="Request.Price"
+                           class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        Price <span class="text-red-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="Request.Price" type="number" min="0" placeholder="0"
+                               class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                      focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all" />
+                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold pointer-events-none">₫</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Set 0 for a free course</p>
+                    <span asp-validation-for="Request.Price" class="text-xs text-red-500 mt-1 block"></span>
+                </div>
 
-        <div class="col-12">
-            <button type="submit" class="btn btn-primary">Create course</button>
-            <a asp-page="/Teacher/Dashboard" class="btn btn-outline-secondary ms-2">Cancel</a>
-        </div>
-    </form>
+                <!-- Level -->
+                <div>
+                    <label asp-for="Request.Level"
+                           class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        Level
+                    </label>
+                    <select asp-for="Request.Level"
+                            class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50
+                                   focus:outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all">
+                        <option value="0">🌱 Beginner</option>
+                        <option value="1">⚡ Intermediate</option>
+                        <option value="2">🔥 Advanced</option>
+                    </select>
+                </div>
+            </div>
 
+            <!-- Image upload -->
+            <div class="px-6 py-5">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Course Thumbnail <span class="text-slate-300 font-normal normal-case">(optional)</span>
+                </label>
+                <div class="flex items-start gap-4">
+                    <!-- Preview -->
+                    <div id="previewWrap"
+                         class="w-24 h-16 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
+                        <i id="previewIcon" class="fas fa-image text-slate-300 text-xl"></i>
+                        <img id="previewImg" class="w-full h-full object-cover hidden" alt="preview" />
+                    </div>
+                    <!-- Drop zone -->
+                    <div class="flex-1 border-2 border-dashed border-slate-200 rounded-xl p-4 text-center
+                                hover:border-primary-300 hover:bg-primary-50/30 transition-colors cursor-pointer"
+                         onclick="document.getElementById('imageInput').click()">
+                        <input asp-for="Request.ImageFile" type="file" id="imageInput" accept="image/*"
+                               class="hidden" onchange="previewImage(this)" />
+                        <i class="fas fa-cloud-upload-alt text-slate-300 text-2xl mb-2 block"></i>
+                        <p class="text-xs text-slate-400">Click to upload <span class="text-primary-600 font-semibold">PNG, JPG, WEBP</span></p>
+                        <p class="text-xs text-slate-300 mt-0.5">Recommended: 1280×720px</p>
+                        <p id="fileName" class="text-xs text-primary-600 font-medium mt-1.5 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="px-6 py-5 bg-slate-50 flex items-center gap-3">
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl
+                               hover:bg-primary-600 transition-colors shadow-lg shadow-slate-900/20">
+                    <i class="fas fa-plus text-xs"></i> Create Course
+                </button>
+                <a asp-page="/Teacher/Dashboard"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 text-sm font-medium rounded-xl
+                          hover:bg-slate-100 transition-colors no-underline">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </div>
 </div>
 
-@section Scripts{
+@section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewImage(input) {
+            const file = input.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img  = document.getElementById('previewImg');
+                const icon = document.getElementById('previewIcon');
+                const fn   = document.getElementById('fileName');
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                icon.classList.add('hidden');
+                fn.textContent = file.name;
+                fn.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 }
+
