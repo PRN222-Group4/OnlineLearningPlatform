@@ -24,7 +24,13 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var users = await _uow.Users.GetAllAsync(u => true);
             var courses = await _uow.Courses.GetAllAsync(c => !c.IsDeleted);
             var enrollments = await _uow.Enrollments.GetAllAsync(e => true);
-            var payments = await _uow.Payments.GetAllAsync(p => p.Status == 2 && p.PaidAt != null);
+            var successfulPayments = (await _uow.Payments.GetAllAsync(
+                p => p.Status == 1 && p.PaidAt != null))
+                .OrderByDescending(p => p.PaidAt)
+                .ToList();
+            var recentPaymentRows = successfulPayments
+                .Take(recentPayments)
+                .ToList();
 
             response.TotalUsers = users.Count;
             response.TotalCourses = courses.Count;
@@ -68,7 +74,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var monthNames = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
             var payments = await _uow.Payments.GetAllAsync(p =>
-    p.Status == 2 && p.PaidAt != null && p.PaidAt.Value.Year == year);
+                p.Status == 1 && p.PaidAt != null && p.PaidAt.Value.Year == year);
 
             response.RevenueMonths = monthNames.ToList();
             response.RevenueData = Enumerable.Range(1, 12)
