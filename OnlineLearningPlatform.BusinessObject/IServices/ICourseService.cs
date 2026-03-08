@@ -18,7 +18,9 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
         Task<ApiResponse> UpdateCourseAsync(UpdateCourseRequest request);
         Task<ApiResponse> DeleteCourseAsync(Guid courseId);
         Task<ApiResponse> GetCourseDetailForStudentAsync(Guid courseId);
-
+        Task<ApiResponse> GetActiveLanguagesAsync();
+        Task<ApiResponse> GetCourseForLearningAsync(Guid courseId);
+        Task<ApiResponse> GetFilteredCoursesAsync(CourseFilterRequest request);
         // Wizard flow methods
         Task<ApiResponse> GetCourseForEditAsync(Guid courseId);
         Task<ApiResponse> ValidateAndSubmitForReviewAsync(Guid courseId);

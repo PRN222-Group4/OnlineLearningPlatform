@@ -1,31 +1,33 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Requests.Course;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
+using System.Collections;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
 {
     public class CreateModel : PageModel
     {
         private readonly ICourseService _courseService;
-        private readonly IModuleService _moduleService;
-
-        public CreateModel(ICourseService courseService, IModuleService moduleService)
+        public CreateModel(ICourseService courseService)
         {
             _courseService = courseService;
-            _moduleService = moduleService;
         }
 
         [BindProperty]
         public CreateNewCourseRequest Input { get; set; } = new();
 
-        // For editing existing draft course
         public CourseEditSummaryResponse? ExistingCourse { get; set; }
         public Guid? CourseId { get; set; }
 
+        public SelectList LanguageOptions { get; set; } = default!;
+
         public async Task<IActionResult> OnGetAsync(Guid? courseId)
         {
+            await LoadLanguagesAsync();
+
             if (courseId.HasValue)
             {
                 CourseId = courseId;
@@ -39,7 +41,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
                         TempData["Error"] = "Chỉ có thể chỉnh sửa khóa học ở trạng thái Draft";
                         return RedirectToPage("/Teacher/Dashboard");
                     }
-                    // Pre-populate the form
+
                     Input = new CreateNewCourseRequest
                     {
                         Title = ExistingCourse!.Title,
@@ -64,13 +66,13 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
         {
             if (!ModelState.IsValid)
             {
+                await LoadLanguagesAsync();
                 CourseId = courseId;
                 return Page();
             }
 
             if (courseId.HasValue)
             {
-                // Update existing draft course
                 var updateRequest = new UpdateCourseRequest
                 {
                     CourseId = courseId.Value,
@@ -87,22 +89,36 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
                 if (!result.IsSuccess)
                 {
                     ModelState.AddModelError("", result.ErrorMessage ?? "Cập nhật thất bại");
+                    await LoadLanguagesAsync();
                     CourseId = courseId;
                     return Page();
                 }
-                return RedirectToPage("/Teacher/Courses/EditLessons", new { courseId = courseId.Value });
+                return RedirectToPage("/Teacher/Courses/EditModules", new { courseId = courseId.Value });
             }
             else
             {
-                // Create new course
                 var result = await _courseService.CreateNewCourseAsync(Input);
                 if (!result.IsSuccess)
                 {
                     ModelState.AddModelError("", result.ErrorMessage ?? "Tạo khóa học thất bại");
+                    await LoadLanguagesAsync();
                     return Page();
                 }
                 var newCourseId = (Guid)result.Result!;
-                return RedirectToPage("/Teacher/Courses/EditLessons", new { courseId = newCourseId });
+                return RedirectToPage("/Teacher/Courses/EditModules", new { courseId = newCourseId });
+            }
+        }
+
+        private async Task LoadLanguagesAsync()
+        {
+            var response = await _courseService.GetActiveLanguagesAsync();
+            if (response.IsSuccess && response.Result != null)
+            {
+                LanguageOptions = new SelectList((IEnumerable)response.Result, "LanguageId", "Name");
+            }
+            else
+            {
+                LanguageOptions = new SelectList(new List<SelectListItem>());
             }
         }
     }

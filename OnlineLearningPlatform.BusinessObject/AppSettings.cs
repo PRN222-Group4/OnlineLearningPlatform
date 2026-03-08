@@ -9,6 +9,7 @@
         public string SecretToken { get; set; }
         public SMTP SMTP { get; set; }
         public PayOS PayOS { get; set; }
+        public AWS AWS { get; set; }
     }
     public class SMTP
     {
@@ -39,5 +40,14 @@
         public string ChecksumKey { get; set; }
         public string ReturnUrl { get; set; }
         public string CancelUrl { get; set; }
+    }
+
+    public class AWS
+    {
+        public string AccessKey { get; set; }
+        public string SecretKey { get; set; }
+        public string Region { get; set; }
+        public string BucketName { get; set; }
+        public string CloudFrontDomain { get; set; }
     }
 }

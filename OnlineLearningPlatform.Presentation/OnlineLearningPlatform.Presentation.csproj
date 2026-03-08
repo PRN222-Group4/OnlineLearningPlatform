@@ -21,9 +21,5 @@
 <ItemGroup>
   <None Include="Pages\Account\Logout.cshtml" />
 </ItemGroup>
-	
-<ItemGroup>
-  <Folder Include="Pages\Student\" />
-</ItemGroup>
 
 </Project>

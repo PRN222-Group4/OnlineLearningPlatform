@@ -8,6 +8,7 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
         ILessonRepository Lessons { get; }
         ICourseRepository Courses { get; }
         IEnrollmentRepository Enrollments { get; }
+        ILanguageRepository Languages { get; }
         IPaymentRepository Payments { get; }
         IModuleRepository Modules { get; }
         ILessonResourceRepository LessonResources { get; }

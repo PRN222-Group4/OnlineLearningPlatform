@@ -6,6 +6,7 @@ using OnlineLearningPlatform.BusinessObject.Requests.LessonResource;
 using OnlineLearningPlatform.BusinessObject.Requests.Module;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
 using OnlineLearningPlatform.BusinessObject.Responses.Lesson;
+using OnlineLearningPlatform.BusinessObject.Responses.LessonItem;
 using OnlineLearningPlatform.BusinessObject.Responses.LessonResource;
 using OnlineLearningPlatform.BusinessObject.Responses.Module;
 using OnlineLearningPlatform.DataAccess.Entities;
@@ -35,6 +36,7 @@ namespace OnlineLearningPlatform.BusinessObject.MyMapper
             CreateMap<Lesson, LessonResponse>()
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Description));
             CreateMap<Lesson, LessonDetailResponse>();
+            CreateMap<LessonItem, LessonItemResponse>();
 
             //LessonResource
             CreateMap<CreateLessonResourceRequest, LessonResource>();
@@ -45,6 +47,17 @@ namespace OnlineLearningPlatform.BusinessObject.MyMapper
             CreateMap<UpdateModuleRequest, Module>();
             CreateMap<Module, ModuleResponse>();
 
+            CreateMap<Course, CourseEditSummaryResponse>();
+
+            CreateMap<OnlineLearningPlatform.DataAccess.Entities.Module, OnlineLearningPlatform.BusinessObject.Responses.Course.CourseModuleEditResponse>().ReverseMap();
+
+            CreateMap<OnlineLearningPlatform.DataAccess.Entities.Lesson, OnlineLearningPlatform.BusinessObject.Responses.Course.CourseLessonEditResponse>().ReverseMap();
+
+            CreateMap<OnlineLearningPlatform.DataAccess.Entities.LessonItem, OnlineLearningPlatform.BusinessObject.Responses.Course.CourseLessonItemEditResponse>().ReverseMap();
+
+            CreateMap<OnlineLearningPlatform.DataAccess.Entities.LessonResource, OnlineLearningPlatform.BusinessObject.Responses.Course.CourseLessonResourceEditResponse>().ReverseMap();
+
+            CreateMap<OnlineLearningPlatform.DataAccess.Entities.AnswerOption, OnlineLearningPlatform.BusinessObject.Responses.Course.CourseAnswerOptionEditResponse>().ReverseMap();
         }
     }
 }

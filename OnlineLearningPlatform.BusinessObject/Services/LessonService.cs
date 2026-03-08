@@ -37,6 +37,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 int newOrderIndex = existingLessons.Any() ? existingLessons.Max(l => l.OrderIndex) + 1 : 1;
 
                 var lesson = _mapper.Map<Lesson>(request);
+                lesson.LessonId = Guid.NewGuid();
                 lesson.CreatedBy = claim.UserId;
                 lesson.OrderIndex = newOrderIndex;
 
@@ -46,7 +47,6 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
                 await _unitOfWork.SaveChangeAsync();
 
-                // Lúc này lesson.GradedItems đã có dữ liệu, Mapper sẽ hoạt động đúng
                 var result = _mapper.Map<LessonResponse>(lesson);
                 return response.SetOk(result);
             }

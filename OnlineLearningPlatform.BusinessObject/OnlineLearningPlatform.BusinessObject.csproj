@@ -16,6 +16,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" />
+		<PackageReference Include="AWSSDK.S3" />
 		<PackageReference Include="FirebaseStorage.net" />
 		<PackageReference Include="MailKit" />
 

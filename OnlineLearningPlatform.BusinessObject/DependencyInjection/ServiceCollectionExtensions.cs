@@ -50,7 +50,7 @@ namespace OnlineLearningPlatform.BusinessObject.DependencyInjection
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IUserLessonProgressService, UserLessonProgressService>();
-
+            services.AddScoped<IStorageService, AwsS3Service>();
             return services;
         }
     }

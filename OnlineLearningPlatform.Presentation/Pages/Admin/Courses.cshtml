@@ -30,170 +30,154 @@
     };
 }
 
-<!-- Toast khi có lỗi ModelState -->
 @if (!ViewData.ModelState.IsValid)
 {
-    <div id="toast" class="fixed top-5 right-5 z-[100] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-medium bg-red-50 border-red-200 text-red-700">
+    <div id="toast" class="fixed top-5 right-5 z-[100] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-medium bg-red-50 border-red-200 text-red-700 transition-all">
         <i class="fas fa-times-circle text-red-500"></i>
         @(ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "An error occurred.")
     </div>
-    <script>setTimeout(() => document.getElementById('toast')?.remove(), 4000);</script>
+    <script>setTimeout(() => { let t = document.getElementById('toast'); if(t) { t.style.opacity='0'; setTimeout(()=>t.remove(), 300); } }, 4000);</script>
 }
 
-<div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+<div class="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
 
-    <!-- Header -->
     <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
-                <i class="fas fa-book-open text-amber-600 text-sm"></i>
+            <div class="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center shrink-0 shadow-inner">
+                <i class="fas fa-book-open text-white text-sm"></i>
             </div>
             <div>
-                <h2 class="text-base font-semibold text-zinc-900">Courses Management</h2>
-                <p class="text-xs text-zinc-400">@Model.Courses.Count course(s) shown</p>
+                <h2 class="text-base font-bold text-zinc-900">Courses Management</h2>
+                <p class="text-xs text-zinc-500 font-medium">@Model.Courses.Count course(s) awaiting your action</p>
             </div>
         </div>
         <a asp-page="/Admin/CoursesCreate"
-           class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+           class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-100">
             <i class="fas fa-plus text-xs"></i> Create Course
         </a>
     </div>
 
-    <!-- Filter — dùng form GET giống .cshtml.cs cũ (SupportsGet = true, name="status") -->
-    <div class="px-6 py-3 bg-zinc-50 border-b border-zinc-100 flex gap-2 flex-wrap">
+    <div class="px-6 py-3 bg-zinc-50/50 border-b border-zinc-100 flex gap-2 flex-wrap">
         <form method="get" class="contents">
             <input type="hidden" name="status" value="-1" />
-            <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
-                           @(Model.Status == -1 ? "bg-zinc-800 text-white" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-100")">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm @(Model.Status == -1 ? "bg-slate-800 text-white" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50")">
                 All
             </button>
         </form>
         <form method="get" class="contents">
             <input type="hidden" name="status" value="0" />
-            <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
-                           @(Model.Status == 0 ? "bg-zinc-700 text-white" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-100")">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm @(Model.Status == 0 ? "bg-zinc-600 text-white" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50")">
                 <i class="fas fa-file text-[9px]"></i> Draft
             </button>
         </form>
         <form method="get" class="contents">
             <input type="hidden" name="status" value="1" />
-            <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
-                           @(Model.Status == 1 ? "bg-blue-600 text-white" : "bg-white text-blue-600 border border-blue-200 hover:bg-blue-50")">
-                <i class="fas fa-clock text-[9px]"></i> Pending
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm @(Model.Status == 1 ? "bg-blue-600 text-white" : "bg-white text-blue-600 border border-blue-200 hover:bg-blue-50")">
+                <i class="fas fa-clock text-[9px]"></i> Pending Review
             </button>
         </form>
         <form method="get" class="contents">
             <input type="hidden" name="status" value="2" />
-            <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
-                           @(Model.Status == 2 ? "bg-emerald-600 text-white" : "bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50")">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm @(Model.Status == 2 ? "bg-emerald-600 text-white" : "bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50")">
                 <i class="fas fa-check-circle text-[9px]"></i> Published
             </button>
         </form>
         <form method="get" class="contents">
             <input type="hidden" name="status" value="3" />
-            <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
-                           @(Model.Status == 3 ? "bg-red-500 text-white" : "bg-white text-red-500 border border-red-200 hover:bg-red-50")">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm @(Model.Status == 3 ? "bg-red-500 text-white" : "bg-white text-red-500 border border-red-200 hover:bg-red-50")">
                 <i class="fas fa-times-circle text-[9px]"></i> Rejected
             </button>
         </form>
     </div>
 
-    <!-- Table -->
     @if (Model.Courses.Any())
     {
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-zinc-50 border-b border-zinc-100">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider w-20">Image</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Course</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider w-32">Price</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider w-28">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider w-56">Actions</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest w-20">Image</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Course Details</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest w-32">Price</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest w-28">Status</th>
+                        <th class="px-5 py-3 text-right text-[10px] font-bold text-zinc-400 uppercase tracking-widest w-64">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100">
                     @foreach (var c in Model.Courses)
                     {
-                        <tr class="hover:bg-zinc-50 transition-colors duration-150">
-
-                            <!-- Thumbnail -->
-                            <td class="px-4 py-4">
+                        <tr class="hover:bg-zinc-50 transition-colors duration-150 group">
+                            <td class="px-5 py-4">
                                 @if (!string.IsNullOrEmpty(c.Image))
                                 {
-                                    <img src="@c.Image" alt="@c.Title"
-                                         class="w-16 h-11 object-cover rounded-lg border border-zinc-200" />
+                                    <img src="@c.Image" alt="@c.Title" class="w-16 h-11 object-cover rounded-lg border border-zinc-200 shadow-sm" />
                                 }
                                 else
                                 {
                                     <div class="w-16 h-11 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center">
-                                        <i class="fas fa-image text-zinc-300 text-lg"></i>
+                                        <i class="fas fa-image text-zinc-300"></i>
                                     </div>
                                 }
                             </td>
 
-                            <!-- Title + Description -->
-                            <td class="px-4 py-4 max-w-xs">
-                                <p class="text-sm font-semibold text-zinc-900 truncate">@c.Title</p>
+                            <td class="px-5 py-4 max-w-xs">
+                                <p class="text-sm font-bold text-zinc-900 truncate">@c.Title</p>
                                 @if (!string.IsNullOrEmpty(c.Description))
                                 {
-                                    <p class="text-xs text-zinc-400 mt-0.5 line-clamp-2">@c.Description</p>
+                                    <p class="text-xs text-zinc-400 font-medium mt-1 line-clamp-1">@c.Description</p>
                                 }
                             </td>
 
-                            <!-- Price -->
-                            <td class="px-4 py-4 whitespace-nowrap">
-                                <span class="text-sm font-semibold text-zinc-900">@c.Price.ToString("N0") ₫</span>
+                            <td class="px-5 py-4 whitespace-nowrap">
+                                <span class="text-sm font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-md">@c.Price.ToString("N0") ₫</span>
                             </td>
 
-                            <!-- Status -->
-                            <td class="px-4 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold @StatusBadgeClass(c.Status)">
-                                    <i class="fas @StatusIcon(c.Status) text-[9px]"></i>
+                            <td class="px-5 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border @StatusBadgeClass(c.Status)">
+                                    <i class="fas @StatusIcon(c.Status) text-[10px]"></i>
                                     @StatusLabel(c.Status)
                                 </span>
                             </td>
 
-                            <!-- Actions -->
-                            <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-1.5">
+                            <td class="px-5 py-4 whitespace-nowrap text-right">
+                                <div class="flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
 
-                                    <!-- Edit -->
-                                    <a asp-page="/Admin/CoursesEdit" asp-route-id="@c.CourseId"
-                                       class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
-                                        <i class="fas fa-edit"></i> Edit
+                                    <a asp-page="/Admin/CourseReview" asp-route-courseId="@c.CourseId"
+                                       class="w-8 h-8 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors tooltip-wrapper" title="Preview Content">
+                                        <i class="fas fa-eye text-xs"></i>
                                     </a>
 
-                                    <!-- Approve / Reject — chỉ hiện khi Status == 1 (Pending), 0 (Draft), 3 (Rejected) -->
+                                    <a asp-page="/Admin/CoursesEdit" asp-route-id="@c.CourseId"
+                                       class="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-600 hover:text-white transition-colors" title="Edit Metadata">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </a>
+
+                                    @if (c.Status == 1)
+                                    {
+                                        <button type="button" onclick="openAiSheet('@Html.Raw(c.Title.Replace("'", "\\'"))')"
+                                                class="w-8 h-8 flex items-center justify-center bg-purple-50 border border-purple-100 text-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-all shadow-sm" title="Smart AI Scan">
+                                            <i class="fas fa-robot text-xs"></i>
+                                        </button>
+                                    }
+
                                     @if (c.Status == 1 || c.Status == 0 || c.Status == 3)
                                     {
                                         @if (c.Status == 1)
                                         {
-                                            <button type="button"
-                                                    onclick="openApproveModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))',true)"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-600 text-xs font-medium rounded-lg hover:bg-emerald-600 hover:text-white transition-colors"
-                                                    title="Approve">
-                                                <i class="fas fa-check"></i>
+                                            <button type="button" onclick="openApproveModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))',true)"
+                                                    class="w-8 h-8 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-500 hover:text-white transition-colors" title="Approve">
+                                                <i class="fas fa-check text-xs"></i>
                                             </button>
                                         }
-                                        <button type="button"
-                                                onclick="openApproveModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))',false)"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-600 text-xs font-medium rounded-lg hover:bg-amber-600 hover:text-white transition-colors"
-                                                title="Reject">
-                                            <i class="fas fa-times"></i>
+                                        <button type="button" onclick="openApproveModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))',false)"
+                                                class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-500 hover:text-white transition-colors" title="Reject">
+                                            <i class="fas fa-times text-xs"></i>
                                         </button>
                                     }
 
-                                    <!-- Delete -->
-                                    <button type="button"
-                                            onclick="openDeleteModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))')"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-500 text-xs font-medium rounded-lg hover:bg-red-500 hover:text-white transition-colors">
-                                        <i class="fas fa-trash"></i>
+                                    <button type="button" onclick="openDeleteModal('@c.CourseId','@Html.Raw(c.Title.Replace("'", "\\'"))')"
+                                            class="w-8 h-8 flex items-center justify-center bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition-colors" title="Delete">
+                                        <i class="fas fa-trash-alt text-xs"></i>
                                     </button>
                                 </div>
                             </td>
@@ -205,84 +189,153 @@
     }
     else
     {
-        <div class="px-6 py-16 text-center">
-            <div class="w-14 h-14 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i class="fas fa-book-open text-zinc-400 text-xl"></i>
+        <div class="px-6 py-20 text-center">
+            <div class="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-100 shadow-sm">
+                <i class="fas fa-folder-open text-zinc-300 text-2xl"></i>
             </div>
-            <p class="text-sm font-medium text-zinc-500">No courses found</p>
-            <p class="text-xs text-zinc-400 mt-1">Try switching the filter or create a new course</p>
+            <p class="text-base font-bold text-zinc-700">No courses found</p>
+            <p class="text-sm font-medium text-zinc-400 mt-1">Try switching the filter tab or create a new course.</p>
         </div>
     }
 </div>
 
-<!-- ══════ MODAL: APPROVE / REJECT
-     handler: OnPostApproveAsync([FromForm] Guid CourseId, [FromForm] bool Status, [FromForm] string? RejectReason)
-══════ -->
-<div id="approveModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-zinc-100 w-full max-w-md">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
-            <h3 id="approveModalTitle" class="text-base font-semibold text-zinc-900"></h3>
-            <button onclick="closeModal('approveModal')" class="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition-colors">
+<div id="approveModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl border border-zinc-100 w-full max-w-md overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-100">
+            <h3 id="approveModalTitle" class="text-base font-bold text-slate-800"></h3>
+            <button onclick="closeModal('approveModal')" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 transition-colors">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form method="post" asp-page-handler="Approve" class="px-6 py-5 space-y-4">
+        <form method="post" asp-page-handler="Approve" class="px-6 py-6 space-y-5">
             @Html.AntiForgeryToken()
             <input type="hidden" id="approveCourseId" name="CourseId" />
-            <input type="hidden" id="approveStatus" name="Status" />
-            <p id="approveDesc" class="text-sm text-zinc-500"></p>
+            <input type="hidden" id="approveStatus" name="IsApprove" />
+
+            <p id="approveDesc" class="text-sm font-medium text-slate-600 leading-relaxed"></p>
+
             <div id="rejectReasonWrap" class="hidden">
-                <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">
-                    Reject Reason <span class="text-red-400">*</span>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    Reason for Rejection <span class="text-rose-500">*</span>
                 </label>
                 <textarea name="RejectReason" id="rejectReason" rows="3"
-                          placeholder="Explain why this course is being rejected..."
-                          class="w-full px-3 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 transition resize-none"></textarea>
+                          placeholder="Tell the teacher what needs to be fixed..."
+                          class="w-full px-4 py-3 text-sm font-medium border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-rose-50 focus:border-rose-400 transition resize-none"></textarea>
             </div>
-            <div class="flex gap-3 pt-1">
-                <button type="button" onclick="closeModal('approveModal')"
-                        class="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-700 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors">
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('approveModal')" class="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
                     Cancel
                 </button>
-                <button type="submit" id="approveSubmitBtn"
-                        class="flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-colors">
-                    Confirm
+                <button type="submit" id="approveSubmitBtn" class="flex-1 px-4 py-3 text-sm font-bold text-white rounded-xl transition-all shadow-md">
+                    Confirm Action
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ══════ MODAL: DELETE
-     handler: OnPostDeleteAsync(Guid id)
-══════ -->
-<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-zinc-100 w-full max-w-sm">
-        <div class="px-6 py-6 text-center">
-            <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-trash text-red-500 text-xl"></i>
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-zinc-100 w-full max-w-sm overflow-hidden">
+        <div class="px-6 py-8 text-center">
+            <div class="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                <i class="fas fa-trash-alt text-rose-500 text-2xl"></i>
             </div>
-            <h3 class="text-base font-semibold text-zinc-900 mb-1">Delete Course</h3>
-            <p class="text-sm text-zinc-500 mb-5">
-                Are you sure you want to delete
-                <span id="deleteCourseTitle" class="font-semibold text-zinc-800"></span>?
-                This cannot be undone.
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Delete Course?</h3>
+            <p class="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
+                Are you sure you want to permanently delete <br />
+                <span id="deleteCourseTitle" class="font-bold text-slate-800"></span>?
             </p>
             <div class="flex gap-3">
-                <button onclick="closeModal('deleteModal')"
-                        class="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-700 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors">
-                    Cancel
-                </button>
+                <button onclick="closeModal('deleteModal')" class="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
                 <form method="post" asp-page-handler="Delete" class="flex-1">
                     @Html.AntiForgeryToken()
                     <input type="hidden" id="deleteCourseId" name="id" />
-                    <button type="submit"
-                            class="w-full px-4 py-2.5 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">
-                        Delete
-                    </button>
+                    <button type="submit" class="w-full px-4 py-3 text-sm font-bold text-white bg-rose-500 rounded-xl hover:bg-rose-600 shadow-md shadow-rose-200 transition-all">Delete</button>
                 </form>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="aiPanelOverlay" class="fixed inset-0 z-[100] hidden bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="closeAiSheet()"></div>
+<div id="aiPanel" class="fixed inset-y-0 right-0 z-[110] w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+    <div class="px-6 py-6 bg-slate-900 border-b border-slate-800 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-white tracking-wide">Smart Evaluator</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Automated Course Scan</p>
+            </div>
+        </div>
+        <button onclick="closeAiSheet()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-rose-500 transition-colors">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto bg-slate-50 relative">
+
+        <div id="aiLoading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-10">
+            <div class="relative w-20 h-20 mb-6">
+                <div class="absolute inset-0 border-4 border-purple-100 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-purple-500 rounded-full border-t-transparent animate-spin"></div>
+                <i class="fas fa-robot absolute inset-0 m-auto w-fit h-fit text-xl text-purple-400 animate-pulse"></i>
+            </div>
+            <h4 class="text-lg font-bold text-slate-800 mb-1">Analyzing Content...</h4>
+            <p class="text-sm font-medium text-slate-500">Scanning syllabus, videos, and reading materials.</p>
+        </div>
+
+        <div id="aiResult" class="p-6 space-y-6 hidden">
+            <div class="text-center pb-4 border-b border-slate-200">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full mb-3">
+                    <i class="fas fa-check-circle"></i> Scan Complete
+                </span>
+                <h4 class="font-bold text-slate-900 text-lg leading-tight" id="aiCourseTitle">Course Title</h4>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-sm font-bold text-slate-700"><i class="fas fa-gem text-amber-500 mr-1.5"></i> Content Quality</span>
+                        <span class="text-lg font-black text-emerald-500">98%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                        <div class="bg-emerald-500 h-full rounded-full" style="width: 98%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div>
+                        <span class="text-sm font-bold text-slate-700 block"><i class="fas fa-copy text-blue-500 mr-1.5"></i> Plagiarism Risk</span>
+                        <span class="text-xs font-medium text-slate-400 mt-0.5 block">Compared against 10M+ sources</span>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-lg border border-emerald-100">Clean (0%)</span>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div>
+                        <span class="text-sm font-bold text-slate-700 block"><i class="fas fa-shield-alt text-rose-500 mr-1.5"></i> Policy Violation</span>
+                        <span class="text-xs font-medium text-slate-400 mt-0.5 block">NSFW, Violence, Spam</span>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-lg border border-emerald-100">Passed</span>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5">
+                <h5 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">AI Recommendation</h5>
+                <p class="text-sm font-medium text-indigo-900 leading-relaxed">
+                    The Smart Evaluator recommends <strong>approving</strong> this course. The syllabus structure is logical, video quality is high, and practice tasks align perfectly with IELTS standards.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4 bg-white border-t border-slate-100 shrink-0">
+        <button onclick="closeAiSheet()" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors">
+            Close Report
+        </button>
     </div>
 </div>
 
@@ -295,7 +348,6 @@
             document.getElementById(id).addEventListener('click', e => { if (e.target.id === id) closeModal(id); });
         });
 
-        // Approve modal — name="Status" nhận bool (true/false) theo .cshtml.cs cũ
         function openApproveModal(courseId, title, isApprove) {
             document.getElementById('approveCourseId').value = courseId;
             document.getElementById('approveStatus').value   = isApprove ? 'true' : 'false';
@@ -306,18 +358,19 @@
 
             if (isApprove) {
                 document.getElementById('approveModalTitle').textContent = 'Approve Course';
-                document.getElementById('approveDesc').textContent = `Approve "${title}"? It will be published and visible to students.`;
+                document.getElementById('approveDesc').textContent = `Are you sure you want to approve "${title}"? It will be published immediately.`;
                 rw.classList.add('hidden');
                 rr.required     = false;
-                btn.className   = 'flex-1 px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors';
-                btn.textContent = 'Approve';
+                btn.className   = 'flex-1 px-4 py-3 text-sm font-bold text-white bg-emerald-500 rounded-xl hover:bg-emerald-600 shadow-md shadow-emerald-200 transition-all';
+                btn.textContent = 'Approve Now';
             } else {
                 document.getElementById('approveModalTitle').textContent = 'Reject Course';
-                document.getElementById('approveDesc').textContent = `Reject "${title}"? Please provide a reason below.`;
+                document.getElementById('approveDesc').textContent = `Rejecting "${title}". Please specify the reason for the instructor.`;
                 rw.classList.remove('hidden');
                 rr.required     = true;
-                btn.className   = 'flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors';
-                btn.textContent = 'Reject';
+                rr.value        = ''; 
+                btn.className   = 'flex-1 px-4 py-3 text-sm font-bold text-white bg-rose-500 rounded-xl hover:bg-rose-600 shadow-md shadow-rose-200 transition-all';
+                btn.textContent = 'Reject Course';
             }
             openModal('approveModal');
         }
@@ -326,6 +379,37 @@
             document.getElementById('deleteCourseTitle').textContent = title;
             document.getElementById('deleteCourseId').value          = courseId;
             openModal('deleteModal');
+        }
+
+        // --- AI SLIDE-OVER LOGIC ---
+        function openAiSheet(title) {
+            const overlay = document.getElementById('aiPanelOverlay');
+            const panel = document.getElementById('aiPanel');
+            const loading = document.getElementById('aiLoading');
+            const result = document.getElementById('aiResult');
+
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+
+            panel.classList.remove('translate-x-full');
+
+            document.getElementById('aiCourseTitle').textContent = title;
+            loading.classList.remove('hidden');
+            result.classList.add('hidden');
+
+            setTimeout(() => {
+                loading.classList.add('hidden');
+                result.classList.remove('hidden');
+            }, 2500);
+        }
+
+        function closeAiSheet() {
+            const overlay = document.getElementById('aiPanelOverlay');
+            const panel = document.getElementById('aiPanel');
+
+            panel.classList.add('translate-x-full');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
         }
     </script>
 }

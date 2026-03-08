@@ -15,6 +15,7 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
         public IGradedItemRepository GradedItems { get; }
         public ILessonRepository Lessons { get; }
         public ILessonItemRepository LessonItems { get; }
+        public ILanguageRepository Languages { get; }
         public ILessonResourceRepository LessonResources { get; }
         public IModuleRepository Modules { get; }
         public IPaymentRepository Payments { get; }
@@ -47,7 +48,8 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
             LessonItems = new LessonItemRepository(context);
             Wallets = new WalletRepository(context);
             WalletTransactions = new WalletTransactionRepository(context);
-            //18
+            Languages = new LanguageRepository(context);
+            //19
         }
 
         public async Task SaveChangeAsync()

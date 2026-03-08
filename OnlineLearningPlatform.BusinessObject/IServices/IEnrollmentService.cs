@@ -13,5 +13,7 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
         Task<ApiResponse> EnrollStudentDirectlyAsync(Guid courseId);
         Task<ApiResponse> GetStudentEnrollmentsAsync();
         Task<bool> CheckEnrollmentAsync(Guid courseId);
+
+        Task<ApiResponse> CheckUserEnrollmentAsync(Guid userId, Guid courseId);
     }
 }

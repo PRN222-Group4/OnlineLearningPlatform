@@ -70,6 +70,7 @@ namespace OnlineLearningPlatform.BusinessObject.Responses.Course
     {
         public Guid GradedItemId { get; set; }
         public Guid LessonItemId { get; set; }
+        public string? SubmissionGuidelines { get; set; }
     }
 
     public class CourseQuestionEditResponse
@@ -78,6 +79,8 @@ namespace OnlineLearningPlatform.BusinessObject.Responses.Course
         public Guid GradedItemId { get; set; }
         public string Content { get; set; } = string.Empty;
         public int OrderIndex { get; set; }
+
+        public decimal Points { get; set; }
     }
 
     public class CourseAnswerOptionEditResponse
