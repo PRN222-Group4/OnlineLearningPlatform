@@ -340,7 +340,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             ApiResponse response = new ApiResponse();
             try
             {
-                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId && !c.IsDeleted);
+                var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId && c.Status == 2 && !c.IsDeleted);
                 if (course == null) return response.SetNotFound("Khóa học không tồn tại hoặc chưa được publish.");
 
                 var courseDto = _mapper.Map<CourseEditSummaryResponse>(course);

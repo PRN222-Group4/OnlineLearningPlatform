@@ -32,9 +32,9 @@
         <div class="flex items-center gap-4">
             <div class="hidden sm:block">
                 <div class="w-32 bg-slate-800 rounded-full h-2 mt-1">
-                    <div class="bg-emerald-400 h-2 rounded-full" style="width: 0%"></div>
+                    <div class="bg-emerald-400 h-2 rounded-full" style="width: @ViewData["ProgressPercent"]%"></div>
                 </div>
-                <p class="text-[10px] text-slate-400 text-right mt-1">0% Completed</p>
+                <p class="text-[10px] text-slate-400 text-right mt-1">@ViewData["ProgressPercent"]% Completed</p>
             </div>
         </div>
     </header>
@@ -65,7 +65,10 @@
                         <div x-show="expanded" x-collapse class="pl-2 pr-1 py-2 space-y-4 border-l-2 border-slate-100 ml-3">
                             <template x-for="(lesson, lIdx) in mod.lessons" :key="lesson.lessonId">
                                 <div class="space-y-1">
-                                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2 mb-2" x-text="lesson.title"></h4>
+                                    <div class="flex items-center justify-between pr-3 ml-2 mb-2">
+                                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider" x-text="lesson.title"></h4>
+                                        <i x-show="lesson.isCompleted" class="fas fa-check-circle text-emerald-500 text-xs"></i>
+                                    </div>
 
                                     <template x-for="(item, iIdx) in lesson.items" :key="item.itemId">
                                         <button @@click ="selectItem(item)"
@@ -116,7 +119,9 @@
 
                     <form method="post" asp-page-handler="MarkComplete">
                         <input type="hidden" name="courseId" value="@Model.Course?.CourseId" />
-                        <input type="hidden" name="lessonItemId" :value="currentItem?.itemId" />
+
+                        <input type="hidden" name="lessonId" :value="currentItem?.lessonId" />
+
                         <button type="submit" class="px-4 py-2 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all flex items-center gap-2">
                             <i class="fas fa-check"></i> Mark Complete
                         </button>
@@ -148,7 +153,7 @@
                         <form method="post" asp-page-handler="SubmitWriting" class="space-y-6">
                             <input type="hidden" name="courseId" value="@Model.Course?.CourseId" />
                             <input type="hidden" name="GradedItemId" :value="currentItem?.gradedItemId" />
-
+                            <input type="hidden" name="lessonId" :value="currentItem?.lessonId" />
                             <div class="bg-purple-50 p-6 rounded-2xl border border-purple-100">
                                 <h3 class="font-bold text-purple-900 mb-2 flex items-center gap-2"><i class="fas fa-question-circle"></i> Prompt</h3>
                                 <p class="whitespace-pre-line text-purple-800 font-medium" x-text="currentItem?.prompt"></p>
@@ -160,6 +165,29 @@
                                     <i class="fas fa-robot"></i> Evaluate with AI
                                 </button>
                             </div>
+
+                            <template x-if="aiEvalLessonId === currentItem?.lessonId && aiScore !== null">
+                                <div class="mt-8 p-6 rounded-2xl border-2 transition-all duration-500"
+                                     :class="aiScore >= 5 ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="font-bold text-lg flex items-center gap-2" :class="aiScore >= 5 ? 'text-emerald-800' : 'text-rose-800'">
+                                            <i class="fas" :class="aiScore >= 5 ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                            AI Evaluation Result
+                                        </h4>
+                                        <span class="px-4 py-1.5 rounded-full font-black text-white text-sm shadow-sm"
+                                              :class="aiScore >= 5 ? 'bg-emerald-500 shadow-emerald-200' : 'bg-rose-500 shadow-rose-200'"
+                                              x-text="`Score: ${aiScore}/10`">
+                                        </span>
+                                    </div>
+                                    <p class="text-slate-700 font-medium leading-relaxed" x-text="aiFeedback"></p>
+
+                                    <template x-if="aiScore < 5">
+                                        <p class="mt-3 text-xs font-bold text-rose-500 uppercase tracking-wider">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> Please revise and submit again.
+                                        </p>
+                                    </template>
+                                </div>
+                            </template>
                         </form>
                     </template>
 
@@ -210,13 +238,36 @@
                 syllabus: rawSyllabus,
                 currentItem: null,
 
+                aiEvalLessonId: '@(TempData["EvaluatedLessonId"])',
+                aiScore: @(TempData["AiScore"]?.ToString() ?? "null"),
+                aiFeedback: `@Html.Raw((TempData["AiFeedback"]?.ToString() ?? "").Replace("\n", "\\n").Replace("\"", "\\\""))`,
+
                 init() {
-                    // Auto-select the first item
-                    if (this.syllabus.length > 0 && this.syllabus[0].lessons.length > 0 && this.syllabus[0].lessons[0].items.length > 0) {
-                        this.currentItem = this.syllabus[0].lessons[0].items[0];
+                    const savedItemId = localStorage.getItem('lastViewedItemId_@Model.Course?.CourseId');
+
+                    if (this.syllabus.length > 0) {
+                        let itemToSelect = null;
+
+                        if (savedItemId) {
+                            for (let mod of this.syllabus) {
+                                for (let less of mod.lessons) {
+                                    const found = less.items.find(i => i.itemId === savedItemId);
+                                    if (found) itemToSelect = found;
+                                }
+                            }
+                        }
+
+                        if (!itemToSelect && this.syllabus[0].lessons.length > 0 && this.syllabus[0].lessons[0].items.length > 0) {
+                            itemToSelect = this.syllabus[0].lessons[0].items[0];
+                        }
+
+                        this.currentItem = itemToSelect;
                     }
                 },
-                selectItem(item) { this.currentItem = item; },
+                selectItem(item) {
+                    this.currentItem = item;
+                    localStorage.setItem('lastViewedItemId_@Model.Course?.CourseId', item.itemId);
+                },
                 getTypeName(type) {
                     const types = { 0: 'Video Lesson', 1: 'Reading Article', 2: 'Quiz Assessment', 3: 'Writing Task', 4: 'Speaking Task' };
                     return types[type] || 'Material';
@@ -226,11 +277,7 @@
                     return icons[type] || 'fa-file';
                 },
                 getIconColors(type) {
-                    const colors = {
-                        0: 'bg-rose-100 text-rose-500', 1: 'bg-blue-100 text-blue-500',
-                        2: 'bg-amber-100 text-amber-500', 3: 'bg-purple-100 text-purple-500',
-                        4: 'bg-emerald-100 text-emerald-500'
-                    };
+                    const colors = { 0: 'bg-rose-100 text-rose-500', 1: 'bg-blue-100 text-blue-500', 2: 'bg-amber-100 text-amber-500', 3: 'bg-purple-100 text-purple-500', 4: 'bg-emerald-100 text-emerald-500' };
                     return colors[type] || 'bg-slate-100 text-slate-500';
                 },
                 getTextColor(type) {
