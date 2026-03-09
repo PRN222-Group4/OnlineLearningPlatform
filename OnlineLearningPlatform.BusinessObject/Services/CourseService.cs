@@ -20,8 +20,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
         private readonly IClaimService _service;
         private readonly IStorageService _storageService;
         private readonly IEmailService _emailService;
+        private readonly IClaimService _claimService;
 
-        public CourseService(IMapper mapper, IUnitOfWork unitOfWork, IFirebaseStorageService firebaseStorageService, IClaimService service, IEmailService emailService, IStorageService storageService)
+        public CourseService(IMapper mapper, IUnitOfWork unitOfWork, IFirebaseStorageService firebaseStorageService, IClaimService service, IEmailService emailService, IStorageService storageService, IClaimService claimService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -29,6 +30,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             _storageService = storageService;
             _service = service;
             _emailService = emailService;
+            _claimService = claimService;
         }
 
         public async Task<ApiResponse> CreateNewCourseAsync(CreateNewCourseRequest request)
@@ -328,6 +330,36 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 };
 
                 return response.SetOk(result);
+            }
+            catch (Exception ex)
+            {
+                return response.SetBadRequest(ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse> GetInstructorMetricsAsync()
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var userId = _claimService.GetUserClaim().UserId;
+
+                var enrollments = await _unitOfWork.Enrollments.GetAllAsync(
+                    e => e.Course.CreatedBy == userId && !e.IsDeleted && (e.Status == 1 || e.Status == 2),
+                    include: e => e.Include(x => x.Course)
+                );
+
+                var totalStudents = enrollments.Select(e => e.UserId).Distinct().Count();
+                var totalEnrollments = enrollments.Count();
+
+                var totalRevenue = enrollments.Sum(e => e.Course.Price);
+
+                return response.SetOk(new
+                {
+                    TotalStudents = totalStudents,
+                    TotalEnrollments = totalEnrollments,
+                    TotalRevenue = totalRevenue
+                });
             }
             catch (Exception ex)
             {

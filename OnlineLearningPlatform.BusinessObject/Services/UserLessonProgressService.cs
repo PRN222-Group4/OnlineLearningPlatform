@@ -114,7 +114,25 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                         enrollment.ProgressPercent = 100;
                         enrollment.Status = 2; 
                         enrollment.CompletedAt = DateTime.UtcNow;
-                        // TODO: Certificate
+
+                        var existingCert = await _unitOfWork.Certificates.GetAsync(
+                            c => c.UserId == userId && c.CourseId == courseId);
+
+                        if (existingCert == null)
+                        {
+                            string uniqueCode = "OLP-" + Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+
+                            var newCert = new Certificate
+                            {
+                                CertificateId = Guid.NewGuid(),
+                                UserId = userId,
+                                CourseId = courseId,
+                                IssueDate = DateTime.UtcNow,
+                                CertificateCode = uniqueCode,
+                                IsDeleted = false
+                            };
+                            await _unitOfWork.Certificates.AddAsync(newCert);
+                        }
                     }
 
                     _unitOfWork.Enrollments.Update(enrollment);

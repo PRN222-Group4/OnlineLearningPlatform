@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
+using OnlineLearningPlatform.DataAccess.Entities;
 using OnlineLearningPlatform.DataAccess.IRepositories;
 using OnlineLearningPlatform.DataAccess.Repositories;
 
@@ -25,6 +26,9 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
         public IUserRepository Users { get; }
         public IUserLessonProgressRepository UserLessonProgresses { get; }
         public IWalletRepository Wallets { get; }
+
+        private IGenericRepository<Certificate>? _certificates;
+        public IGenericRepository<Certificate> Certificates => _certificates ??= new GenericRepository<Certificate>(_context);
         public IWalletTransactionRepository WalletTransactions { get; }
         //18
         public UnitOfWork(AppDbContext context)

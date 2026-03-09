@@ -14,7 +14,7 @@ if (config == null)
 }
 
 builder.Services.AddScoped<IGradedItemService, GradedItemService>();
-
+builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.Configure<AppSettings>(builder.Configuration);
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
