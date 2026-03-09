@@ -78,6 +78,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                         SubmissionAnswerOptions = answer.SelectedAnswerOptionIds
                             .Select(id => new SubmissionAnswerOption
                             {
+                                SubmissionAnswerOptionId = Guid.NewGuid(),
                                 AnswerOptionId = id
                             }).ToList()
                     });

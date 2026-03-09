@@ -178,19 +178,19 @@
                                 <span class="text-sm font-semibold text-zinc-900">@p.Amount.ToString("N0") ₫</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if (p.Status == 2)
+                                @if (p.Status == 1)
                                 {
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
                                         <i class="fas fa-check text-[9px]"></i> Paid
                                     </span>
                                 }
-                                else if (p.Status == 0)
+                                else if (p.Status == 2)
                                 {
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
                                         <i class="fas fa-clock text-[9px]"></i> Pending
                                     </span>
                                 }
-                                else if (p.Status == 1)
+                                else if (p.Status == 0)
                                 {
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
                                         <i class="fas fa-times text-[9px]"></i> Failed

@@ -81,13 +81,33 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     p => p.UserId == userId && p.LessonId == lessonId);
 
                 if (progress == null)
-                    return response.SetNotFound("Lesson progress not found");
+                {
+                    progress = new UserLessonProgress
+                    {
+                        LessonProgressId = Guid.NewGuid(),
+                        UserId = userId,
+                        LessonId = lessonId,
+                        IsCompleted = true,
+                        CompletedAt = DateTime.UtcNow,
+                        CompletionPercent = 100,
+                        LastWatchedSecond = 0,
+                        LastAccessedAt = DateTime.UtcNow
+                    };
+                    await _unitOfWork.UserLessonProgresses.AddAsync(progress);
+                }
+                else
+                {
+                    progress.IsCompleted = true;
+                    progress.CompletedAt = DateTime.UtcNow;
+                    progress.CompletionPercent = 100;
+                    _unitOfWork.UserLessonProgresses.Update(progress);
+                }
 
-                progress.IsCompleted = true;
-                progress.CompletedAt = DateTime.UtcNow;
-                progress.CompletionPercent = 100;
+                //progress.IsCompleted = true;
+                //progress.CompletedAt = DateTime.UtcNow;
+                //progress.CompletionPercent = 100;
 
-                _unitOfWork.UserLessonProgresses.Update(progress);
+                //_unitOfWork.UserLessonProgresses.Update(progress);
                 var lesson = await _unitOfWork.Lessons.GetAsync(l => l.LessonId == lessonId);
                 var module = await _unitOfWork.Modules.GetAsync(m => m.ModuleId == lesson.ModuleId);
                 var courseId = module.CourseId;
