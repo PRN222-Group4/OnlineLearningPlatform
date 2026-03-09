@@ -12,6 +12,8 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
         Task<PaymentResponse> CreatePayOSPaymentAsync(CreateNewPaymentRequest request);
         Task HandlePayOSWebhookAsync(WebhookData data);
         Task ExpirePendingPaymentAsync();
+
+        Task<ApiResponse> SyncPaymentStatusAsync(long orderCode);
         // Return ApiResponse where Result is List<PaymentRecord>
         Task<ApiResponse> GetSuccessfulPaymentsAsync();
         // Return simple list of PaymentRecord DTOs for presentation layer without using ApiResponse wrapper
