@@ -139,7 +139,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 OrderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Amount = (int)request.Amount,
-                Description = $"Course: {course.Title}",
+                Description = $"Course: {course.Title}".Length > 25
+    ? $"Course: {course.Title}"[..25]
+    : $"Course: {course.Title}",
                 ReturnUrl = _appSettings.PayOS.ReturnUrl,
                 CancelUrl = _appSettings.PayOS.CancelUrl,
                 ExpiredAt = DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds()

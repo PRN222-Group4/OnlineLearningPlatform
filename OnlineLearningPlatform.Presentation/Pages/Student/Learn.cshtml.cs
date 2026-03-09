@@ -132,15 +132,56 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
             return Page();
         }
 
+        //public async Task<IActionResult> OnPostMarkCompleteAsync(Guid courseId, Guid lessonId)
+        //{
+        //    var result = await _progressService.MarkLessonCompletedAsync(lessonId);
+
+        //    if (!result.IsSuccess)
+        //    {
+        //        TempData["Error"] = $"Lỗi cập nhật: {result.ErrorMessage}";
+        //        return RedirectToPage(new { courseId = courseId });
+        //    }
+
+        //    // Check 100% → redirect certificate
+        //    var enrollmentData = await _enrollmentService.GetStudentEnrollmentsAsync();
+        //    if (enrollmentData.IsSuccess && enrollmentData.Result != null)
+        //    {
+        //        var envList = (IEnumerable<StudentEnrollmentSummaryResponse>)enrollmentData.Result;
+        //        var myEnv = envList.FirstOrDefault(e => e.CourseId == courseId);
+        //        if (myEnv?.ProgressPercent >= 100)
+        //            return RedirectToPage("/Student/MyCertificates");
+        //    }
+
+        //    TempData["Success"] = "Đã hoàn thành bài học!";
+        //    return RedirectToPage(new { courseId = courseId });
+        //}
         public async Task<IActionResult> OnPostMarkCompleteAsync(Guid courseId, Guid lessonId)
         {
             var result = await _progressService.MarkLessonCompletedAsync(lessonId);
 
-            if (result.IsSuccess)
-                TempData["Success"] = "Đã hoàn thành bài học! Tiến độ của bạn đã được lưu.";
-            else
+            if (!result.IsSuccess)
+            {
                 TempData["Error"] = $"Lỗi cập nhật: {result.ErrorMessage}";
+                return RedirectToPage(new { courseId = courseId });
+            }
 
+            // Check thông qua message trả về từ service
+            // MarkLessonCompletedAsync đã update enrollment.ProgressPercent trong DB
+            // Re-fetch enrollment để check
+            var enrollmentData = await _enrollmentService.GetStudentEnrollmentsAsync();
+            if (enrollmentData.IsSuccess && enrollmentData.Result != null)
+            {
+                var envList = enrollmentData.Result as IEnumerable<StudentEnrollmentSummaryResponse>
+                    ?? System.Text.Json.JsonSerializer.Deserialize<List<StudentEnrollmentSummaryResponse>>(
+                        System.Text.Json.JsonSerializer.Serialize(enrollmentData.Result),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                var myEnv = envList?.FirstOrDefault(e => e.CourseId == courseId);
+                if (myEnv?.ProgressPercent >= 100)
+                    return RedirectToPage("/Student/MyCertificates");
+            }
+
+            TempData["Success"] = "Đã hoàn thành bài học!";
             return RedirectToPage(new { courseId = courseId });
         }
 

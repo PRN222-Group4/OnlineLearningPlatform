@@ -1,3 +1,4 @@
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Requests.Admin;
 using OnlineLearningPlatform.BusinessObject.Responses.Admin;
@@ -24,18 +25,22 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var users = await _uow.Users.GetAllAsync(u => true);
             var courses = await _uow.Courses.GetAllAsync(c => !c.IsDeleted);
             var enrollments = await _uow.Enrollments.GetAllAsync(e => true);
-            var successfulPayments = (await _uow.Payments.GetAllAsync(
-                p => p.Status == 2 && p.PaidAt != null))
-                .OrderByDescending(p => p.PaidAt)
-                .ToList();
-            var recentPaymentRows = successfulPayments
-                .Take(recentPayments)
-                .ToList();
+
+            // Lấy tất cả payments (Paid + Failed) cho RecentPayments table
+            // Include User + Course để load navigation properties
+            var allPayments = await _uow.Payments.GetQueryable()
+                .OrderByDescending(p => p.CreatedAt)
+                .Include(p => p.User)
+                .Include(p => p.Course)
+                .ToListAsync();
+
+            // TotalRevenue chỉ tính Paid (Status == 1)
+            var paidPayments = allPayments.Where(p => p.Status == 1).ToList();
 
             response.TotalUsers = users.Count;
             response.TotalCourses = courses.Count;
             response.TotalEnrollments = enrollments.Count;
-            response.TotalRevenue = successfulPayments.Sum(p => p.Amount);
+            response.TotalRevenue = paidPayments.Sum(p => p.Amount);
 
             var topCourse = await _paymentService.GetTopCourseByEnrollmentsAsync();
             if (topCourse != null)
@@ -51,19 +56,21 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 response.TopInstructorStudents = topInstructor.StudentCount;
             }
 
-            response.RecentPayments = recentPaymentRows.Select(p => new PaymentRecord
-            {
-                PaymentId = p.PaymentId,
-                OrderCode = p.OrderCode,
-                StudentName = p.User?.FullName,
-                UserEmail = p.User?.Email,
-                CourseTitle = p.Course?.Title,
-                Amount = p.Amount,
-                Status = p.Status,
-                CreatedAt = p.CreatedAt,
-                ExpiredAt = p.ExpiredAt,
-                PaidAt = p.PaidAt
-            }).ToList();
+            response.RecentPayments = allPayments
+                .Take(recentPayments)
+                .Select(p => new PaymentRecord
+                {
+                    PaymentId = p.PaymentId,
+                    OrderCode = p.OrderCode,
+                    StudentName = p.User?.FullName,
+                    UserEmail = p.User?.Email,
+                    CourseTitle = p.Course?.Title,
+                    Amount = p.Amount,
+                    Status = p.Status,
+                    CreatedAt = p.CreatedAt,
+                    ExpiredAt = p.ExpiredAt,
+                    PaidAt = p.PaidAt
+                }).ToList();
 
             return response;
         }
@@ -73,8 +80,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var response = new AdminDashboardResponse();
             var monthNames = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
+            // FIX: Status == 1 là Paid
             var payments = await _uow.Payments.GetAllAsync(p =>
-                p.Status == 2 && p.PaidAt != null && p.PaidAt.Value.Year == year);
+                p.Status == 1 && p.PaidAt != null && p.PaidAt.Value.Year == year);
 
             response.RevenueMonths = monthNames.ToList();
             response.RevenueData = Enumerable.Range(1, 12)
@@ -95,7 +103,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             response.StudentCount = users.Count(u => u.Role == 2);
 
             var allEnrollments = await _uow.Enrollments.GetAllAsync(e => !e.IsDeleted);
-            var courses = await _uow.Courses.GetAllAsync(c => !c.IsDeleted);
+            var allCourses = await _uow.Courses.GetAllAsync(c => !c.IsDeleted);
 
             var top5 = allEnrollments
                 .GroupBy(e => e.CourseId)
@@ -106,12 +114,8 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
             foreach (var item in top5)
             {
-                var course = courses.FirstOrDefault(c => c.CourseId == item.CourseId);
-                if (course == null)
-                {
-                    continue;
-                }
-
+                var course = allCourses.FirstOrDefault(c => c.CourseId == item.CourseId);
+                if (course == null) continue;
                 var title = course.Title.Length > 30 ? course.Title[..30] + "..." : course.Title;
                 response.TopCourseTitles.Add(title);
                 response.TopCourseEnrolls.Add(item.Count);
@@ -126,25 +130,16 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var normalizedSearch = search.Trim().ToLower();
-                all = all
-                    .Where(u => u.FullName.ToLower().Contains(normalizedSearch) || u.Email.ToLower().Contains(normalizedSearch))
-                    .ToList();
+                var s = search.Trim().ToLower();
+                all = all.Where(u => u.FullName.ToLower().Contains(s) || u.Email.ToLower().Contains(s)).ToList();
             }
 
             if (!string.IsNullOrWhiteSpace(role) && role != "all")
             {
                 var roleMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-                {
-                    { "Admin", 0 },
-                    { "Instructor", 1 },
-                    { "Student", 2 }
-                };
-
-                if (roleMap.TryGetValue(role, out var roleValue))
-                {
-                    all = all.Where(u => u.Role == roleValue).ToList();
-                }
+                    { { "Admin", 0 }, { "Instructor", 1 }, { "Student", 2 } };
+                if (roleMap.TryGetValue(role, out var rv))
+                    all = all.Where(u => u.Role == rv).ToList();
             }
 
             var total = all.Count;
@@ -155,13 +150,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 .Select(MapToItem)
                 .ToList();
 
-            return new AdminUsersResponse
-            {
-                Users = paged,
-                TotalCount = total,
-                Page = page,
-                PageSize = pageSize
-            };
+            return new AdminUsersResponse { Users = paged, TotalCount = total, Page = page, PageSize = pageSize };
         }
 
         public async Task<AdminUserItem?> GetUserByIdAsync(Guid userId)
@@ -173,18 +162,13 @@ namespace OnlineLearningPlatform.BusinessObject.Services
         public async Task<bool> UpdateUserAsync(Guid userId, AdminUpdateUserRequest request)
         {
             var user = await _uow.Users.GetAsync(u => u.UserId == userId && !u.IsDeleted);
-            if (user == null)
-            {
-                return false;
-            }
-
+            if (user == null) return false;
             user.FullName = request.FullName;
             user.PhoneNumber = request.PhoneNumber;
             user.Bio = request.Bio;
             user.Title = request.Title;
             user.Role = request.Role;
             user.UpdatedAt = DateTime.UtcNow;
-
             _uow.Users.Update(user);
             await _uow.SaveChangeAsync();
             return true;
@@ -193,14 +177,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
         public async Task<bool> SoftDeleteUserAsync(Guid userId)
         {
             var user = await _uow.Users.GetAsync(u => u.UserId == userId && !u.IsDeleted);
-            if (user == null)
-            {
-                return false;
-            }
-
+            if (user == null) return false;
             user.IsDeleted = true;
             user.UpdatedAt = DateTime.UtcNow;
-
             _uow.Users.Update(user);
             await _uow.SaveChangeAsync();
             return true;
@@ -209,14 +188,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
         public async Task<bool> ToggleBanUserAsync(Guid userId)
         {
             var user = await _uow.Users.GetAsync(u => u.UserId == userId && !u.IsDeleted);
-            if (user == null)
-            {
-                return false;
-            }
-
+            if (user == null) return false;
             user.IsVerfied = !user.IsVerfied;
             user.UpdatedAt = DateTime.UtcNow;
-
             _uow.Users.Update(user);
             await _uow.SaveChangeAsync();
             return true;
@@ -232,13 +206,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             Bio = user.Bio,
             Title = user.Title,
             Role = user.Role,
-            RoleName = user.Role switch
-            {
-                0 => "Admin",
-                1 => "Instructor",
-                2 => "Student",
-                _ => "User"
-            },
+            RoleName = user.Role switch { 0 => "Admin", 1 => "Instructor", 2 => "Student", _ => "User" },
             IsVerified = user.IsVerfied,
             IsDeleted = user.IsDeleted,
             CreatedAt = user.CreatedAt.ToLocalTime()
