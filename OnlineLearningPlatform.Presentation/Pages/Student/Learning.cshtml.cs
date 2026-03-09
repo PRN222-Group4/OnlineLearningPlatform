@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
@@ -94,6 +94,19 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
         public async Task<IActionResult> OnPostMarkCompleteAsync(Guid lessonId)
         {
             await _progressService.MarkLessonCompletedAsync(lessonId);
+
+            // Check nếu course đã 100% thì redirect sang MyCertificates
+            var response = await _courseService.GetCourseDetailForStudentAsync(CourseId);
+            if (response.IsSuccess && response.Result != null)
+            {
+                var json = System.Text.Json.JsonSerializer.Serialize(response.Result);
+                var detail = System.Text.Json.JsonSerializer.Deserialize<StudentLearningDetailResponse>(json,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (detail?.ProgressPercent >= 100)
+                    return RedirectToPage("/Student/MyCertificates");
+            }
+
             return RedirectToPage(new { courseId = CourseId, lessonId });
         }
     }
