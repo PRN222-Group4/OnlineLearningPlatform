@@ -7,7 +7,6 @@
     var currentYear = DateTime.Now.Year;
 }
 
-<!-- ══════ YEAR FILTER ══════ -->
 <div class="flex items-center justify-between mb-6">
     <div>
         <h2 class="text-xl font-bold text-zinc-900">Analytics Dashboard</h2>
@@ -28,7 +27,35 @@
     </form>
 </div>
 
-<!-- ══════ SUMMARY PILLS ══════ -->
+<div class="bg-slate-900 rounded-2xl p-6 shadow-xl mb-6 text-white border border-slate-800 flex flex-col md:flex-row gap-6 items-center justify-between relative overflow-hidden">
+    <div class="absolute -right-4 -top-10 opacity-10"><i class="fas fa-university text-[150px] text-emerald-400"></i></div>
+
+    <div class="flex-1 relative z-10">
+        <p class="text-slate-400 font-bold uppercase tracking-widest text-xs mb-1 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Cash in Bank (Actual)
+        </p>
+        <h2 class="text-4xl lg:text-5xl font-black text-white tracking-tight">
+            @Model.Financials.PlatformCashOnHand.ToString("N0") <span class="text-2xl text-emerald-400">₫</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-2">Total gross minus paid out. Fluctuates upon payout approvals.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-4 relative z-10">
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/10 min-w-[140px]">
+            <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-wider mb-1">Platform Net (30%)</p>
+            <p class="text-xl font-bold text-white">@Model.Financials.PlatformNetRevenue.ToString("N0") ₫</p>
+        </div>
+        <div class="bg-amber-500/20 backdrop-blur-md rounded-xl p-4 border border-amber-500/30 min-w-[140px]">
+            <p class="text-amber-300 text-[10px] font-bold uppercase tracking-wider mb-1"><i class="fas fa-exclamation-circle"></i> Pending Payouts</p>
+            <p class="text-xl font-bold text-amber-400">@Model.Financials.TotalPendingPayouts.ToString("N0") ₫</p>
+        </div>
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/10 min-w-[140px]">
+            <p class="text-slate-300 text-[10px] font-bold uppercase tracking-wider mb-1">Unclaimed Wallets</p>
+            <p class="text-xl font-bold text-slate-100">@Model.Financials.TotalAvailableInWallets.ToString("N0") ₫</p>
+        </div>
+    </div>
+</div>
+
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     @{
         var totalRevenue = Model.Data.RevenueData.Sum();
@@ -41,7 +68,7 @@
             <i class="fas fa-money-bill-wave text-emerald-600"></i>
         </div>
         <div>
-            <p class="text-xs text-zinc-400 font-medium">Total Revenue</p>
+            <p class="text-xs text-zinc-400 font-medium">Gross Revenue (@Model.Year)</p>
             <p class="text-lg font-bold text-zinc-900">@totalRevenue.ToString("N0") ₫</p>
         </div>
     </div>
@@ -74,10 +101,8 @@
     </div>
 </div>
 
-<!-- ══════ ROW 1: Revenue (line) + Enrollments (bar) ══════ -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
-    <!-- Revenue Line Chart -->
     <div class="bg-white rounded-xl border border-zinc-200 p-6">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
@@ -85,15 +110,19 @@
                     <i class="fas fa-chart-line text-emerald-600 text-sm"></i>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-zinc-900">Revenue</h3>
-                    <p class="text-xs text-zinc-400">Monthly revenue (₫) — @Model.Year</p>
+                    <h3 class="text-sm font-semibold text-zinc-900">Financial Growth</h3>
+                    <p class="text-xs text-zinc-400">Gross vs Net vs Instructors — @Model.Year</p>
                 </div>
+            </div>
+            <div class="hidden sm:flex items-center gap-3 text-[10px] font-bold uppercase text-zinc-500">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Gross</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Net (30%)</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Instructors</span>
             </div>
         </div>
         <div id="revenueChart" style="height: 300px; width: 100%;"></div>
     </div>
 
-    <!-- Enrollments Bar Chart -->
     <div class="bg-white rounded-xl border border-zinc-200 p-6">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
@@ -110,10 +139,8 @@
     </div>
 </div>
 
-<!-- ══════ ROW 2: User Roles (pie) + Top Courses (bar) ══════ -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-    <!-- User Role Pie Chart -->
     <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden min-h-0">
         <div class="flex items-center gap-2 mb-4">
             <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -125,7 +152,6 @@
             </div>
         </div>
         <div id="roleChart" style="height: 260px; width: 100%;"></div>
-        <!-- Legend -->
         <div class="flex justify-center gap-5 mt-3">
             <div class="flex items-center gap-1.5 text-xs text-zinc-500">
                 <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span> Admin (@Model.Data.AdminCount)
@@ -139,7 +165,6 @@
         </div>
     </div>
 
-    <!-- Top 5 Courses Bar Chart -->
     <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden min-h-0">
         <div class="flex items-center gap-2 mb-4">
             <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
@@ -160,6 +185,11 @@
         // ── Data from server ──────────────────────────────────────────────────────
         const months      = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.RevenueMonths));
         const revenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.RevenueData));
+
+        // TÍNH TOÁN ĐA ĐƯỜNG NGAY TRÊN JAVASCRIPT
+        const netData = revenueData.map(v => v * 0.3);
+        const instructorData = revenueData.map(v => v * 0.7);
+
         const enrollData  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.EnrollmentData));
         const roleData    = [
             { value: @Model.Data.AdminCount,      name: 'Admin' },
@@ -187,22 +217,53 @@
             axisLine: { show: false }
         };
 
-        // ── 1. Revenue Line Chart ─────────────────────────────────────────────────
+        // ── 1. UPGRADED Multi-line Revenue Chart ─────────────────────────────────────────────────
         echarts.init(document.getElementById('revenueChart')).setOption({
-            tooltip: { ...tooltip, formatter: p => `${p[0].name}<br/><b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>` },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: '#fff',
+                borderColor: '#e4e4e7',
+                borderWidth: 1,
+                textStyle: { color: '#3f3f46', fontSize: 12 },
+                formatter: function(params) {
+                    let res = `<div class="font-bold mb-1">${params[0].name}</div>`;
+                    params.forEach(p => {
+                        res += `<div class="flex justify-between gap-4">
+                                  <span><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${p.color};"></span>${p.seriesName}</span>
+                                  <span class="font-bold">${Number(p.value).toLocaleString('vi-VN')} ₫</span>
+                                </div>`;
+                    });
+                    return res;
+                }
+            },
             grid,
             xAxis: xAxisBase,
             yAxis: { ...yAxisBase, axisLabel: { ...yAxisBase.axisLabel, formatter: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v } },
-            series: [{
-                data: revenueData, type: 'line', smooth: true,
-                symbol: 'circle', symbolSize: 6,
-                lineStyle: { color: '#10b981', width: 2.5 },
-                itemStyle: { color: '#10b981', borderColor: '#fff', borderWidth: 2 },
-                areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(16,185,129,0.18)' }, { offset: 1, color: 'rgba(16,185,129,0)' }] } }
-            }]
+            series: [
+                {
+                    name: 'Gross Revenue',
+                    data: revenueData, type: 'line', smooth: true,
+                    symbol: 'circle', symbolSize: 6,
+                    lineStyle: { color: '#10b981', width: 3 }, // Emerald
+                    itemStyle: { color: '#10b981', borderColor: '#fff', borderWidth: 2 }
+                },
+                {
+                    name: 'Platform Net (30%)',
+                    data: netData, type: 'line', smooth: true,
+                    symbol: 'circle', symbolSize: 6,
+                    lineStyle: { color: '#6366f1', width: 2.5, type: 'dashed' }, // Indigo
+                    itemStyle: { color: '#6366f1', borderColor: '#fff', borderWidth: 2 }
+                },
+                {
+                    name: 'Instructors (70%)',
+                    data: instructorData, type: 'line', smooth: true,
+                    symbol: 'circle', symbolSize: 6,
+                    lineStyle: { color: '#f59e0b', width: 2.5, type: 'dashed' }, // Amber
+                    itemStyle: { color: '#f59e0b', borderColor: '#fff', borderWidth: 2 }
+                }
+            ]
         });
 
-        // ── 2. Enrollments Bar Chart ──────────────────────────────────────────────
         echarts.init(document.getElementById('enrollmentChart')).setOption({
             tooltip: { ...tooltip, formatter: p => `${p[0].name}<br/><b>${p[0].value} enrollments</b>` },
             grid,
@@ -214,7 +275,6 @@
             }]
         });
 
-        // ── 3. Role Pie Chart ─────────────────────────────────────────────────────
         echarts.init(document.getElementById('roleChart')).setOption({
             tooltip: { trigger: 'item', backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 }, formatter: p => `${p.name}<br/><b>${p.value} users (${p.percent}%)</b>` },
             series: [{
@@ -228,7 +288,6 @@
             }]
         });
 
-        // ── 4. Top Courses Horizontal Bar ────────────────────────────────────────
         echarts.init(document.getElementById('topCoursesChart')).setOption({
             tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 }, formatter: p => `${p[0].name}<br/><b>${p[0].value} enrollments</b>` },
             grid: { left: 12, right: 36, top: 8, bottom: 8, containLabel: true },
@@ -241,48 +300,15 @@
             }]
         });
 
-        // ── Responsive resize ────────────────────────────────────────────────────
         window.addEventListener('resize', () => {
             ['revenueChart','enrollmentChart','roleChart','topCoursesChart'].forEach(id => {
                 echarts.getInstanceByDom(document.getElementById(id))?.resize();
             });
         });
-                window.addEventListener('load', () => {
+        window.addEventListener('load', () => {
             setTimeout(() => {
                 window.dispatchEvent(new Event('resize'));
             }, 300);
         });
-//         const charts = [
-//     'revenueChart',
-//     'enrollmentChart',
-//     'roleChart',
-//     'topCoursesChart'
-// ];
-
-// const observer = new ResizeObserver(() => {
-//     charts.forEach(id => {
-//         const chart = echarts.getInstanceByDom(document.getElementById(id));
-//         chart?.resize();
-//     });
-// });
-
-// observer.observe(document.body);
-        // const chartIds = [
-        //     'revenueChart',
-        //     'enrollmentChart',
-        //     'roleChart',
-        //     'topCoursesChart'
-        // ];
-
-        // const resizeObserver = new ResizeObserver(() => {
-        //     chartIds.forEach(id => {
-        //         const el = document.getElementById(id);
-        //         const chart = echarts.getInstanceByDom(el);
-        //         chart?.resize();
-        //     });
-        // });
-
-       
-        // resizeObserver.observe(document.querySelector('.main-content') || document.body);
     </script>
 }
