@@ -144,7 +144,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
     : $"Course: {course.Title}",
                 ReturnUrl = _appSettings.PayOS.ReturnUrl,
                 CancelUrl = _appSettings.PayOS.CancelUrl,
-// ExpiredAt = DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds()
+                ExpiredAt = DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds()
             };
 
             var response = await payOS.PaymentRequests.CreateAsync(requestData);
