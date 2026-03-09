@@ -22,9 +22,11 @@ namespace OnlineLearningPlatform.Presentation.Pages.Payment
             string? code, string? id, bool? cancel, string? status, long? orderCode)
         {
             OrderCode = orderCode?.ToString();
+            if (code == "00" && orderCode.HasValue)
+            {
+                await _paymentService.SyncPaymentStatusAsync(orderCode.Value);
+            }
 
-            // Nếu payment thành công thì webhook PayOS sẽ tự tạo enrollment
-            // Trang này chỉ hiển thị thông báo thành công
             return Page();
         }
     }

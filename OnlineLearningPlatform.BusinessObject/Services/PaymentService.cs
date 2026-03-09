@@ -231,11 +231,11 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     await _uow.Enrollments.AddAsync(enrollment);
                 }
 
-                // 💰 Wallet
+                // Wallet
                 var course = await _uow.Courses.GetAsync(c => c.CourseId == payment.CourseId)
                     ?? throw new Exception("Course not found");
 
-                var instructorAmount = course.Price * 0.8m;
+                var instructorAmount = course.Price * 0.7m;
 
                 var existedWalletTxn = await _uow.WalletTransactions.AnyAsync(t =>
                     t.PaymentId == payment.PaymentId &&
@@ -282,6 +282,93 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 await _uow.RollbackAsync();
                 throw;
+            }
+        }
+
+        public async Task<ApiResponse> SyncPaymentStatusAsync(long orderCode)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                await _uow.BeginTransactionAsync();
+
+                var payment = await _uow.Payments.GetAsync(p => p.OrderCode == orderCode)
+                    ?? throw new Exception("Payment not found");
+
+                if (payment.Status == 1)
+                {
+                    await _uow.RollbackAsync();
+                    return response.SetOk(true);
+                }
+
+                payment.Status = 1;
+                payment.PaidAt = DateTime.UtcNow;
+
+                var existedEnrollment = await _uow.Enrollments.AnyAsync(e =>
+                    e.UserId == payment.UserId && e.CourseId == payment.CourseId);
+
+                if (!existedEnrollment)
+                {
+                    var enrollment = new Enrollment
+                    {
+                        EnrollmentId = Guid.NewGuid(),
+                        UserId = payment.UserId,
+                        CourseId = payment.CourseId!.Value,
+                        ProgressPercent = 0,
+                        Status = 1,
+                        EnrolledAt = DateTime.UtcNow
+                    };
+                    await _uow.Enrollments.AddAsync(enrollment);
+                }
+
+                var course = await _uow.Courses.GetAsync(c => c.CourseId == payment.CourseId);
+                if (course != null)
+                {
+                    var instructorAmount = course.Price * 0.7m; // 70% doanh thu
+                    var existedWalletTxn = await _uow.WalletTransactions.AnyAsync(t =>
+                        t.PaymentId == payment.PaymentId && t.TransactionType == 0);
+
+                    if (!existedWalletTxn)
+                    {
+                        var wallet = await _uow.Wallets.GetAsync(w => w.UserId == course.CreatedBy);
+                        if (wallet == null)
+                        {
+                            wallet = new Wallet
+                            {
+                                WalletId = Guid.NewGuid(),
+                                UserId = course.CreatedBy,
+                                Balance = 0,
+                                UpdatedAt = DateTime.UtcNow
+                            };
+                            await _uow.Wallets.AddAsync(wallet);
+                        }
+
+                        wallet.Balance += instructorAmount;
+                        wallet.UpdatedAt = DateTime.UtcNow;
+
+                        await _uow.WalletTransactions.AddAsync(new WalletTransaction
+                        {
+                            WalletTransactionId = Guid.NewGuid(),
+                            WalletId = wallet.WalletId,
+                            PaymentId = payment.PaymentId,
+                            Amount = instructorAmount,
+                            TransactionType = 0,
+                            CreatedAt = DateTime.UtcNow,
+                            BalanceAfterTransaction = wallet.Balance,
+                            Description = $"Course sale: {course.Title}"
+                        });
+                    }
+                }
+
+                _uow.Payments.Update(payment);
+                await _uow.CommitAsync();
+
+                return response.SetOk(true);
+            }
+            catch (Exception ex)
+            {
+                await _uow.RollbackAsync();
+                return response.SetBadRequest(ex.Message);
             }
         }
 
