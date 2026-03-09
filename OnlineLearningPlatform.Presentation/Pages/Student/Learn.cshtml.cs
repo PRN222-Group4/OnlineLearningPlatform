@@ -136,11 +136,23 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
         {
             var result = await _progressService.MarkLessonCompletedAsync(lessonId);
 
-            if (result.IsSuccess)
-                TempData["Success"] = "Đã hoàn thành bài học! Tiến độ của bạn đã được lưu.";
-            else
+            if (!result.IsSuccess)
+            {
                 TempData["Error"] = $"Lỗi cập nhật: {result.ErrorMessage}";
+                return RedirectToPage(new { courseId = courseId });
+            }
 
+            // Check 100% → redirect certificate
+            var enrollmentData = await _enrollmentService.GetStudentEnrollmentsAsync();
+            if (enrollmentData.IsSuccess && enrollmentData.Result != null)
+            {
+                var envList = (IEnumerable<StudentEnrollmentSummaryResponse>)enrollmentData.Result;
+                var myEnv = envList.FirstOrDefault(e => e.CourseId == courseId);
+                if (myEnv?.ProgressPercent >= 100)
+                    return RedirectToPage("/Student/MyCertificates");
+            }
+
+            TempData["Success"] = "Đã hoàn thành bài học!";
             return RedirectToPage(new { courseId = courseId });
         }
 

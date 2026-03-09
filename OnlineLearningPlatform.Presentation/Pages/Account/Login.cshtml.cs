@@ -100,7 +100,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Account
             {
                 if (principal.IsInRole("Admin"))
                 {
-                    redirectUrl = Url.Content("~/Admin/Courses");
+                    redirectUrl = Url.Content("~/Admin");
                 }
             }
             catch
