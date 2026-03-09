@@ -1,4 +1,5 @@
 ﻿using OnlineLearningPlatform.BusinessObject.Responses.GradedItem;
+using OnlineLearningPlatform.BusinessObject.Responses.LessonItem;
 
 namespace OnlineLearningPlatform.BusinessObject.Responses.Lesson
 {
@@ -13,5 +14,6 @@ namespace OnlineLearningPlatform.BusinessObject.Responses.Lesson
         public bool IsGraded { get; set; }
         public int EstimatedMinutes { get; set; }
         public List<GradedItemResponse>? GradedItems { get; set; }
+        public List<LessonItemResponse> LessonItems { get; set; } = new();
     }
 }

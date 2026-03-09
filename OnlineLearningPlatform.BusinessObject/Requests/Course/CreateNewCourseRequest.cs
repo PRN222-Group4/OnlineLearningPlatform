@@ -21,7 +21,8 @@ namespace OnlineLearningPlatform.BusinessObject.Requests.Course
 
         public int Level { get; set; }
 
-        public Guid LanguageId { get; set; } = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        [Required(ErrorMessage = "Vui lòng chọn ngôn ngữ")]
+        public Guid LanguageId { get; set; }
 
         public string? Tags { get; set; }
     }

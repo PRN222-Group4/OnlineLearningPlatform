@@ -60,14 +60,12 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 var userId = _service.GetUserClaim().UserId;
 
-                // 1. Check xem đã enroll chưa (nếu có rồi thì trả về ID luôn để redirect)
                 var existing = await _unitOfWork.Enrollments.GetAsync(e => e.CourseId == courseId && e.UserId == userId);
                 if (existing != null)
                 {
                     return response.SetOk(existing.EnrollmentId);
                 }
 
-                // 2. TẠO ENROLLMENT (Set luôn là Active)
                 var newEnrollment = new Enrollment
                 {
                     EnrollmentId = Guid.NewGuid(),
@@ -80,10 +78,8 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
                 await _unitOfWork.Enrollments.AddAsync(newEnrollment);
 
-                // 3. TẠO DATA TIẾN ĐỘ HỌC (Quan trọng cho Flow Learning)
                 await InitializeLessonProgressAsync(userId, courseId);
 
-                // 4. Lưu DB
                 await _unitOfWork.SaveChangeAsync();
 
                 return response.SetOk(newEnrollment.EnrollmentId);
@@ -91,6 +87,22 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             catch (Exception ex)
             {
                 return response.SetBadRequest(ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse> CheckUserEnrollmentAsync(Guid userId, Guid courseId)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var enrollment = await _unitOfWork.Enrollments
+                    .GetAsync(e => e.UserId == userId && e.CourseId == courseId && (e.Status == 1 || e.Status == 2));
+
+                return response.SetOk(enrollment != null);
+            }
+            catch (Exception ex)
+            {
+                return response.SetBadRequest(message: ex.Message);
             }
         }
 
@@ -105,7 +117,6 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     return response.SetBadRequest(message: "Only students can access learning enrollments.");
                 }
 
-                // Lấy enrollment + Course info + Giảng viên
                 var enrollments = await _unitOfWork.Enrollments.GetQueryable()
                     .Include(e => e.Course)
                     .Where(e => e.UserId == claim.UserId && (e.Status == 1 || e.Status == 2) && !e.IsDeleted)
@@ -150,7 +161,6 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                         CompletionPercent = 0,
                         LastWatchedSecond = 0
                     };
-                    // Dùng Generic Repository đã khai báo trong UnitOfWork
                     await _unitOfWork.UserLessonProgresses.AddAsync(progress);
                 }
             }

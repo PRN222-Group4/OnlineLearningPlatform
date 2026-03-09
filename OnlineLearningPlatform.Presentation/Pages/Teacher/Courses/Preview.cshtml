@@ -1,0 +1,265 @@
+﻿@page "{courseId:guid}"
+@model OnlineLearningPlatform.Presentation.Pages.Teacher.Courses.PreviewModel
+@{
+    ViewData["Title"] = "Course Preview";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preview: @Model.Course.Title</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans h-screen flex flex-col overflow-hidden"
+      x-data="coursePreviewer()">
+
+    <header class="h-16 bg-slate-900 text-white flex items-center justify-between px-6 shrink-0 z-20 shadow-md">
+        <div class="flex items-center gap-4">
+            <a asp-page="/Teacher/Courses/EditModules" asp-route-courseId="@Model.Course.CourseId" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="h-6 w-px bg-slate-700"></div>
+            <div>
+                <span class="bg-indigo-500 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">Teacher Preview</span>
+                <h1 class="font-bold truncate max-w-md">@Model.Course.Title</h1>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <form method="post" asp-page-handler="SubmitCourse" asp-route-courseId="@Model.Course.CourseId">
+                <button type="submit" class="px-6 py-2 bg-emerald-500 text-white text-sm font-bold rounded-xl hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Submit to Admin
+                </button>
+            </form>
+        </div>
+    </header>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="bg-rose-500 text-white text-center py-2 font-bold text-sm">@TempData["Error"]</div>
+    }
+
+    <div class="flex flex-1 overflow-hidden">
+
+        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+            <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                <h2 class="font-bold text-slate-800 text-lg">Course Content</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+
+                <template x-for="(mod, mIdx) in syllabus" :key="mod.moduleId">
+                    <div class="space-y-1" x-data="{ expanded: mIdx === 0 }">
+                        <button @@click ="expanded = !expanded" class="w-full flex items-center justify-between p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition">
+                            <span class="font-bold text-sm text-slate-800 text-left" x-text="`Module ${mod.index}: ${mod.name}`"></span>
+                            <i class="fas fa-chevron-down text-xs text-slate-500 transition-transform" :class="expanded ? 'rotate-180' : ''"></i>
+                        </button>
+
+                        <div x-show="expanded" x-collapse class="pl-2 pr-1 py-2 space-y-4 border-l-2 border-slate-100 ml-3">
+                            <template x-for="(lesson, lIdx) in mod.lessons" :key="lesson.lessonId">
+                                <div class="space-y-1">
+                                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2 mb-2" x-text="lesson.title"></h4>
+
+                                    <template x-for="(item, iIdx) in lesson.items" :key="item.itemId">
+                                        <button @@click ="selectItem(item)"
+                                                class="w-full flex items-start gap-3 p-2.5 rounded-xl transition text-left group"
+                                                :class="currentItem?.itemId === item.itemId ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-slate-50 border border-transparent'">
+
+                                            <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                                                 :class="{
+                                                     'bg-rose-100 text-rose-500': item.type === 0,
+                                                     'bg-blue-100 text-blue-500': item.type === 1,
+                                                     'bg-amber-100 text-amber-500': item.type === 2,
+                                                     'bg-purple-100 text-purple-500': item.type === 3,
+                                                     'bg-emerald-100 text-emerald-500': item.type === 4
+                                                 }">
+                                                <i class="fas text-[10px]" :class="{
+                                                    'fa-video': item.type === 0,
+                                                    'fa-book-open': item.type === 1,
+                                                    'fa-tasks': item.type === 2,
+                                                    'fa-pen-fancy': item.type === 3,
+                                                    'fa-microphone': item.type === 4
+                                                }"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-semibold transition-colors"
+                                                   :class="currentItem?.itemId === item.itemId ? 'text-indigo-700' : 'text-slate-700 group-hover:text-indigo-600'"
+                                                   x-text="item.title"></p>
+                                                <p class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="getTypeName(item.type)"></p>
+                                            </div>
+                                        </button>
+                                    </template>
+                                    <template x-if="lesson.items.length === 0">
+                                        <p class="text-xs text-slate-400 italic ml-2">No materials added.</p>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+            </div>
+        </aside>
+
+        <main class="flex-1 bg-slate-50 overflow-y-auto relative p-8 flex justify-center">
+
+            <div x-show="!currentItem" class="m-auto text-center max-w-md">
+                <div class="w-24 h-24 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-tv text-4xl text-slate-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Ready to Review</h2>
+                <p class="text-slate-500">Select a material from the syllabus on the left to preview how it will appear to students.</p>
+            </div>
+
+            <div x-show="currentItem" x-cloak class="w-full max-w-4xl bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden h-fit">
+
+                <div class="px-8 py-6 border-b border-slate-100">
+                    <span class="text-xs font-bold uppercase tracking-widest mb-1 block"
+                          :class="{
+                              'text-rose-500': currentItem?.type === 0,
+                              'text-blue-500': currentItem?.type === 1,
+                              'text-amber-500': currentItem?.type === 2,
+                              'text-purple-500': currentItem?.type === 3,
+                              'text-emerald-500': currentItem?.type === 4
+                          }" x-text="getTypeName(currentItem?.type)"></span>
+                    <h2 class="text-2xl font-bold text-slate-900" x-text="currentItem?.title"></h2>
+                </div>
+
+                <div class="p-8">
+
+                    <template x-if="currentItem?.type === 0">
+                        <div class="rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center relative">
+                            <template x-if="currentItem?.contentUrl">
+                                <video controls class="w-full h-full object-contain" controlsList="nodownload">
+                                    <source :src="currentItem.contentUrl" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </template>
+                            <template x-if="!currentItem?.contentUrl">
+                                <p class="text-white opacity-50"><i class="fas fa-video-slash text-4xl mb-3 block text-center"></i>Video link missing</p>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template x-if="currentItem?.type === 1">
+                        <div class="prose prose-slate max-w-none">
+                            <p class="whitespace-pre-line text-slate-700 leading-relaxed" x-text="currentItem?.textContent"></p>
+                        </div>
+                    </template>
+
+                    <template x-if="currentItem?.type === 3">
+                        <div class="space-y-6">
+                            <div class="bg-purple-50 p-6 rounded-2xl border border-purple-100">
+                                <h3 class="font-bold text-purple-900 mb-2 flex items-center gap-2"><i class="fas fa-question-circle"></i> Prompt</h3>
+                                <p class="whitespace-pre-line text-purple-800" x-text="currentItem?.prompt"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-700 mb-2">Student Submission Area (Disabled in Preview)</p>
+                                <textarea disabled rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-400 resize-none cursor-not-allowed" placeholder="Students will type their essay here..."></textarea>
+                                <button disabled class="mt-4 px-6 py-3 bg-slate-200 text-slate-400 font-bold rounded-xl cursor-not-allowed flex items-center gap-2">
+                                    <i class="fas fa-robot"></i> Submit to Smart Evaluator
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="currentItem?.type === 4">
+                        <div class="space-y-6 text-center">
+                            <div class="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 text-left">
+                                <h3 class="font-bold text-emerald-900 mb-2 flex items-center gap-2"><i class="fas fa-question-circle"></i> Question</h3>
+                                <p class="whitespace-pre-line text-emerald-800" x-text="currentItem?.prompt"></p>
+                            </div>
+                            <div class="py-10">
+                                <div class="w-20 h-20 bg-slate-100 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-md">
+                                    <i class="fas fa-microphone text-3xl"></i>
+                                </div>
+                                <p class="text-sm font-bold text-slate-500 mb-1">Voice Recording Area</p>
+                                <p class="text-xs text-slate-400">Students will record audio here to be evaluated by the Smart Evaluator.</p>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="currentItem?.type === 2">
+                        <div class="space-y-8">
+                            <template x-for="(q, qIdx) in currentItem?.questions" :key="qIdx">
+                                <div class="border-b border-slate-100 pb-6 last:border-0">
+                                    <div class="flex gap-4 mb-4">
+                                        <div class="w-8 h-8 bg-amber-100 text-amber-700 font-bold rounded-full flex items-center justify-center shrink-0" x-text="qIdx + 1"></div>
+                                        <div>
+                                            <p class="font-bold text-slate-800 text-lg" x-text="q.content"></p>
+                                            <p class="text-xs text-slate-400 font-medium mt-1" x-text="`${q.points} Points`"></p>
+                                        </div>
+                                    </div>
+                                    <div class="pl-12 space-y-3">
+                                        <template x-for="(opt, oIdx) in q.options" :key="oIdx">
+                                            <div class="flex items-center gap-3 p-3 rounded-xl border transition"
+                                                 :class="opt.isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'">
+                                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                                     :class="opt.isCorrect ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300 bg-white'">
+                                                    <i x-show="opt.isCorrect" class="fas fa-check text-[10px] text-white"></i>
+                                                </div>
+                                                <span class="text-sm font-medium" :class="opt.isCorrect ? 'text-emerald-800 font-bold' : 'text-slate-600'" x-text="opt.text"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div class="mt-8 pt-4">
+                                <button disabled class="w-full py-4 bg-slate-200 text-slate-400 font-bold rounded-xl cursor-not-allowed">
+                                    Submit Quiz (Disabled in Preview)
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const rawSyllabus = @Html.Raw(Model.SyllabusJson);
+
+        function coursePreviewer() {
+            return {
+                syllabus: rawSyllabus,
+                currentItem: null,
+
+                init() {
+                    // Tự động mở bài đầu tiên nếu có
+                    if (this.syllabus.length > 0 && this.syllabus[0].lessons.length > 0 && this.syllabus[0].lessons[0].items.length > 0) {
+                        this.currentItem = this.syllabus[0].lessons[0].items[0];
+                    }
+                },
+
+                selectItem(item) {
+                    this.currentItem = item;
+                },
+
+                getTypeName(type) {
+                    const types = {
+                        0: 'Video Lesson',
+                        1: 'Reading Article',
+                        2: 'Quiz Assessment',
+                        3: 'IELTS Writing Task',
+                        4: 'IELTS Speaking Task'
+                    };
+                    return types[type] || 'Material';
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom thanh scroll cho sidebar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #94a3b8; }
+    </style>
+</body>
+</html>

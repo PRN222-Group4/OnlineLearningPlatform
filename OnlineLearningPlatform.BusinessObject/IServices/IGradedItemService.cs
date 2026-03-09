@@ -5,5 +5,6 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
 {
     public interface IGradedItemService
     {
+        Task<ApiResponse> SubmitQuizAsync(SubmitQuizRequest request);
     }
 }

@@ -73,8 +73,8 @@
                             Enrolled @(enrollment.EnrolledAt?.ToString("MMM dd, yyyy") ?? "—")
                         </p>
 
-                        <div class="mt-auto">
-                            <a asp-page="/Student/Learning" asp-route-courseId="@enrollment.CourseId"
+                        <div class="mt-auto flex flex-col gap-2">
+                            <a asp-page="/Student/Learn" asp-route-courseId="@enrollment.CourseId"
                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl transition-colors
                                       @(isDone
                                           ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -82,6 +82,14 @@
                                 <i class="fas @(isDone ? "fa-redo" : "fa-play") text-xs"></i>
                                 @(isDone ? "Review Course" : (progress > 0 ? "Continue" : "Start Learning"))
                             </a>
+
+                            @if (isDone)
+                            {
+                                <a asp-page="/Student/MyCertificates"
+                                   class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-xl transition-colors">
+                                    <i class="fas fa-award"></i> View Certificate
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>

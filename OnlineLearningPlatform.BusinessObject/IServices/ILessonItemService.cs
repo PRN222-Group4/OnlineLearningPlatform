@@ -11,5 +11,7 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
         Task<ApiResponse> CreateVideoItemAsync(CreateVideoItemRequest request);
         Task<ApiResponse> CreateQuizItemAsync(CreateQuizItemRequest request);
         Task<ApiResponse> DeleteLessonItemAsync(Guid lessonItemId);
+        Task<ApiResponse> CreateWritingItemAsync(CreateWritingItemRequest request);
+        Task<ApiResponse> CreateSpeakingItemAsync(CreateSpeakingItemRequest request);
     }
 }

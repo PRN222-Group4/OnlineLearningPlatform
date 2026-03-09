@@ -70,6 +70,41 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.ToTable("AnswerOptions");
                 });
 
+            modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Certificate", b =>
+                {
+                    b.Property<Guid>("CertificateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CertificateCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("CertificateUrl")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("IssueDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("CertificateId");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Certificates");
+                });
+
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Course", b =>
                 {
                     b.Property<Guid>("CourseId")
@@ -220,6 +255,9 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.Property<Guid>("GradedItemId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("GradedItemId1")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -251,6 +289,11 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("GradedAttemptId");
+
+                    b.HasIndex("GradedItemId1")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "GradedItemId" }, "IX_GradedAttempts_GradedItemId");
 
                     b.HasIndex(new[] { "UserId" }, "IX_GradedAttempts_UserId");
 
@@ -907,6 +950,25 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.Navigation("Question");
                 });
 
+            modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Certificate", b =>
+                {
+                    b.HasOne("OnlineLearningPlatform.DataAccess.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OnlineLearningPlatform.DataAccess.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.Course", b =>
                 {
                     b.HasOne("OnlineLearningPlatform.DataAccess.Entities.Language", "Language")
@@ -940,10 +1002,14 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
             modelBuilder.Entity("OnlineLearningPlatform.DataAccess.Entities.GradedAttempt", b =>
                 {
                     b.HasOne("OnlineLearningPlatform.DataAccess.Entities.GradedItem", "GradedAttemptNavigation")
-                        .WithOne("GradedAttempt")
-                        .HasForeignKey("OnlineLearningPlatform.DataAccess.Entities.GradedAttempt", "GradedAttemptId")
+                        .WithMany()
+                        .HasForeignKey("GradedItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("OnlineLearningPlatform.DataAccess.Entities.GradedItem", null)
+                        .WithOne("GradedAttempt")
+                        .HasForeignKey("OnlineLearningPlatform.DataAccess.Entities.GradedAttempt", "GradedItemId1");
 
                     b.HasOne("OnlineLearningPlatform.DataAccess.Entities.User", "User")
                         .WithMany("GradedAttempts")

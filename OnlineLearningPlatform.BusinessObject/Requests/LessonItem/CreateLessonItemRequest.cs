@@ -2,40 +2,40 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineLearningPlatform.BusinessObject.Requests.LessonItem
 {
-    public class CreateReadingItemRequest
-    {
-        [Required]
-        public Guid LessonId { get; set; }
+    //public class CreateReadingItemRequest
+    //{
+    //    [Required]
+    //    public Guid LessonId { get; set; }
 
-        [Required(ErrorMessage = "Tiêu đề là bắt buộc")]
-        public string Title { get; set; } = null!;
+    //    [Required(ErrorMessage = "Tiêu đề là bắt buộc")]
+    //    public string Title { get; set; } = null!;
 
-        [Required(ErrorMessage = "Nội dung bài đọc là bắt buộc")]
-        public string Content { get; set; } = null!;
+    //    [Required(ErrorMessage = "Nội dung bài đọc là bắt buộc")]
+    //    public string Content { get; set; } = null!;
 
-        public int OrderIndex { get; set; }
-    }
+    //    public int OrderIndex { get; set; }
+    //}
 
-    public class CreateVideoItemRequest
-    {
-        [Required]
-        public Guid LessonId { get; set; }
+    //public class CreateVideoItemRequest
+    //{
+    //    [Required]
+    //    public Guid LessonId { get; set; }
 
-        [Required(ErrorMessage = "Tiêu đề là bắt buộc")]
-        public string Title { get; set; } = null!;
+    //    [Required(ErrorMessage = "Tiêu đề là bắt buộc")]
+    //    public string Title { get; set; } = null!;
 
-        /// <summary>0=None, 1=YouTube, 2=Mp4Upload</summary>
-        [Required]
-        public int VideoSourceType { get; set; }
+    //    /// <summary>0=None, 1=YouTube, 2=Mp4Upload</summary>
+    //    [Required]
+    //    public int VideoSourceType { get; set; }
 
-        /// <summary>YouTube URL (when VideoSourceType=1)</summary>
-        public string? VideoUrl { get; set; }
+    //    /// <summary>YouTube URL (when VideoSourceType=1)</summary>
+    //    public string? VideoUrl { get; set; }
 
-        /// <summary>Mp4 file (when VideoSourceType=2)</summary>
-        public Microsoft.AspNetCore.Http.IFormFile? VideoFile { get; set; }
+    //    /// <summary>Mp4 file (when VideoSourceType=2)</summary>
+    //    public Microsoft.AspNetCore.Http.IFormFile? VideoFile { get; set; }
 
-        public int OrderIndex { get; set; }
-    }
+    //    public int OrderIndex { get; set; }
+    //}
 
     public class CreateQuizItemRequest
     {

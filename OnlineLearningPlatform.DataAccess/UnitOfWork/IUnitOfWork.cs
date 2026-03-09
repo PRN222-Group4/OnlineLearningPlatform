@@ -1,4 +1,5 @@
-﻿using OnlineLearningPlatform.DataAccess.IRepositories;
+﻿using OnlineLearningPlatform.DataAccess.Entities;
+using OnlineLearningPlatform.DataAccess.IRepositories;
 
 namespace OnlineLearningPlatform.DataAccess.UnitOfWork
 {
@@ -8,6 +9,7 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
         ILessonRepository Lessons { get; }
         ICourseRepository Courses { get; }
         IEnrollmentRepository Enrollments { get; }
+        ILanguageRepository Languages { get; }
         IPaymentRepository Payments { get; }
         IModuleRepository Modules { get; }
         ILessonResourceRepository LessonResources { get; }
@@ -21,7 +23,9 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
         IUserLessonProgressRepository UserLessonProgresses { get; }
         IWalletRepository Wallets { get; }
         IWalletTransactionRepository WalletTransactions { get; }
-        //18
+        IGenericRepository<Certificate> Certificates { get; }
+
+        //19
 
         Task SaveChangeAsync();
         Task BeginTransactionAsync();

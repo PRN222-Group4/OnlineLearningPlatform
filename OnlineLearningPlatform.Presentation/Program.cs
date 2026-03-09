@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineLearningPlatform.BusinessObject;
 using OnlineLearningPlatform.BusinessObject.DependencyInjection;
+using OnlineLearningPlatform.BusinessObject.IServices;
+using OnlineLearningPlatform.BusinessObject.Services;
 using OnlineLearningPlatform.Presentation.Quartz;
 using Quartz;
 
@@ -11,6 +13,8 @@ if (config == null)
     throw new InvalidOperationException("AppSettings configuration is missing.");
 }
 
+builder.Services.AddScoped<IGradedItemService, GradedItemService>();
+builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.Configure<AppSettings>(builder.Configuration);
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {

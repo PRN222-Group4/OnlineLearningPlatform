@@ -1,0 +1,375 @@
+﻿@page "{courseId:guid}"
+@model OnlineLearningPlatform.Presentation.Pages.Student.LearnModel
+@{
+    ViewData["Title"] = "Learning Space";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learn: @Model.Course?.Title</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans h-screen flex flex-col overflow-hidden"
+      x-data="studentLearningSpace()">
+
+    <header class="h-16 bg-slate-900 text-white flex items-center justify-between px-6 shrink-0 z-20 shadow-md">
+        <div class="flex items-center gap-4">
+            <a asp-page="/Courses/Detail" asp-route-id="@Model.Course?.CourseId" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="h-6 w-px bg-slate-700"></div>
+            <div>
+                <span class="bg-emerald-500 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">Enrolled</span>
+                <h1 class="font-bold truncate max-w-md">@Model.Course?.Title</h1>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden sm:block">
+                <div class="w-32 bg-slate-800 rounded-full h-2 mt-1">
+                    <div class="bg-emerald-400 h-2 rounded-full" style="width: @ViewData["ProgressPercent"]%"></div>
+                </div>
+                <p class="text-[10px] text-slate-400 text-right mt-1">@ViewData["ProgressPercent"]% Completed</p>
+            </div>
+        </div>
+    </header>
+
+    @if (TempData["Error"] != null)
+    {
+        <div id="toast-error" class="absolute top-20 right-6 z-50 bg-rose-500 text-white px-6 py-3 rounded-xl shadow-lg font-bold flex items-center gap-3 transition-all">
+            <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+        </div>
+        <script>setTimeout(() => document.getElementById('toast-error').style.display = 'none', 4000);</script>
+    }
+
+    <div class="flex flex-1 overflow-hidden">
+
+        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300">
+            <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                <h2 class="font-bold text-slate-800 text-lg">Course Content</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+
+                <template x-for="(mod, mIdx) in syllabus" :key="mod.moduleId">
+                    <div class="space-y-1" x-data="{ expanded: mIdx === 0 }">
+                        <button @@click ="expanded = !expanded" class="w-full flex items-center justify-between p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition">
+                            <span class="font-bold text-sm text-slate-800 text-left" x-text="`Module ${mod.index}: ${mod.name}`"></span>
+                            <i class="fas fa-chevron-down text-xs text-slate-500 transition-transform" :class="expanded ? 'rotate-180' : ''"></i>
+                        </button>
+
+                        <div x-show="expanded" x-collapse class="pl-2 pr-1 py-2 space-y-4 border-l-2 border-slate-100 ml-3">
+                            <template x-for="(lesson, lIdx) in mod.lessons" :key="lesson.lessonId">
+                                <div class="space-y-1">
+                                    <div class="flex items-center justify-between pr-3 ml-2 mb-2">
+                                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider" x-text="lesson.title"></h4>
+                                        <i x-show="lesson.isCompleted" class="fas fa-check-circle text-emerald-500 text-xs"></i>
+                                    </div>
+
+                                    <template x-for="(item, iIdx) in lesson.items" :key="item.itemId">
+                                        <button @@click ="selectItem(item)"
+                                                class="w-full flex items-start gap-3 p-2.5 rounded-xl transition text-left group relative"
+                                                :class="currentItem?.itemId === item.itemId ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-slate-50 border border-transparent'">
+
+                                            <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                                                 :class="getIconColors(item.type)">
+                                                <i class="fas text-[10px]" :class="getIcon(item.type)"></i>
+                                            </div>
+                                            <div class="pr-6">
+                                                <p class="text-sm font-semibold transition-colors"
+                                                   :class="currentItem?.itemId === item.itemId ? 'text-indigo-700' : 'text-slate-700 group-hover:text-indigo-600'"
+                                                   x-text="item.title"></p>
+                                                <p class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="getTypeName(item.type)"></p>
+                                            </div>
+
+                                            <div class="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition">
+                                                <i class="far fa-circle text-slate-300"></i>
+                                            </div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </aside>
+
+        <main class="flex-1 bg-slate-50 overflow-y-auto relative p-8 flex justify-center">
+
+            <div x-show="!currentItem" class="m-auto text-center max-w-md">
+                <div class="w-24 h-24 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-laptop-code text-4xl text-slate-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Welcome Back!</h2>
+                <p class="text-slate-500">Select a lesson from the syllabus on the left to start learning.</p>
+            </div>
+
+            <div x-show="currentItem" x-cloak class="w-full max-w-4xl bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden h-fit mb-10">
+
+                <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-widest mb-1 block" :class="getTextColor(currentItem?.type)" x-text="getTypeName(currentItem?.type)"></span>
+                        <h2 class="text-2xl font-bold text-slate-900" x-text="currentItem?.title"></h2>
+                    </div>
+
+                    <form method="post" asp-page-handler="MarkComplete">
+                        <input type="hidden" name="courseId" value="@Model.Course?.CourseId" />
+
+                        <input type="hidden" name="lessonId" :value="currentItem?.lessonId" />
+
+                        <button type="submit" class="px-4 py-2 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all flex items-center gap-2">
+                            <i class="fas fa-check"></i> Mark Complete
+                        </button>
+                    </form>
+                </div>
+
+                <div class="p-8">
+
+                    <template x-if="currentItem?.type === 0">
+                        <div class="rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+                            <template x-if="currentItem?.contentUrl">
+                                <video controls class="w-full h-full object-contain" controlsList="nodownload">
+                                    <source :src="currentItem.contentUrl" type="video/mp4">
+                                </video>
+                            </template>
+                            <template x-if="!currentItem?.contentUrl">
+                                <p class="text-white/50 flex flex-col items-center"><i class="fas fa-video-slash text-4xl mb-2"></i>No video source</p>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template x-if="currentItem?.type === 1">
+                        <div class="prose prose-slate max-w-none">
+                            <p class="whitespace-pre-line text-slate-700 leading-relaxed text-lg" x-text="currentItem?.textContent"></p>
+                        </div>
+                    </template>
+
+                    <template x-if="currentItem?.type === 3">
+                        <div>
+                            <form method="post" asp-page-handler="SubmitWriting" class="space-y-6">
+                                <input type="hidden" name="courseId" value="@Model.Course?.CourseId" />
+                                <input type="hidden" name="GradedItemId" :value="currentItem?.gradedItemId" />
+                                <input type="hidden" name="lessonId" :value="currentItem?.lessonId" />
+
+                                <div class="bg-purple-50 p-6 rounded-2xl border border-purple-100">
+                                    <h3 class="font-bold text-purple-900 mb-2 flex items-center gap-2"><i class="fas fa-pen-fancy"></i> Prompt</h3>
+                                    <p class="whitespace-pre-line text-purple-800 font-medium" x-text="currentItem?.prompt"></p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-bold text-slate-700 mb-2 block">Your Answer</label>
+                                    <textarea name="SubmissionText" rows="12" class="w-full bg-white border-2 border-slate-200 rounded-xl p-4 text-slate-800 resize-y focus:ring-4 focus:ring-purple-50 focus:border-purple-400 outline-none transition" placeholder="Type your answer here..." required></textarea>
+                                    <button type="submit" class="mt-4 px-8 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-purple-600 shadow-xl transition-all flex items-center gap-2">
+                                        <i class="fas fa-robot"></i> Evaluate Writing
+                                    </button>
+                                </div>
+                            </form>
+
+                            <template x-if="aiEvalLessonId === currentItem?.lessonId && aiScore !== null">
+                                <div class="mt-8 p-6 rounded-2xl border-2 transition-all duration-500"
+                                     :class="aiScore >= 5 ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="font-bold text-lg flex items-center gap-2" :class="aiScore >= 5 ? 'text-emerald-800' : 'text-rose-800'">
+                                            <i class="fas" :class="aiScore >= 5 ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                            AI Evaluation Result
+                                        </h4>
+                                        <span class="px-4 py-1.5 rounded-full font-black text-white text-sm shadow-sm"
+                                              :class="aiScore >= 5 ? 'bg-emerald-500 shadow-emerald-200' : 'bg-rose-500 shadow-rose-200'"
+                                              x-text="`Score: ${aiScore}/10`">
+                                        </span>
+                                    </div>
+                                    <p class="text-slate-700 font-medium leading-relaxed" x-text="aiFeedback"></p>
+                                    <template x-if="aiScore < 5">
+                                        <p class="mt-3 text-xs font-bold text-rose-500 uppercase tracking-wider">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> Please revise and submit again.
+                                        </p>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template x-if="currentItem?.type === 4">
+                        <div>
+                            <form method="post" asp-page-handler="SubmitSpeaking" enctype="multipart/form-data" class="space-y-6">
+                                <input type="hidden" name="courseId" value="@Model.Course?.CourseId" />
+                                <input type="hidden" name="GradedItemId" :value="currentItem?.gradedItemId" />
+                                <input type="hidden" name="lessonId" :value="currentItem?.lessonId" />
+
+                                <div class="bg-teal-50 p-6 rounded-2xl border border-teal-100">
+                                    <h3 class="font-bold text-teal-900 mb-2 flex items-center gap-2"><i class="fas fa-microphone"></i> Prompt</h3>
+                                    <p class="whitespace-pre-line text-teal-800 font-medium" x-text="currentItem?.prompt"></p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-bold text-slate-700 mb-2 block">Upload your recording (Audio file)</label>
+                                    <input type="file" name="AudioFile" accept="audio/*" class="w-full bg-white border-2 border-slate-200 rounded-xl p-3 text-slate-800 focus:ring-4 focus:ring-teal-50 focus:border-teal-400 outline-none transition cursor-pointer" required />
+                                    <button type="submit" class="mt-4 px-8 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-teal-600 shadow-xl transition-all flex items-center gap-2">
+                                        <i class="fas fa-robot"></i> Evaluate Pronunciation
+                                    </button>
+                                </div>
+                            </form>
+
+                            <template x-if="aiEvalLessonId === currentItem?.lessonId && aiScore !== null">
+                                <div class="mt-8 p-6 rounded-2xl border-2 transition-all duration-500"
+                                     :class="aiScore >= 5 ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="font-bold text-lg flex items-center gap-2" :class="aiScore >= 5 ? 'text-emerald-800' : 'text-rose-800'">
+                                            <i class="fas" :class="aiScore >= 5 ? 'fa-check-circle' : 'fa-times-circle'"></i> AI Feedback
+                                        </h4>
+                                        <span class="px-4 py-1.5 rounded-full font-black text-white text-sm shadow-sm"
+                                              :class="aiScore >= 5 ? 'bg-emerald-500 shadow-emerald-200' : 'bg-rose-500 shadow-rose-200'"
+                                              x-text="`Score: ${aiScore}/10`"></span>
+                                    </div>
+                                    <p class="text-slate-700 font-medium leading-relaxed" x-text="aiFeedback"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template x-if="currentItem?.type === 2">
+                        <form method="post" asp-page-handler="SubmitQuiz" class="space-y-8">
+                            <input type="hidden" name="courseId" value="@Model.Course?.CourseId" />
+                            <input type="hidden" name="GradedItemId" :value="currentItem?.gradedItemId" />
+                            <input type="hidden" name="lessonId" :value="currentItem?.lessonId" />
+                            <template x-for="(q, qIdx) in currentItem?.questions" :key="qIdx">
+                                <div class="border-b border-slate-100 pb-6 last:border-0">
+                                    <div class="flex gap-4 mb-4">
+                                        <div class="w-8 h-8 bg-amber-100 text-amber-700 font-bold rounded-full flex items-center justify-center shrink-0" x-text="qIdx + 1"></div>
+                                        <div>
+                                            <p class="font-bold text-slate-800 text-lg" x-text="q.content"></p>
+                                            <p class="text-xs text-slate-400 font-medium mt-1" x-text="`${q.points} Points`"></p>
+                                        </div>
+                                    </div>
+                                    <div class="pl-12 space-y-3">
+                                        <template x-for="(opt, oIdx) in q.options" :key="oIdx">
+                                            <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition">
+                                                <input type="radio" :name="`Answers[${qIdx}].SelectedOptionId`" :value="opt.optionId" class="w-5 h-5 text-amber-500 focus:ring-amber-400 cursor-pointer">
+                                                <input type="hidden" :name="`Answers[${qIdx}].QuestionId`" :value="q.questionId" />
+                                                <span class="text-sm font-medium text-slate-700" x-text="opt.text"></span>
+                                            </label>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="aiEvalLessonId === currentItem?.lessonId && quizScore !== null">
+                                <div class="mt-4 mb-6 p-6 rounded-2xl border-2 transition-all duration-500"
+                                     :class="(quizScore / quizMaxScore) >= 0.5 ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-bold text-lg flex items-center gap-2" :class="(quizScore / quizMaxScore) >= 0.5 ? 'text-emerald-800' : 'text-rose-800'">
+                                            <i class="fas" :class="(quizScore / quizMaxScore) >= 0.5 ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                            Quiz Evaluation Result
+                                        </h4>
+                                        <span class="px-4 py-1.5 rounded-full font-black text-white text-sm"
+                                              :class="(quizScore / quizMaxScore) >= 0.5 ? 'bg-emerald-500' : 'bg-rose-500'"
+                                              x-text="`Score: ${quizScore} / ${quizMaxScore}`">
+                                        </span>
+                                    </div>
+                                    <template x-if="(quizScore / quizMaxScore) < 0.5">
+                                        <p class="mt-2 text-sm font-bold text-rose-500">You need at least 50% to pass. Please try again!</p>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <div class="mt-8 pt-4">
+                                <template x-if="currentItem?.isCompleted">
+                                    <div class="w-full py-4 bg-emerald-100 text-emerald-700 font-extrabold rounded-xl text-center text-lg border-2 border-emerald-300">
+                                        <i class="fas fa-check-circle mr-2"></i> You have successfully passed this quiz!
+                                    </div>
+                                </template>
+                                <template x-if="!currentItem?.isCompleted">
+                                    <button type="submit" class="w-full py-4 bg-amber-500 text-white font-extrabold rounded-xl hover:bg-amber-600 shadow-xl shadow-amber-200 transition-all text-lg">
+                                        Submit Quiz
+                                    </button>
+                                </template>
+                            </div>
+                        </form>
+                    </template>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const rawSyllabus = @Html.Raw(Model.SyllabusJson ?? "[]");
+
+        function studentLearningSpace() {
+            return {
+                syllabus: rawSyllabus,
+                currentItem: null,
+
+                aiEvalLessonId: '@(TempData["EvaluatedLessonId"])',
+                quizScore: @(TempData["QuizScore"]?.ToString() ?? "null"),
+            quizMaxScore: @(TempData["QuizMaxScore"]?.ToString() ?? "null"),
+                aiScore: @(TempData["AiScore"]?.ToString() ?? "null"),
+                aiFeedback: `@Html.Raw((TempData["AiFeedback"]?.ToString() ?? "").Replace("\n", "\\n").Replace("\"", "\\\""))`,
+
+                init() {
+                    const savedItemId = localStorage.getItem('lastViewedItemId_@Model.Course?.CourseId');
+
+                    if (this.syllabus.length > 0) {
+                        let itemToSelect = null;
+
+                        if (savedItemId) {
+                            for (let mod of this.syllabus) {
+                                for (let less of mod.lessons) {
+                                    const found = less.items.find(i => i.itemId === savedItemId);
+                                    if (found) itemToSelect = found;
+                                }
+                            }
+                        }
+
+                        if (!itemToSelect && this.syllabus[0].lessons.length > 0 && this.syllabus[0].lessons[0].items.length > 0) {
+                            itemToSelect = this.syllabus[0].lessons[0].items[0];
+                        }
+
+                        this.currentItem = itemToSelect;
+                    }
+                },
+                selectItem(item) {
+                    this.currentItem = item;
+                    localStorage.setItem('lastViewedItemId_@Model.Course?.CourseId', item.itemId);
+                },
+                getTypeName(type) {
+                    const types = { 0: 'Video Lesson', 1: 'Reading Article', 2: 'Quiz Assessment', 3: 'Writing Task', 4: 'Speaking Task' };
+                    return types[type] || 'Material';
+                },
+                getIcon(type) {
+                    const icons = { 0: 'fa-video', 1: 'fa-book-open', 2: 'fa-tasks', 3: 'fa-pen-fancy', 4: 'fa-microphone' };
+                    return icons[type] || 'fa-file';
+                },
+                getIconColors(type) {
+                    const colors = { 0: 'bg-rose-100 text-rose-500', 1: 'bg-blue-100 text-blue-500', 2: 'bg-amber-100 text-amber-500', 3: 'bg-purple-100 text-purple-500', 4: 'bg-emerald-100 text-emerald-500' };
+                    return colors[type] || 'bg-slate-100 text-slate-500';
+                },
+                getTextColor(type) {
+                    const colors = { 0: 'text-rose-500', 1: 'text-blue-500', 2: 'text-amber-500', 3: 'text-purple-500', 4: 'text-emerald-500' };
+                    return colors[type] || 'text-slate-500';
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+        }
+    </style>
+</body>
+</html>

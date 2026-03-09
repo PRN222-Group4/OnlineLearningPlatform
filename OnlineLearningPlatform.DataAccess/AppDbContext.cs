@@ -46,6 +46,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
 
+    public virtual DbSet<Certificate> Certificates { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AnswerOption>(entity =>
@@ -86,11 +87,17 @@ public partial class AppDbContext : DbContext
         {
             entity.HasIndex(e => e.UserId, "IX_GradedAttempts_UserId");
 
+            entity.HasIndex(e => e.GradedItemId, "IX_GradedAttempts_GradedItemId");
+
             entity.Property(e => e.GradedAttemptId).ValueGeneratedNever();
 
-            entity.HasOne(d => d.GradedAttemptNavigation).WithOne(p => p.GradedAttempt).HasForeignKey<GradedAttempt>(d => d.GradedAttemptId);
+            entity.HasOne(d => d.GradedAttemptNavigation)
+                  .WithMany() 
+                  .HasForeignKey(d => d.GradedItemId); 
 
-            entity.HasOne(d => d.User).WithMany(p => p.GradedAttempts).HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.User)
+                  .WithMany(p => p.GradedAttempts)
+                  .HasForeignKey(d => d.UserId);
         });
 
         modelBuilder.Entity<GradedItem>(entity =>

@@ -45,6 +45,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 int newIndex = existingModules.Any() ? existingModules.Max(m => m.Index) + 1 : 1;
 
                 var module = _mapper.Map<Module>(request);
+                module.ModuleId = Guid.NewGuid();
                 module.CreatedBy = claim.UserId;
                 module.Index = newIndex;
 

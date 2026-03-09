@@ -88,7 +88,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 progress.CompletionPercent = 100;
 
                 _unitOfWork.UserLessonProgresses.Update(progress);
-                var courseId = progress.Lesson.Module.CourseId;
+                var lesson = await _unitOfWork.Lessons.GetAsync(l => l.LessonId == lessonId);
+                var module = await _unitOfWork.Modules.GetAsync(m => m.ModuleId == lesson.ModuleId);
+                var courseId = module.CourseId;
 
                 var totalLessonInCourse = await _unitOfWork.Lessons
                     .CountAsync(l => l.Module.CourseId == courseId);
@@ -101,21 +103,41 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
                 var enrollment = await _unitOfWork.Enrollments
                     .GetAsync(e => e.UserId == userId && e.CourseId == courseId);
+
                 if (enrollment != null && totalLessonInCourse > 0)
                 {
-                    enrollment.ProgressPercent = Math.Round(completedLessonsInCourse * 100m / totalLessonInCourse, 2);
+                    decimal percent = ((decimal)completedLessonsInCourse / totalLessonInCourse) * 100m;
+                    enrollment.ProgressPercent = Math.Round(percent, 2);
+
                     if (enrollment.ProgressPercent >= 100)
                     {
                         enrollment.ProgressPercent = 100;
-                        enrollment.Status = 2;
+                        enrollment.Status = 2; 
                         enrollment.CompletedAt = DateTime.UtcNow;
-                    }
-                    else if (completedLessonsInCourse > 0)
-                    {
-                        enrollment.Status = 1;
+
+                        var existingCert = await _unitOfWork.Certificates.GetAsync(
+                            c => c.UserId == userId && c.CourseId == courseId);
+
+                        if (existingCert == null)
+                        {
+                            string uniqueCode = "OLP-" + Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+
+                            var newCert = new Certificate
+                            {
+                                CertificateId = Guid.NewGuid(),
+                                UserId = userId,
+                                CourseId = courseId,
+                                IssueDate = DateTime.UtcNow,
+                                CertificateCode = uniqueCode,
+                                IsDeleted = false
+                            };
+                            await _unitOfWork.Certificates.AddAsync(newCert);
+                        }
                     }
 
+                    _unitOfWork.Enrollments.Update(enrollment);
                 }
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return response.SetOk("Lesson marked as completed");
