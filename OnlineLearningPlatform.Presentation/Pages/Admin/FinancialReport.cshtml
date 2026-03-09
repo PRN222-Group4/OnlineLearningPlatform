@@ -1,0 +1,138 @@
+﻿@page
+@model OnlineLearningPlatform.Presentation.Pages.Admin.FinancialReportModel
+@{
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Cashflow Report";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans">
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight uppercase"><i class="fas fa-university text-indigo-600 mr-2"></i> Platform Cashflow</h1>
+        <p class="mt-2 text-slate-500 font-medium">Real-time tracking of platform liquidity, liabilities, and net revenue.</p>
+    </div>
+
+    <div class="bg-slate-900 rounded-3xl p-8 shadow-2xl relative overflow-hidden mb-8 border border-slate-800">
+        <div class="absolute -right-10 -top-10 opacity-10"><i class="fas fa-coins text-[200px] text-emerald-400"></i></div>
+        <p class="text-slate-400 font-bold uppercase tracking-widest text-xs mb-2 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Actual Cash in Bank
+        </p>
+        <h2 class="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">
+            @Model.Report.PlatformCashOnHand.ToString("N0") <span class="text-3xl text-emerald-400">₫</span>
+        </h2>
+        <p class="text-sm text-slate-400 max-w-xl">
+            This is the actual liquidity held in the platform's bank account (Total Gross Revenue minus Total Payouts to Instructors).
+            <strong class="text-white">Contains both your 30% profit and unpaid instructor balances.</strong>
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+        <div class="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center"><i class="fas fa-crown text-xl"></i></div>
+                <span class="bg-indigo-200 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-md">30% CUT</span>
+            </div>
+            <p class="text-indigo-900/60 font-bold uppercase tracking-wider text-xs mb-1">Platform Net Profit</p>
+            <h3 class="text-3xl font-black text-indigo-900">@Model.Report.PlatformNetRevenue.ToString("N0") ₫</h3>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm relative">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center"><i class="fas fa-wallet text-xl"></i></div>
+                <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2.5 py-1 rounded-md">LIABILITY</span>
+            </div>
+            <p class="text-slate-500 font-bold uppercase tracking-wider text-xs mb-1">Unclaimed Instructor Funds</p>
+            <h3 class="text-3xl font-black text-slate-900">@Model.Report.TotalAvailableInWallets.ToString("N0") ₫</h3>
+            <p class="text-xs text-slate-400 mt-2">Money in teacher wallets waiting to be requested.</p>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-100 rounded-3xl p-6 shadow-sm relative">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="fas fa-hourglass-half text-xl"></i></div>
+                <span class="bg-amber-200 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-md animate-pulse">URGENT</span>
+            </div>
+            <p class="text-amber-800/60 font-bold uppercase tracking-wider text-xs mb-1">Pending Payouts</p>
+            <h3 class="text-3xl font-black text-amber-700">@Model.Report.TotalPendingPayouts.ToString("N0") ₫</h3>
+            <p class="text-xs text-amber-600/80 mt-2">Needs to be transferred to instructors ASAP.</p>
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 flex flex-col md:flex-row items-center gap-10">
+
+        <div class="flex-1 w-full">
+            <h3 class="text-lg font-extrabold text-slate-900 mb-6">Lifetime Gross vs Payouts</h3>
+
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between text-sm font-bold mb-2">
+                        <span class="text-slate-600">Total Gross Inflow</span>
+                        <span class="text-emerald-600">@Model.Report.TotalGrossRevenue.ToString("N0") ₫</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-3">
+                        <div class="bg-emerald-500 h-3 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-sm font-bold mb-2">
+                        <span class="text-slate-600">Total Successfully Paid Out</span>
+                        <span class="text-rose-500">@Model.Report.TotalPaidOut.ToString("N0") ₫</span>
+                    </div>
+                    @{
+                        var paidOutPercent = Model.Report.TotalGrossRevenue > 0 ? (Model.Report.TotalPaidOut / Model.Report.TotalGrossRevenue * 100) : 0;
+                    }
+                    <div class="w-full bg-slate-100 rounded-full h-3">
+                        <div class="bg-rose-500 h-3 rounded-full" style="width: @Math.Round(paidOutPercent)%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full md:w-64 h-64 shrink-0 relative flex items-center justify-center">
+            <canvas id="cashflowChart"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+                <span class="text-xs font-bold text-slate-400">Total Gross</span>
+                <span class="text-xl font-black text-slate-800">@Model.Report.TotalGrossRevenue.ToString("N0")</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('cashflowChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Platform Net (30%)', 'Paid Out to Instructors', 'Pending Payouts', 'Unclaimed in Wallets'],
+            datasets: [{
+                data: [
+    @Model.Report.PlatformNetRevenue,
+    @Model.Report.TotalPaidOut,
+    @Model.Report.TotalPendingPayouts,
+    @Model.Report.TotalAvailableInWallets
+                ],
+                backgroundColor: [
+                    '#4f46e5', // Indigo 600 (Platform)
+                    '#f43f5e', // Rose 500 (Paid Out)
+                    '#fbbf24', // Amber 400 (Pending)
+                    '#cbd5e1'  // Slate 300 (Unclaimed)
+                ],
+                borderWidth: 0,
+                hoverOffset: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>

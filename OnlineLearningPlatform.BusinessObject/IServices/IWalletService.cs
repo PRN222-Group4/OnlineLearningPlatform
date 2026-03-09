@@ -13,5 +13,7 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
         Task<ApiResponse> ApprovePayoutAsync(Guid walletId);
 
         Task<ApiResponse> GetPlatformRevenueAsync();
+
+        Task<ApiResponse> GetCashflowReportAsync();
     }
 }

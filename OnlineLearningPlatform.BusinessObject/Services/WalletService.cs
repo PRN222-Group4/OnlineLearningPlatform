@@ -96,6 +96,8 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 await _uow.WalletTransactions.AddAsync(tx);
                 _uow.Wallets.Update(wallet);
 
+                await _uow.SaveChangeAsync();
+
                 await _uow.CommitAsync();
 
                 return response.SetOk(true);
@@ -103,6 +105,8 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             catch (Exception ex)
             {
                 await _uow.RollbackAsync();
+                Console.WriteLine($"[LỖI RÚT TIỀN CỰC MẠNH]: {ex.Message}");
+                Console.WriteLine($"[CHI TIẾT LỖI SÂU HƠN]: {ex.InnerException?.Message}");
                 return response.SetBadRequest(ex.Message);
             }
         }
@@ -112,24 +116,59 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var response = new ApiResponse();
             try
             {
-                var wallets = await _uow.Wallets.GetAllAsync(
-                    w => w.PendingBalance > 0,
-                    include: w => w.Include(x => x.User)
-                );
+                var wallets = await _uow.Wallets.GetAllAsync(w => w.PendingBalance > 0);
 
-                var result = wallets.Select(w => new
+                var result = new List<PendingPayoutResponse>();
+
+                foreach (var w in wallets)
                 {
-                    w.WalletId,
-                    w.UserId,
-                    InstructorName = w.User.FullName,
-                    InstructorEmail = w.User.Email,
-                    w.PendingBalance,
-                    w.Balance,
-                    w.TotalWithdrawn,
-                    RequestedAt = w.UpdatedAt
-                }).ToList();
+                    var user = await _uow.Users.GetAsync(u => u.UserId == w.UserId);
+
+                    result.Add(new PendingPayoutResponse
+                    {
+                        WalletId = w.WalletId,
+                        InstructorName = user?.FullName ?? "Unknown Instructor",
+                        InstructorEmail = user?.Email ?? "No email",
+                        PendingBalance = w.PendingBalance,
+                        Balance = w.Balance,
+                        TotalWithdrawn = w.TotalWithdrawn,
+                        RequestedAt = w.UpdatedAt
+                    });
+                }
 
                 return response.SetOk(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WALLET ERROR]: {ex.Message}");
+                return response.SetBadRequest(ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse> GetCashflowReportAsync()
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var successfulPayments = await _uow.Payments.GetAllAsync(p => p.Status == 1);
+                var totalGross = successfulPayments.Sum(p => p.Amount);
+                var wallets = await _uow.Wallets.GetAllAsync();
+                var totalPending = wallets.Sum(w => w.PendingBalance);
+                var totalAvailable = wallets.Sum(w => w.Balance);
+                var totalPaidOut = wallets.Sum(w => w.TotalWithdrawn);
+
+                var report = new CashflowReportResponse
+                {
+                    TotalGrossRevenue = totalGross,
+                    PlatformNetRevenue = totalGross * 0.3m,
+                    InstructorTotalEarnings = totalGross * 0.7m,
+                    TotalPaidOut = totalPaidOut,
+                    TotalPendingPayouts = totalPending,
+                    TotalAvailableInWallets = totalAvailable,
+                    PlatformCashOnHand = totalGross - totalPaidOut
+                };
+
+                return response.SetOk(report);
             }
             catch (Exception ex)
             {
@@ -170,7 +209,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
                 await _uow.WalletTransactions.AddAsync(tx);
                 _uow.Wallets.Update(wallet);
-
+                await _uow.SaveChangeAsync();
                 await _uow.CommitAsync();
 
                 return response.SetOk(true);

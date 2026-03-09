@@ -1,4 +1,4 @@
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MimeKit;
 using Microsoft.Extensions.Logging;
 using OnlineLearningPlatform.BusinessObject;
@@ -123,6 +123,49 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 _logger.LogWarning(ex, "Notify email failed, fallback to no-op");
                 return response.SetOk("Notify email skipped (SMTP unavailable)");
+            }
+        }
+
+        public async Task<ApiResponse> SendPayoutApprovedEmail(string receiverName, string receiverEmail, decimal amount)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var htmlTemplate = @"
+                <div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;'>
+                    <h2 style='color: #0f172a;'>Hello <b>{{Name}}</b>,</h2>
+                    <p style='color: #475569; font-size: 16px; line-height: 1.5;'>
+                        Great news! The Admin team at CourseSphere has successfully processed your payout request.
+                    </p>
+                    <div style='background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;'>
+                        <p style='color: #065f46; font-size: 18px; font-weight: bold; margin: 0;'>
+                            Amount Transferred: {{Amount}} ₫
+                        </p>
+                    </div>
+                    <p style='color: #475569; font-size: 16px;'>Please check your bank account within the next 24 hours.</p>
+                    <p style='color: #475569; font-size: 16px;'>Thank you for teaching with us!</p>
+                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;' />
+                    <p style='color: #94a3b8; font-size: 12px; text-align: center;'>© CourseSphere Platform</p>
+                </div>";
+
+                htmlTemplate = htmlTemplate
+                    .Replace("{{Name}}", receiverName)
+                    .Replace("{{Amount}}", amount.ToString("N0"));
+
+                var message = BuildMessage("CourseSphere Finance", receiverName, receiverEmail, "💰 Your Payout Has Been Processed!", htmlTemplate);
+                var sent = await TrySendEmailAsync(message);
+
+                if (!sent)
+                {
+                    _logger.LogWarning("Payout email fallback used for {Email}", receiverEmail);
+                }
+
+                return response.SetOk("Payout email processed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Payout email failed, fallback to no-op");
+                return response.SetOk("Payout email skipped (SMTP unavailable)");
             }
         }
 

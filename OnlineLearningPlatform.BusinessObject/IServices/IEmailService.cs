@@ -12,5 +12,7 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
    string instructorEmail,
    string studentName,
    string courseTitle);
+
+        Task<ApiResponse> SendPayoutApprovedEmail(string receiverName, string receiverEmail, decimal amount);
     }
 }

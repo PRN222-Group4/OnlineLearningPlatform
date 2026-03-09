@@ -1,0 +1,134 @@
+﻿@page
+@model OnlineLearningPlatform.Presentation.Pages.Admin.PayoutsModel
+@{
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Financial & Payouts";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans" x-data="{ showConfirmModal: false, selectedWalletId: '', selectedName: '' }">
+
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Platform Financials</h1>
+            <p class="mt-2 text-slate-500">Manage platform revenue and instructor payouts.</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center gap-3 font-semibold shadow-sm">
+            <i class="fas fa-check-circle text-emerald-500 text-lg"></i> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 font-semibold shadow-sm">
+            <i class="fas fa-exclamation-triangle text-red-500 text-lg"></i> @TempData["Error"]
+        </div>
+    }
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-5"><i class="fas fa-chart-pie text-9xl text-slate-900"></i></div>
+            <p class="text-slate-500 font-bold uppercase tracking-wider text-xs mb-2">Total Gross Sales (100%)</p>
+            <h2 class="text-4xl font-black text-slate-900 mb-2">@Model.TotalGrossSales.ToString("N0") <span class="text-2xl text-slate-400">₫</span></h2>
+            <p class="text-sm text-slate-500">Total volume processed through the platform.</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl p-8 shadow-xl relative overflow-hidden text-white">
+            <div class="absolute -right-4 -bottom-4 opacity-10"><i class="fas fa-crown text-9xl text-white"></i></div>
+            <p class="text-indigo-200 font-bold uppercase tracking-wider text-xs mb-2">Platform Net Revenue (30%)</p>
+            <h2 class="text-4xl font-black text-white mb-2">@Model.PlatformRevenue.ToString("N0") <span class="text-2xl text-indigo-300">₫</span></h2>
+            <p class="text-sm text-indigo-200">Your total earnings from all course sales.</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+            <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                <i class="fas fa-money-check-alt text-primary-500"></i> Pending Payout Requests
+            </h3>
+            <span class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full">@Model.PendingPayouts.Count Requests</span>
+        </div>
+
+        @if (Model.PendingPayouts.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-white border-b border-slate-100 text-xs uppercase tracking-wider text-slate-400 font-bold">
+                            <th class="px-6 py-4">Instructor</th>
+                            <th class="px-6 py-4 text-right">Pending Amount</th>
+                            <th class="px-6 py-4 text-right">Remaining Wallet</th>
+                            <th class="px-6 py-4 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @foreach (var payout in Model.PendingPayouts)
+                        {
+                            <tr class="hover:bg-slate-50 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <p class="font-bold text-slate-900">@payout.InstructorName</p>
+                                    <p class="text-xs text-slate-500">@payout.InstructorEmail</p>
+                                    <p class="text-[10px] text-slate-400 mt-1"><i class="far fa-clock"></i> Requested: @payout.RequestedAt.ToString("MMM dd, yyyy")</p>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <p class="text-lg font-black text-amber-600">@payout.PendingBalance.ToString("N0") ₫</p>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <p class="text-sm font-semibold text-slate-600">@payout.Balance.ToString("N0") ₫</p>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <button type="button"
+                                            x-on:click="selectedWalletId = '@payout.WalletId'; selectedName = '@payout.InstructorName'; showConfirmModal = true"
+                                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-lg hover:bg-emerald-600 hover:text-white transition-all">
+                                        <i class="fas fa-check"></i> Mark as Paid
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="py-20 text-center">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                    <i class="fas fa-check-double text-emerald-400 text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-1">All caught up!</h3>
+                <p class="text-slate-500">There are no pending payout requests at the moment.</p>
+            </div>
+        }
+    </div>
+
+    <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div x-show="showConfirmModal" x-transition.opacity class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" x-on:click="showConfirmModal = false"></div>
+
+        <div x-show="showConfirmModal"
+             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all text-center p-8">
+
+            <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-paper-plane text-3xl text-emerald-500"></i>
+            </div>
+
+            <h3 class="text-2xl font-extrabold text-slate-900 mb-2">Confirm Transfer</h3>
+            <p class="text-slate-500 mb-8">Did you successfully transfer the money to <span class="font-bold text-slate-900" x-text="selectedName"></span>'s bank account?</p>
+
+            <form method="post" asp-page-handler="Approve" class="flex flex-col sm:flex-row gap-3">
+                <input type="hidden" name="walletId" x-bind:value="selectedWalletId" />
+
+                <button type="button" x-on:click="showConfirmModal = false" class="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 py-3 bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-check"></i> Yes, I did
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
