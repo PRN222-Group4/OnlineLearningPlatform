@@ -19,9 +19,9 @@ public partial class WalletTransaction
 
     public DateTime CreatedAt { get; set; }
 
-    public Guid PaymentId { get; set; }
+    public Guid? PaymentId { get; set; }
 
-    public virtual Payment Payment { get; set; } = null!;
+    public virtual Payment? Payment { get; set; } = null!;
 
     public virtual Wallet Wallet { get; set; } = null!;
 }
