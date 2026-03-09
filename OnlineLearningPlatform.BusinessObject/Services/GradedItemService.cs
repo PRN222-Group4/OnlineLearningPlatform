@@ -4,6 +4,7 @@ using OnlineLearningPlatform.DataAccess.Entities;
 using OnlineLearningPlatform.BusinessObject.Requests.GradedItem;
 using OnlineLearningPlatform.BusinessObject.Responses;
 using OnlineLearningPlatform.DataAccess.UnitOfWork;
+using Microsoft.EntityFrameworkCore;
 
 namespace OnlineLearningPlatform.BusinessObject.Services
 {
@@ -27,13 +28,15 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 var userId = _service.GetUserClaim().UserId;
 
-                var gradedItem = await _unitOfWork.GradedItems
-                    .GetAsync(g => g.GradedItemId == request.GradedItemId);
+                var gradedItem = await _unitOfWork.GradedItems.GetAsync(
+                    g => g.GradedItemId == request.GradedItemId,
+                    include: g => g.Include(x => x.Questions) 
+                );
 
                 if (gradedItem == null)
                     return response.SetNotFound("Quiz not found");
 
-                if (!gradedItem.IsAutoGraded || gradedItem.GradedItemType != 3)
+                if (!gradedItem.IsAutoGraded)
                     return response.SetBadRequest("This quiz is not auto-graded");
 
                 var attempt = new GradedAttempt
@@ -94,7 +97,8 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             }
             catch (Exception ex)
             {
-                return response.SetBadRequest(ex.Message);
+                string realError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return response.SetBadRequest($"Lỗi DB thật sự nè: {realError}");
             }
         }
 

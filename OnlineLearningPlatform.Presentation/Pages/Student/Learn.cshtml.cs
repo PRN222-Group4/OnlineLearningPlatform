@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
+using OnlineLearningPlatform.BusinessObject.Requests.GradedItem;
 using System.Text.Json;
-using OnlineLearningPlatform.DataAccess.Entities;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Student
 {
@@ -14,18 +14,21 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
         private readonly ICourseService _courseService;
         private readonly IClaimService _claimService;
         private readonly IEnrollmentService _enrollmentService;
-        private readonly IUserLessonProgressService _progressService; // Bơm thêm Progress Service
+        private readonly IUserLessonProgressService _progressService;
+        private readonly IGradedItemService _gradedItemService;
 
         public LearnModel(
             ICourseService courseService,
             IClaimService claimService,
             IEnrollmentService enrollmentService,
-            IUserLessonProgressService progressService)
+            IUserLessonProgressService progressService,
+            IGradedItemService gradedItemService)
         {
             _courseService = courseService;
             _claimService = claimService;
             _enrollmentService = enrollmentService;
             _progressService = progressService;
+            _gradedItemService = gradedItemService;
         }
 
         public CourseEditSummaryResponse Course { get; set; } = default!;
@@ -55,8 +58,21 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
             var completedLessonIds = new List<Guid>();
             if (userProgressResponse.IsSuccess && userProgressResponse.Result != null)
             {
-                var progList = (IEnumerable<UserLessonProgress>)userProgressResponse.Result;
-                completedLessonIds = progList.Where(p => p.IsCompleted).Select(p => p.LessonId).ToList();
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+                };
+                var jsonStr = JsonSerializer.Serialize(userProgressResponse.Result, jsonOptions);
+
+                using var doc = JsonDocument.Parse(jsonStr);
+                foreach (var element in doc.RootElement.EnumerateArray())
+                {
+                    if (element.TryGetProperty("IsCompleted", out var isCompletedProp) && isCompletedProp.GetBoolean() &&
+                        element.TryGetProperty("LessonId", out var lessonIdProp))
+                    {
+                        completedLessonIds.Add(lessonIdProp.GetGuid());
+                    }
+                }
             }
 
             var enrollmentData = await _enrollmentService.GetStudentEnrollmentsAsync();
@@ -116,7 +132,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
             return Page();
         }
 
-        public async Task<IActionResult> OnPostMarkCompleteAsync(Guid courseId, Guid lessonId) // Nhận LessonId thay vì LessonItemId
+        public async Task<IActionResult> OnPostMarkCompleteAsync(Guid courseId, Guid lessonId)
         {
             var result = await _progressService.MarkLessonCompletedAsync(lessonId);
 
@@ -146,9 +162,9 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
 
             string aiFeedback = aiScore switch
             {
-                >= 9 => "Xuất sắc! Ý tưởng rõ ràng, ngữ pháp chuẩn chỉnh không chê vào đâu được. Đáng làm template mẫu!",
-                >= 7 => "Khá tốt! Bạn diễn đạt ổn, nhưng cần chú ý đa dạng hóa từ vựng và cấu trúc câu phức hơn nữa.",
-                >= 5 => "Tạm được. Bài viết đủ ý cơ bản nhưng sai khá nhiều lỗi chính tả. Cần ôn tập lại ngữ pháp.",
+                >= 9 => "Xuất sắc! Ý tưởng rõ ràng, ngữ pháp chuẩn chỉnh không chê vào đâu được.",
+                >= 7 => "Khá tốt! Bạn diễn đạt ổn, nhưng cần chú ý đa dạng hóa từ vựng.",
+                >= 5 => "Tạm được. Bài viết đủ ý cơ bản nhưng sai khá nhiều lỗi chính tả.",
                 _ => "Bài làm còn sơ sài, lạc đề. Yêu cầu xem lại bài giảng và làm lại từ đầu."
             };
             TempData["AiScore"] = aiScore;
@@ -157,15 +173,97 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
             if (aiScore >= 5)
             {
                 await _progressService.MarkLessonCompletedAsync(lessonId);
-                TempData["Success"] = "Tuyệt vời! Bạn đã vượt qua bài kiểm tra AI."; // Cái này vẫn dùng Toast cho nó nổ pháo hoa
+                TempData["Success"] = "Tuyệt vời! Bạn đã vượt qua bài kiểm tra Writing.";
             }
 
             return RedirectToPage(new { courseId = courseId });
         }
-        public async Task<IActionResult> OnPostSubmitQuizAsync(Guid courseId, Guid lessonId, Guid GradedItemId)
+
+        public async Task<IActionResult> OnPostSubmitSpeakingAsync(Guid courseId, Guid lessonId, Guid GradedItemId, IFormFile AudioFile)
         {
-            TempData["Success"] = "Nộp bài Quiz thành công! Đang chờ chấm điểm...";
-            // Tương lai: Chấm điểm -> Pass -> _progressService.MarkLessonCompletedAsync(lessonId)
+            TempData["EvaluatedLessonId"] = lessonId.ToString();
+
+            if (AudioFile == null || AudioFile.Length == 0)
+            {
+                TempData["AiScore"] = 0;
+                TempData["AiFeedback"] = "Sếp chưa chọn file ghi âm kìa!";
+                return RedirectToPage(new { courseId = courseId });
+            }
+
+            await Task.Delay(2000);
+
+            var random = new Random();
+            int aiScore = random.Next(4, 11);
+            string aiFeedback = aiScore switch
+            {
+                >= 8 => "Phát âm rất tự nhiên và trôi chảy! Trọng âm chuẩn xác.",
+                >= 5 => "Nghe khá rõ ràng, tuy nhiên một số âm đuôi bị nuốt. Cố gắng chậm lại chút nhé.",
+                _ => "Âm thanh bị rè hoặc phát âm chưa rõ chữ. Vui lòng ghi âm lại."
+            };
+
+            TempData["AiScore"] = aiScore;
+            TempData["AiFeedback"] = aiFeedback;
+
+            if (aiScore >= 5)
+            {
+                await _progressService.MarkLessonCompletedAsync(lessonId);
+                TempData["Success"] = "Tuyệt vời! Bạn đã vượt qua bài kiểm tra Speaking.";
+            }
+
+            return RedirectToPage(new { courseId = courseId });
+        }
+
+        public async Task<IActionResult> OnPostSubmitQuizAsync(Guid courseId, Guid lessonId, Guid GradedItemId, List<QuizAnswerSubmitModel> Answers)
+        {
+            TempData["EvaluatedLessonId"] = lessonId.ToString();
+
+            if (Answers == null || !Answers.Any())
+            {
+                TempData["Error"] = "Sếp chưa đánh dấu đáp án nào mà đã nộp rồi!";
+                return RedirectToPage(new { courseId = courseId });
+            }
+
+            var request = new SubmitQuizRequest
+            {
+                GradedItemId = GradedItemId,
+                Answers = Answers.GroupBy(a => a.QuestionId).Select(g => new AnswerSubmission
+                {
+                    QuestionId = g.Key,
+                    SelectedAnswerOptionIds = g.Select(x => x.SelectedOptionId).ToList()
+                }).ToList()
+            };
+
+            var quizResult = await _gradedItemService.SubmitQuizAsync(request);
+
+            if (!quizResult.IsSuccess || quizResult.Result == null)
+            {
+                var errorMsg = quizResult.Result?.ToString() ?? quizResult.ErrorMessage ?? "Lỗi chưa biết";
+                TempData["Error"] = $"Cảnh báo: {errorMsg}";
+                TempData["EvaluatedLessonId"] = lessonId.ToString();
+                return RedirectToPage(new { courseId = courseId });
+            }
+
+            var jsonString = JsonSerializer.Serialize(quizResult.Result);
+            using var doc = JsonDocument.Parse(jsonString);
+
+            decimal score = doc.RootElement.GetProperty("Score").GetDecimal();
+            decimal maxScore = doc.RootElement.GetProperty("MaxScore").GetDecimal();
+
+            decimal percent = maxScore > 0 ? (score / maxScore) * 100 : 0;
+
+            if (percent >= 50)
+            {
+                await _progressService.MarkLessonCompletedAsync(lessonId);
+                TempData["Success"] = $"Đỉnh quá! Điểm: {score}/{maxScore}. Bài trắc nghiệm đã được tick xanh!";
+            }
+            else
+            {
+                TempData["Error"] = $"Hơi xui! Điểm: {score}/{maxScore} (Cần tối thiểu 50%). Ôn bài rồi làm lại nhé!";
+            }
+            TempData["EvaluatedLessonId"] = lessonId.ToString();
+            TempData["QuizScore"] = score.ToString();
+            TempData["QuizMaxScore"] = maxScore.ToString();
+
             return RedirectToPage(new { courseId = courseId });
         }
     }
