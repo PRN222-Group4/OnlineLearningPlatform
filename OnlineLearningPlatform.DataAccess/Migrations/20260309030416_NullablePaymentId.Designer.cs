@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OnlineLearningPlatform.DataAccess;
@@ -11,9 +12,11 @@ using OnlineLearningPlatform.DataAccess;
 namespace OnlineLearningPlatform.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309030416_NullablePaymentId")]
+    partial class NullablePaymentId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -921,7 +924,7 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("PaymentId")
+                    b.Property<Guid>("PaymentId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("TransactionType")
@@ -1186,7 +1189,9 @@ namespace OnlineLearningPlatform.DataAccess.Migrations
                 {
                     b.HasOne("OnlineLearningPlatform.DataAccess.Entities.Payment", "Payment")
                         .WithMany("WalletTransactions")
-                        .HasForeignKey("PaymentId");
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("OnlineLearningPlatform.DataAccess.Entities.Wallet", "Wallet")
                         .WithMany("WalletTransactions")
