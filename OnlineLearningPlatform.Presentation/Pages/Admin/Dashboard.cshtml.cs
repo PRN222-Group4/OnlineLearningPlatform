@@ -32,6 +32,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
         [BindProperty(SupportsGet = true)]
         public string? ToDate { get; set; }
 
+        public string DebugInfo { get; set; } = "";
+
         public async Task OnGetAsync()
         {
             try
@@ -40,14 +42,13 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
                 if (!string.IsNullOrEmpty(FromDate) && DateTime.TryParse(FromDate, out var fd)) from = fd;
                 if (!string.IsNullOrEmpty(ToDate) && DateTime.TryParse(ToDate, out var td)) to = td;
                 Data = await _adminService.GetDashboardAsync(Year, fromDate: from, toDate: to);
+                DebugInfo = $"Growth={Data.RevenueGrowth}, Current={Data.RevenueData.Sum()}, Enrolls={Data.EnrollmentGrowth}";
             }
             catch (Exception ex)
             {
-                // Tạm thời xem lỗi thật sự
                 ViewData["DebugError"] = ex.ToString();
                 Data = new AdminDashboardResponse();
             }
-            catch { Data = new AdminDashboardResponse(); }
 
             var finRes = await _walletService.GetCashflowReportAsync();
             if (finRes.IsSuccess && finRes.Result != null)

@@ -24,5 +24,8 @@ namespace OnlineLearningPlatform.BusinessObject.Responses.Admin
         // Top 5 courses by enrollments
         public List<string> TopCourseTitles { get; set; } = new();
         public List<int> TopCourseEnrolls { get; set; } = new();
+
+        public decimal? RevenueGrowth { get; set; }
+        public decimal? EnrollmentGrowth { get; set; }
     }
 }

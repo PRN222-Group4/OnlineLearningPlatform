@@ -103,6 +103,35 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
             var totalDays = (end - start).TotalDays;
 
+            DateTime prevStart, prevEnd;
+            if (fromDate.HasValue && toDate.HasValue)
+            {
+                var duration = end - start;
+                prevStart = DateTime.SpecifyKind(start - duration, DateTimeKind.Utc);
+                prevEnd = DateTime.SpecifyKind(start.AddTicks(-1), DateTimeKind.Utc);
+            }
+            else
+            {
+                prevStart = DateTime.SpecifyKind(new DateTime(year - 1, 1, 1), DateTimeKind.Utc);
+                prevEnd = DateTime.SpecifyKind(new DateTime(year - 1, 12, 31, 23, 59, 59), DateTimeKind.Utc);
+            }
+
+            var prevPayments = await _uow.Payments.GetAllAsync(p =>
+                p.Status == 1 && p.PaidAt != null &&
+                p.PaidAt.Value >= prevStart && p.PaidAt.Value <= prevEnd);
+
+            var prevEnrollments = await _uow.Enrollments.GetAllAsync(e =>
+                !e.IsDeleted && e.EnrolledAt != null &&
+                e.EnrolledAt.Value >= prevStart && e.EnrolledAt.Value <= prevEnd);
+
+            var currentRevenue = allPayments.Sum(p => p.Amount);
+            var prevRevenue = prevPayments.Sum(p => p.Amount);
+            var currentEnrolls = allEnrollments.Count();
+            var prevEnrolls = prevEnrollments.Count();
+
+            response.RevenueGrowth = prevRevenue == 0 ? null : Math.Round((currentRevenue - prevRevenue) / prevRevenue * 100, 1);
+            response.EnrollmentGrowth = prevEnrolls == 0 ? null : Math.Round((decimal)(currentEnrolls - prevEnrolls) / prevEnrolls * 100, 1);
+
             if (totalDays <= 1)
             {
                 // 1 ngày → 12 mốc (2h/mốc)
