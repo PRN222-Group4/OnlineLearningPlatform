@@ -75,42 +75,88 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             return response;
         }
 
-        public async Task<AdminDashboardResponse> GetDashboardAsync(int year)
+
+        public async Task<AdminDashboardResponse> GetDashboardAsync(int year, int? month = null, int? day = null, DateTime? fromDate = null, DateTime? toDate = null)
         {
             var response = new AdminDashboardResponse();
-            var monthNames = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
-            // FIX: Status == 1 là Paid
-            var payments = await _uow.Payments.GetAllAsync(p =>
-                p.Status == 1 && p.PaidAt != null && p.PaidAt.Value.Year == year);
+            // Xác định khoảng thời gian
+            DateTime start, end;
+            if (fromDate.HasValue && toDate.HasValue)
+            {
+                start = DateTime.SpecifyKind(fromDate.Value.Date, DateTimeKind.Utc);
+                end = DateTime.SpecifyKind(toDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+            }
+            else
+            {
+                start = DateTime.SpecifyKind(new DateTime(year, 1, 1), DateTimeKind.Utc);
+                end = DateTime.SpecifyKind(new DateTime(year, 12, 31, 23, 59, 59), DateTimeKind.Utc);
+            }
 
-            response.RevenueMonths = monthNames.ToList();
-            response.RevenueData = Enumerable.Range(1, 12)
-                .Select(m => payments.Where(p => p.PaidAt!.Value.Month == m).Sum(p => p.Amount))
-                .ToList();
+            var allPayments = await _uow.Payments.GetAllAsync(p =>
+                p.Status == 1 && p.PaidAt != null &&
+                p.PaidAt.Value >= start && p.PaidAt.Value <= end);
 
-            var enrollments = await _uow.Enrollments.GetAllAsync(e =>
-                !e.IsDeleted && e.EnrolledAt != null && e.EnrolledAt.Value.Year == year);
+            var allEnrollments = await _uow.Enrollments.GetAllAsync(e =>
+                !e.IsDeleted && e.EnrolledAt != null &&
+                e.EnrolledAt.Value >= start && e.EnrolledAt.Value <= end);
 
-            response.EnrollmentMonths = monthNames.ToList();
-            response.EnrollmentData = Enumerable.Range(1, 12)
-                .Select(m => enrollments.Count(e => e.EnrolledAt!.Value.Month == m))
-                .ToList();
+            var totalDays = (end - start).TotalDays;
+
+            if (totalDays <= 1)
+            {
+                // 1 ngày → 12 mốc (2h/mốc)
+                var slots = Enumerable.Range(0, 12).ToList();
+                response.RevenueMonths = slots.Select(i => $"{i * 2:00}h-{i * 2 + 2:00}h").ToList();
+                response.RevenueData = slots
+                    .Select(i => allPayments.Where(p => p.PaidAt!.Value.Hour >= i * 2 && p.PaidAt.Value.Hour < i * 2 + 2).Sum(p => p.Amount))
+                    .ToList();
+                response.EnrollmentMonths = response.RevenueMonths;
+                response.EnrollmentData = slots
+                    .Select(i => allEnrollments.Count(e => e.EnrolledAt!.Value.Hour >= i * 2 && e.EnrolledAt.Value.Hour < i * 2 + 2))
+                    .ToList();
+            }
+            else if (totalDays <= 12)
+            {
+                // ≤ 12 ngày → mỗi ngày 1 mốc
+                var days = Enumerable.Range(0, (int)Math.Ceiling(totalDays)).Select(i => start.AddDays(i).Date).ToList();
+                response.RevenueMonths = days.Select(d => d.ToString("dd/MM")).ToList();
+                response.RevenueData = days.Select(d => allPayments.Where(p => p.PaidAt!.Value.Date == d).Sum(p => p.Amount)).ToList();
+                response.EnrollmentMonths = response.RevenueMonths;
+                response.EnrollmentData = days.Select(d => allEnrollments.Count(e => e.EnrolledAt!.Value.Date == d)).ToList();
+            }
+            else if (totalDays <= 84)
+            {
+                // ≤ 84 ngày (~3 tháng) → nhóm theo tuần, tối đa 12 mốc
+                var weeks = Enumerable.Range(0, 12).Select(i => (from: start.AddDays(i * totalDays / 12), to: start.AddDays((i + 1) * totalDays / 12))).ToList();
+                response.RevenueMonths = weeks.Select(w => w.from.ToString("dd/MM")).ToList();
+                response.RevenueData = weeks.Select(w => allPayments.Where(p => p.PaidAt!.Value >= w.from && p.PaidAt.Value < w.to).Sum(p => p.Amount)).ToList();
+                response.EnrollmentMonths = response.RevenueMonths;
+                response.EnrollmentData = weeks.Select(w => allEnrollments.Count(e => e.EnrolledAt!.Value >= w.from && e.EnrolledAt.Value < w.to)).ToList();
+            }
+            else
+            {
+                // > 84 ngày → nhóm theo tháng, tối đa 12 mốc
+                var monthNames = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+                response.RevenueMonths = monthNames.ToList();
+                response.RevenueData = Enumerable.Range(1, 12)
+                    .Select(m => allPayments.Where(p => p.PaidAt!.Value.Month == m).Sum(p => p.Amount)).ToList();
+                response.EnrollmentMonths = monthNames.ToList();
+                response.EnrollmentData = Enumerable.Range(1, 12)
+                    .Select(m => allEnrollments.Count(e => e.EnrolledAt!.Value.Month == m)).ToList();
+            }
 
             var users = await _uow.Users.GetAllAsync(u => !u.IsDeleted);
             response.AdminCount = users.Count(u => u.Role == 0);
             response.InstructorCount = users.Count(u => u.Role == 1);
             response.StudentCount = users.Count(u => u.Role == 2);
 
-            var allEnrollments = await _uow.Enrollments.GetAllAsync(e => !e.IsDeleted);
+            var allEnrollmentsTotal = await _uow.Enrollments.GetAllAsync(e => !e.IsDeleted);
             var allCourses = await _uow.Courses.GetAllAsync(c => !c.IsDeleted);
-
-            var top5 = allEnrollments
+            var top5 = allEnrollmentsTotal
                 .GroupBy(e => e.CourseId)
                 .Select(g => new { CourseId = g.Key, Count = g.Count() })
-                .OrderByDescending(x => x.Count)
-                .Take(5)
-                .ToList();
+                .OrderByDescending(x => x.Count).Take(5).ToList();
 
             foreach (var item in top5)
             {
@@ -120,9 +166,11 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 response.TopCourseTitles.Add(title);
                 response.TopCourseEnrolls.Add(item.Count);
             }
-
             return response;
         }
+
+
+
 
         public async Task<AdminUsersResponse> GetUsersAsync(int page = 1, int pageSize = 10, string? search = null, string? role = null)
         {

@@ -26,15 +26,35 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
         [BindProperty(SupportsGet = true)]
         public int Year { get; set; } = DateTime.Now.Year;
 
+        [BindProperty(SupportsGet = true)]
+        public string? FromDate { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? ToDate { get; set; }
+
         public async Task OnGetAsync()
         {
-            try { Data = await _adminService.GetDashboardAsync(Year); }
+            try
+            {
+                DateTime? from = null, to = null;
+                if (!string.IsNullOrEmpty(FromDate) && DateTime.TryParse(FromDate, out var fd)) from = fd;
+                if (!string.IsNullOrEmpty(ToDate) && DateTime.TryParse(ToDate, out var td)) to = td;
+                Data = await _adminService.GetDashboardAsync(Year, fromDate: from, toDate: to);
+            }
+            catch (Exception ex)
+            {
+                // Tạm thời xem lỗi thật sự
+                ViewData["DebugError"] = ex.ToString();
+                Data = new AdminDashboardResponse();
+            }
             catch { Data = new AdminDashboardResponse(); }
+
             var finRes = await _walletService.GetCashflowReportAsync();
             if (finRes.IsSuccess && finRes.Result != null)
             {
-                var json = JsonSerializer.Serialize(finRes.Result);
-                Financials = JsonSerializer.Deserialize<CashflowReportResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                var json = System.Text.Json.JsonSerializer.Serialize(finRes.Result);
+                Financials = System.Text.Json.JsonSerializer.Deserialize<CashflowReportResponse>(json,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
             }
         }
     }

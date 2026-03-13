@@ -12,7 +12,7 @@
         <h2 class="text-xl font-bold text-zinc-900">Analytics Dashboard</h2>
         <p class="text-sm text-zinc-400 mt-0.5">Statistics for @Model.Year</p>
     </div>
-    <form method="get" class="flex items-center gap-2">
+    @* <form method="get" class="flex items-center gap-2">
         <select name="Year"
                 class="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
             @for (int y = currentYear; y >= currentYear - 4; y--)
@@ -24,6 +24,52 @@
                 class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
             Apply
         </button>
+    </form> *@
+    <form method="get" class="flex flex-wrap items-center gap-2" x-data="{ fromDate: '@Model.FromDate', toDate: '@Model.ToDate' }">
+        
+
+        <div class="flex items-center gap-2 bg-white border border-zinc-200 rounded-lg px-3 py-1.5">
+            <i class="fas fa-calendar text-zinc-400 text-xs"></i>
+            <input type="date" name="FromDate"
+                   value="@Model.FromDate"
+                   placeholder="From date"
+                   class="text-sm text-zinc-700 outline-none bg-transparent w-32" />
+            <span class="text-zinc-300 text-xs">→</span>
+            <input type="date" name="ToDate"
+                   value="@Model.ToDate"
+                   class="text-sm text-zinc-700 outline-none bg-transparent w-32" />
+        </div>
+
+        <select name="Year"
+                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
+            @for (int y = currentYear; y >= currentYear - 4; y--)
+            {
+                <option value="@y" selected="@(y == Model.Year)">@y</option>
+            }
+        </select>
+
+        <button type="submit"
+                class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+            <i class="fas fa-filter text-xs"></i> Apply
+        </button>
+        <a asp-page="/Admin/Dashboard"
+           class="px-4 py-2 bg-zinc-100 text-zinc-600 text-sm font-medium rounded-lg hover:bg-zinc-200 transition-colors flex items-center gap-2">
+            <i class="fas fa-undo text-xs"></i> Reset
+        </a>
+
+        @if (!string.IsNullOrEmpty(Model.FromDate) && !string.IsNullOrEmpty(Model.ToDate))
+        {
+            <span class="text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
+                <i class="fas fa-calendar-check mr-1"></i>
+                @DateTime.Parse(Model.FromDate).ToString("dd/MM/yyyy") → @DateTime.Parse(Model.ToDate).ToString("dd/MM/yyyy")
+            </span>
+        }
+        @if (ViewData["DebugError"] != null)
+        {
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-xs text-red-700 font-mono whitespace-pre-wrap mb-4">
+                @ViewData["DebugError"]
+            </div>
+        }
     </form>
 </div>
 
