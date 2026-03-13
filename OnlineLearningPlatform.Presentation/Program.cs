@@ -4,6 +4,7 @@ using OnlineLearningPlatform.BusinessObject.DependencyInjection;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Services;
 using OnlineLearningPlatform.Presentation.Quartz;
+using OnlineLearningPlatform.Presentation.Hubs;
 using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,6 +63,7 @@ builder.Services.AddRazorPages(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -87,5 +89,7 @@ app.UseAuthorization();
 app.MapControllers();
 //razorpage
 app.MapRazorPages();
+//signalr hub
+app.MapHub<RealtimeHub>("/realtimeHub");
 
 app.Run();
