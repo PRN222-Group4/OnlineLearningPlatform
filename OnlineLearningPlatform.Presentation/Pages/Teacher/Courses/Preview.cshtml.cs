@@ -3,17 +3,22 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
 using System.Text.Json;
+using Microsoft.AspNetCore.SignalR;
+using OnlineLearningPlatform.Presentation.Hubs;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
 {
     public class PreviewModel : PageModel
     {
         private readonly ICourseService _courseService;
+        private readonly IHubContext<RealtimeHub> _hubContext;
 
-        public PreviewModel(ICourseService courseService)
+        public PreviewModel(ICourseService courseService, IHubContext<RealtimeHub> hubContext)
         {
             _courseService = courseService;
+            _hubContext = hubContext;
         }
+
 
         public CourseEditSummaryResponse Course { get; set; } = default!;
 
@@ -81,8 +86,22 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
                 return RedirectToPage(new { courseId });
             }
 
+            var courseTitle = "New course submitted";
+            try
+            {
+                var courseData = await _courseService.GetCourseForEditAsync(courseId);
+                if (courseData.IsSuccess && courseData.Result is CourseEditBundleResponse bundle)
+                    courseTitle = bundle.Course.Title;
+            }
+            catch { }
+
+            await _hubContext.Clients.Group("admins").SendAsync("NewPendingCourse", new
+            {
+                courseId = courseId,
+                title = courseTitle
+            });
             TempData["Success"] = "Khóa học đã được nộp thành công! Vui lòng chờ Admin phê duyệt.";
-            return RedirectToPage("/Teacher/Dashboard"); 
+            return RedirectToPage("/Teacher/Dashboard");
         }
     }
 }

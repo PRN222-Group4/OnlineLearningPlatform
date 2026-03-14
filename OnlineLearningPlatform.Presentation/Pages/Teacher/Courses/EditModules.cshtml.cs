@@ -5,6 +5,8 @@ using OnlineLearningPlatform.BusinessObject.Requests.Module;
 using OnlineLearningPlatform.BusinessObject.Requests.Lesson;
 using OnlineLearningPlatform.BusinessObject.Requests.LessonItem;
 using OnlineLearningPlatform.BusinessObject.Responses.Module;
+using Microsoft.AspNetCore.SignalR;
+using OnlineLearningPlatform.Presentation.Hubs;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
 {
@@ -14,17 +16,16 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
         private readonly ICourseService _courseService;
         private readonly ILessonService _lessonService;
         private readonly ILessonItemService _lessonItemService;
+        private readonly IHubContext<RealtimeHub> _hubContext;
 
-        public EditModulesModel(
-            IModuleService moduleService,
-            ICourseService courseService,
-            ILessonService lessonService,
-            ILessonItemService lessonItemService)
+
+        public EditModulesModel(IModuleService moduleService, ICourseService courseService, ILessonService lessonService, ILessonItemService lessonItemService, IHubContext<RealtimeHub> hubContext)
         {
             _moduleService = moduleService;
             _courseService = courseService;
             _lessonService = lessonService;
             _lessonItemService = lessonItemService;
+            _hubContext = hubContext;
         }
 
         public List<ModuleResponse> Modules { get; set; } = new();
@@ -85,6 +86,12 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
                 TempData["Error"] = response.ErrorMessage;
                 return RedirectToPage(new { courseId });
             }
+
+            await _hubContext.Clients.Group("admins").SendAsync("NewPendingCourse", new
+            {
+                courseId = courseId,
+                title = "New course submitted"
+            });
 
             TempData["Success"] = "Khóa học đã được nộp để Admin xét duyệt!";
             return RedirectToPage("/Teacher/Dashboard");

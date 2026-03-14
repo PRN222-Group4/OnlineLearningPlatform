@@ -242,6 +242,16 @@ namespace OnlineLearningPlatform.Presentation.Hubs
         {
             await Clients.Group($"course_{courseId}").SendAsync("NewEnrollment", enrollmentData);
         }
+        public async Task JoinAdminGroup()
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
+        }
+
+        // Instructor gọi method này khi submit course
+        public async Task NotifyNewPendingCourse(object courseData)
+        {
+            await Clients.Group("admins").SendAsync("NewPendingCourse", courseData);
+        }
 
         public async Task NotifyLessonProgressUpdate(Guid lessonId, object progressData)
         {

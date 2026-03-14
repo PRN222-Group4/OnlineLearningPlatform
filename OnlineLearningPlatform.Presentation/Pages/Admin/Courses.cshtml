@@ -338,9 +338,45 @@
         </button>
     </div>
 </div>
-
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
+        // ── SignalR ──────────────────────────────────────────────
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/realtimeHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("Connected", () => {
+            connection.invoke("JoinAdminGroup");
+        });
+
+        connection.on("NewPendingCourse", (data) => {
+            showToast(`📚 New course submitted: "${data.title}"`, 'amber');
+            setTimeout(() => location.reload(), 2000);
+        });
+
+        connection.on("CourseStatusChanged", (data) => {
+            showToast('Course status updated, refreshing...', 'indigo');
+            setTimeout(() => location.reload(), 1500);
+        });
+
+        connection.start().catch(err => console.error("SignalR error:", err));
+
+        function showToast(message, color) {
+            const colors = {
+                amber: 'bg-amber-50 border-amber-200 text-amber-700',
+                indigo: 'bg-indigo-50 border-indigo-200 text-indigo-700',
+                emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            };
+            const toast = document.createElement('div');
+            toast.className = `fixed top-5 right-5 z-[200] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-medium ${colors[color] || colors.indigo} transition-all`;
+            toast.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        // ── Modal & AI logic ─────────────────────────────────────
         function openModal(id)  { const el = document.getElementById(id); el.classList.remove('hidden'); el.classList.add('flex'); }
         function closeModal(id) { const el = document.getElementById(id); el.classList.add('hidden'); el.classList.remove('flex'); }
 
@@ -368,7 +404,7 @@
                 document.getElementById('approveDesc').textContent = `Rejecting "${title}". Please specify the reason for the instructor.`;
                 rw.classList.remove('hidden');
                 rr.required     = true;
-                rr.value        = ''; 
+                rr.value        = '';
                 btn.className   = 'flex-1 px-4 py-3 text-sm font-bold text-white bg-rose-500 rounded-xl hover:bg-rose-600 shadow-md shadow-rose-200 transition-all';
                 btn.textContent = 'Reject Course';
             }
@@ -381,7 +417,6 @@
             openModal('deleteModal');
         }
 
-        // --- AI SLIDE-OVER LOGIC ---
         function openAiSheet(title) {
             const overlay = document.getElementById('aiPanelOverlay');
             const panel = document.getElementById('aiPanel');
@@ -390,9 +425,7 @@
 
             overlay.classList.remove('hidden');
             setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-
             panel.classList.remove('translate-x-full');
-
             document.getElementById('aiCourseTitle').textContent = title;
             loading.classList.remove('hidden');
             result.classList.add('hidden');
@@ -406,7 +439,6 @@
         function closeAiSheet() {
             const overlay = document.getElementById('aiPanelOverlay');
             const panel = document.getElementById('aiPanel');
-
             panel.classList.add('translate-x-full');
             overlay.classList.add('opacity-0');
             setTimeout(() => overlay.classList.add('hidden'), 300);
