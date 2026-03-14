@@ -6,10 +6,10 @@ namespace OnlineLearningPlatform.BusinessObject.Responses
     {
         public HttpStatusCode StatusCode { get; set; }
         public bool IsSuccess { get; set; }
-        public string ErrorMessage { get; set; }
-        public object Result { get; set; }
+        public string? ErrorMessage { get; set; }
+        public object? Result { get; set; }
 
-        public ApiResponse SetOk(object result = null)
+        public ApiResponse SetOk(object? result = null)
         {
             IsSuccess = true;
             StatusCode = HttpStatusCode.OK;
@@ -17,7 +17,7 @@ namespace OnlineLearningPlatform.BusinessObject.Responses
             return this;
         }
 
-        public ApiResponse SetNotFound(object result = null, string message = null)
+        public ApiResponse SetNotFound(object? result = null, string? message = null)
         {
             IsSuccess = false;
             StatusCode = HttpStatusCode.NotFound;
@@ -29,7 +29,7 @@ namespace OnlineLearningPlatform.BusinessObject.Responses
             return this;
         }
 
-        public ApiResponse SetBadRequest(object result = null, string message = null)
+        public ApiResponse SetBadRequest(object? result = null, string? message = null)
         {
             IsSuccess = false;
             StatusCode = HttpStatusCode.BadRequest;
@@ -41,7 +41,7 @@ namespace OnlineLearningPlatform.BusinessObject.Responses
             return this;
         }
 
-        public ApiResponse SetApiResponse(HttpStatusCode statusCode, bool isSuccess, string message = null, object result = null)
+        public ApiResponse SetApiResponse(HttpStatusCode statusCode, bool isSuccess, string? message = null, object? result = null)
         {
             IsSuccess = isSuccess;
             StatusCode = statusCode;
