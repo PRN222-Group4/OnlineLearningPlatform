@@ -38,4 +38,4 @@ jobs:
           script: |
             cd ~/OnlineLearningPlatform
             git pull origin main
-            dotnet publish -c Release
+            dotnet publish OnlineLearningPlatform.Presentation/OnlineLearningPlatform.Presentation.csproj -c Release
