@@ -95,11 +95,13 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
             }
             catch { }
 
+            Console.WriteLine($"=== SIGNALR: Sending NewPendingCourse to admins, title: {courseTitle} ===");
             await _hubContext.Clients.Group("admins").SendAsync("NewPendingCourse", new
             {
                 courseId = courseId,
                 title = courseTitle
             });
+            Console.WriteLine("=== SIGNALR: Sent successfully! ===");
             TempData["Success"] = "Khóa học đã được nộp thành công! Vui lòng chờ Admin phê duyệt.";
             return RedirectToPage("/Teacher/Dashboard");
         }

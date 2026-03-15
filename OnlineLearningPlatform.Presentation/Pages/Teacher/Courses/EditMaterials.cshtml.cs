@@ -194,12 +194,13 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
             }
 
             // Notify admin realtime
+            Console.WriteLine($"=== SIGNALR: Sending NewPendingCourse, title: {Course.Title} ===");
             await _hubContext.Clients.Group("admins").SendAsync("NewPendingCourse", new
             {
                 courseId = courseId,
                 title = Course.Title
             });
-
+            Console.WriteLine("=== SIGNALR: Sent! ===");
             TempData["Success"] = "Khóa học đã được gửi để duyệt thành công!";
             return RedirectToPage("/Teacher/Dashboard");
         }
@@ -220,5 +221,6 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
             AnswerOptions = data.AnswerOptions.ToList();
             return true;
         }
+
     }
 }

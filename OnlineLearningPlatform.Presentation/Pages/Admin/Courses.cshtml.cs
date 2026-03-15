@@ -87,5 +87,21 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
 
             return RedirectToPage(new { status = Status });
         }
+        public async Task<JsonResult> OnGetCoursesJsonAsync()
+        {
+            var resp = await _service.GetAllCourseForAdminAsync(Status);
+            if (resp?.IsSuccess == true && resp.Result is List<GetAllCourseForAdminResponse> list)
+            {
+                return new JsonResult(list.Select(x => new {
+                    courseId = x.CourseId,
+                    title = x.Title,
+                    description = x.Description,
+                    price = x.Price,
+                    image = x.Image,
+                    status = x.Status
+                }));
+            }
+            return new JsonResult(new List<object>());
+        }
     }
 }

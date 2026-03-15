@@ -440,5 +440,40 @@
                 window.dispatchEvent(new Event('resize'));
             }, 300);
         });
+                const signalRScript = document.createElement('script');
+        signalRScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js';
+        signalRScript.onload = () => {
+            const conn = new signalR.HubConnectionBuilder()
+                .withUrl("/realtimeHub")
+                .withAutomaticReconnect()
+                .build();
+
+            conn.start()
+                .then(() => conn.invoke("JoinAdminGroup").catch(console.error))
+                .catch(console.error);
+
+            conn.on("NewPendingCourse", (data) => {
+                showDashToast(`📚 New course pending: "${data.title}"`, 'amber');
+            });
+
+            conn.on("CourseStatusChanged", (data) => {
+                showDashToast(data.isApproved ? '✅ Course approved!' : '❌ Course rejected', data.isApproved ? 'emerald' : 'rose');
+            });
+        };
+        document.head.appendChild(signalRScript);
+
+        function showDashToast(message, color) {
+            const colors = {
+                amber: 'bg-amber-50 border-amber-200 text-amber-700',
+                emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+                rose: 'bg-rose-50 border-rose-200 text-rose-700',
+                indigo: 'bg-indigo-50 border-indigo-200 text-indigo-700'
+            };
+            const toast = document.createElement('div');
+            toast.className = `fixed top-5 right-5 z-[200] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-medium ${colors[color] || colors.indigo} transition-all`;
+            toast.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 5000);
+        }
     </script>
 }

@@ -16,7 +16,7 @@
                 <i class="fas fa-users text-indigo-600 text-lg"></i>
             </div>
         </div>
-        <div class="text-3xl font-bold text-zinc-900 mb-1">@Model.TotalUsers.ToString("N0")</div>
+        <div class="text-3xl font-bold text-zinc-900 mb-1" id="statUsers">@Model.TotalUsers.ToString("N0")</div>
         <div class="flex items-center text-xs text-zinc-400 mt-1">
             <i class="fas fa-circle text-[6px] mr-1.5"></i>
             Registered accounts
@@ -31,7 +31,7 @@
                 <i class="fas fa-money-bill-wave text-emerald-600 text-lg"></i>
             </div>
         </div>
-        <div class="text-3xl font-bold text-zinc-900 mb-1">@Model.TotalRevenue.ToString("N0")<span class="text-base font-medium text-zinc-400 ml-1">₫</span></div>
+        <div class="text-3xl font-bold text-zinc-900 mb-1" id="statRevenue">@Model.TotalRevenue.ToString("N0")<span class="text-base font-medium text-zinc-400 ml-1">₫</></div>
         <div class="flex items-center text-xs text-zinc-400 mt-1">
             <i class="fas fa-circle text-[6px] mr-1.5"></i>
             From all payments
@@ -46,7 +46,7 @@
                 <i class="fas fa-book-open text-amber-600 text-lg"></i>
             </div>
         </div>
-        <div class="text-3xl font-bold text-zinc-900 mb-1">@Model.TotalCourses.ToString("N0")</div>
+        <div class="text-3xl font-bold text-zinc-900 mb-1" id="statCourses">@Model.TotalCourses.ToString("N0")</div>
         <div class="flex items-center text-xs text-zinc-400 mt-1">
             <i class="fas fa-circle text-[6px] mr-1.5"></i>
             Published & pending
@@ -61,7 +61,7 @@
                 <i class="fas fa-graduation-cap text-blue-600 text-lg"></i>
             </div>
         </div>
-        <div class="text-3xl font-bold text-zinc-900 mb-1">@Model.TotalEnrollments.ToString("N0")</div>
+        <div class="text-3xl font-bold text-zinc-900 mb-1" id="statEnrollments">@Model.TotalEnrollments.ToString("N0")</div>
         <div class="flex items-center text-xs text-zinc-400 mt-1">
             <i class="fas fa-circle text-[6px] mr-1.5"></i>
             Total enrollments
@@ -224,3 +224,60 @@
         </div>
     }
 </div>
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/realtimeHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.start()
+            .then(() => {
+                connection.invoke("JoinAdminGroup").catch(err => console.error(err));
+            })
+            .catch(err => console.error("SignalR error:", err));
+
+        // Khi có course mới pending → cập nhật stat + toast
+        connection.on("NewPendingCourse", (data) => {
+            showToast(`📚 New course submitted: "${data.title}"`, 'amber');
+            refreshStats();
+        });
+
+        // Khi course được approve/reject → refresh stats
+        connection.on("CourseStatusChanged", () => {
+            refreshStats();
+        });
+
+        async function refreshStats() {
+            try {
+                const resp = await fetch('/Admin/Overview?handler=StatsJson');
+                const data = await resp.json();
+
+                document.getElementById('statUsers').firstChild.textContent = data.totalUsers.toLocaleString('vi-VN');
+                document.getElementById('statCourses').firstChild.textContent = data.totalCourses.toLocaleString('vi-VN');
+                document.getElementById('statEnrollments').firstChild.textContent = data.totalEnrollments.toLocaleString('vi-VN');
+
+                // Revenue có span con nên cần set khác
+                const revEl = document.getElementById('statRevenue');
+                const span = revEl.querySelector('span');
+                revEl.firstChild.textContent = data.totalRevenue.toLocaleString('vi-VN');
+            } catch(e) {
+                console.error('Refresh stats failed:', e);
+            }
+        }
+
+        function showToast(message, color) {
+            const colors = {
+                amber: 'bg-amber-50 border-amber-200 text-amber-700',
+                indigo: 'bg-indigo-50 border-indigo-200 text-indigo-700',
+                emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            };
+            const toast = document.createElement('div');
+            toast.className = `fixed top-5 right-5 z-[200] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-medium ${colors[color] || colors.indigo} transition-all`;
+            toast.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+    </script>
+}
