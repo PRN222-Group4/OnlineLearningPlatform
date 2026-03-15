@@ -3,18 +3,24 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Requests.LessonItem;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
+using Microsoft.AspNetCore.SignalR;
+using OnlineLearningPlatform.Presentation.Hubs;
+
 
 namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
 {
+
     public class EditMaterialsModel : PageModel
     {
         private readonly ICourseService _courseService;
         private readonly ILessonItemService _lessonItemService;
+        private readonly IHubContext<RealtimeHub> _hubContext;
 
-        public EditMaterialsModel(ICourseService courseService, ILessonItemService lessonItemService)
+        public EditMaterialsModel(ICourseService courseService, ILessonItemService lessonItemService, IHubContext<RealtimeHub> hubContext)
         {
             _courseService = courseService;
             _lessonItemService = lessonItemService;
+            _hubContext = hubContext;
         }
 
         public CourseEditSummaryResponse Course { get; set; } = new();
@@ -186,6 +192,15 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
                 TempData["Error"] = result.ErrorMessage;
                 return RedirectToPage(new { courseId });
             }
+
+            // Notify admin realtime
+            Console.WriteLine($"=== SIGNALR: Sending NewPendingCourse, title: {Course.Title} ===");
+            await _hubContext.Clients.Group("admins").SendAsync("NewPendingCourse", new
+            {
+                courseId = courseId,
+                title = Course.Title
+            });
+            Console.WriteLine("=== SIGNALR: Sent! ===");
             TempData["Success"] = "Khóa học đã được gửi để duyệt thành công!";
             return RedirectToPage("/Teacher/Dashboard");
         }
@@ -206,5 +221,6 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
             AnswerOptions = data.AnswerOptions.ToList();
             return true;
         }
+
     }
 }

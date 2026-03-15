@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Responses.Payment;
@@ -44,6 +45,24 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
             catch
             {
                 // ignore for now
+            }
+        }
+        public async Task<JsonResult> OnGetStatsJsonAsync()
+        {
+            try
+            {
+                var overview = await _adminService.GetOverviewAsync();
+                return new JsonResult(new
+                {
+                    totalUsers = overview.TotalUsers,
+                    totalCourses = overview.TotalCourses,
+                    totalEnrollments = overview.TotalEnrollments,
+                    totalRevenue = overview.TotalRevenue
+                });
+            }
+            catch
+            {
+                return new JsonResult(new { totalUsers = 0, totalCourses = 0, totalEnrollments = 0, totalRevenue = 0 });
             }
         }
     }
