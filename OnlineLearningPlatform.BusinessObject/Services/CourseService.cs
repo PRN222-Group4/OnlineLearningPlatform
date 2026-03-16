@@ -6,9 +6,6 @@ using OnlineLearningPlatform.BusinessObject.Responses;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
 using Microsoft.EntityFrameworkCore;
 using OnlineLearningPlatform.DataAccess.UnitOfWork;
-using OnlineLearningPlatform.BusinessObject.Responses.Lesson;
-using OnlineLearningPlatform.BusinessObject.Responses.LessonItem;
-using OnlineLearningPlatform.BusinessObject.Responses.Module;
 
 namespace OnlineLearningPlatform.BusinessObject.Services
 {
@@ -335,6 +332,12 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 return response.SetBadRequest(ex.Message);
             }
+        }
+
+        public async Task<Guid> GetCourseAuthorIdAsync(Guid courseId)
+        {
+            var course = await _unitOfWork.Courses.GetAsync(c => c.CourseId == courseId);
+            return course?.CreatedBy ?? Guid.Empty;
         }
 
         public async Task<ApiResponse> GetInstructorMetricsAsync()

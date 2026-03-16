@@ -110,12 +110,32 @@ else
                                     <i class="fas fa-ban text-xs"></i> Staff Cannot Enroll
                                 </button>
                             }
+                            @if (Model.UserRole == 0 || Model.UserRole == 1)
+                            {
+                            }
                             else if (Model.IsEnrolled)
                             {
-                                <a asp-page="/Student/Learn" asp-route-courseId="@Model.CourseId"
-                                   class="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/25">
-                                    <i class="fas fa-play-circle text-xs"></i> Go to Course
-                                </a>
+                                <div class="space-y-3">
+                                    <a asp-page="/Student/Learn" asp-route-courseId="@Model.CourseId"
+                                       class="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm">
+                                        <i class="fas fa-play-circle text-xs"></i> Go to Course
+                                    </a>
+
+                                    @if (c.Price > 0)
+                                    {
+                                        <a asp-page="/Student/Message" asp-route-partnerId="@Model.CourseAuthorId"
+                                           class="w-full flex items-center justify-center gap-2 py-3 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-colors shadow-sm">
+                                            <i class="fas fa-comments text-xs"></i> Chat 1:1 with Instructor
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <button disabled title="This feature is only for Premium Paid Courses"
+                                                class="w-full flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-400 text-sm font-bold rounded-xl border border-slate-200 cursor-not-allowed">
+                                            <i class="fas fa-lock text-xs"></i> Premium Support (Paid Only)
+                                        </button>
+                                    }
+                                </div>
                             }
                             else
                             {

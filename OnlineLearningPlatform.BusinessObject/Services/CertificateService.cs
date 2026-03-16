@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Responses;
+using OnlineLearningPlatform.BusinessObject.Responses.Certificate;
 using OnlineLearningPlatform.DataAccess.UnitOfWork;
 
 namespace OnlineLearningPlatform.BusinessObject.Services
@@ -12,6 +13,39 @@ namespace OnlineLearningPlatform.BusinessObject.Services
         public CertificateService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+        }
+
+        public async Task<ApiResponse> VerifyCertificateAsync(string certificateCode)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(certificateCode))
+                    return response.SetBadRequest("Mã bằng cấp không được để trống.");
+
+                var cert = await _unitOfWork.Certificates.GetQueryable()
+                    .Include(c => c.User)
+                    .Include(c => c.Course)
+                    .FirstOrDefaultAsync(c => c.CertificateCode == certificateCode && !c.IsDeleted);
+
+                if (cert == null)
+                    return response.SetNotFound("Không tìm thấy bằng cấp hoặc bằng cấp đã bị thu hồi.");
+
+                var result = new CertificateVerificationResponse
+                {
+                    StudentName = cert.User.FullName ?? cert.User.Email,
+                    CourseName = cert.Course.Title,
+                    IssueDate = cert.IssueDate,
+                    CertificateCode = cert.CertificateCode,
+                    CertificateUrl = cert.CertificateUrl
+                };
+
+                return response.SetOk(result);
+            }
+            catch (Exception ex)
+            {
+                return response.SetBadRequest($"Lỗi hệ thống: {ex.Message}");
+            }
         }
 
         public async Task<ApiResponse> GetMyCertificatesAsync(Guid userId)

@@ -139,10 +139,33 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     var teachers = await _uow.Users.GetAllAsync(u => u.Role == 1);
                     allContactIds.AddRange(teachers.Select(t => t.UserId));
                 }
-                else if (currentUser.Role == 1 || currentUser.Role == 2) // Nếu là Teacher hoặc Student
+                else if (currentUser.Role == 1)
                 {
                     var admins = await _uow.Users.GetAllAsync(u => u.Role == 0);
                     allContactIds.AddRange(admins.Select(a => a.UserId));
+
+                    var paidStudents = await _uow.Enrollments.GetQueryable()
+                        .Include(e => e.Course)
+                        .Where(e => e.Course.CreatedBy == currentUserId && e.Status == 1 && e.Course.Price > 0)
+                        .Select(e => e.UserId)
+                        .Distinct()
+                        .ToListAsync();
+
+                    allContactIds.AddRange(paidStudents);
+                }
+                else if (currentUser.Role == 2)
+                {
+                    var admins = await _uow.Users.GetAllAsync(u => u.Role == 0);
+                    allContactIds.AddRange(admins.Select(a => a.UserId));
+
+                    var paidTeachers = await _uow.Enrollments.GetQueryable()
+                        .Include(e => e.Course)
+                        .Where(e => e.UserId == currentUserId && e.Status == 1 && e.Course.Price > 0)
+                        .Select(e => e.Course.CreatedBy)
+                        .Distinct()
+                        .ToListAsync();
+
+                    allContactIds.AddRange(paidTeachers);
                 }
 
                 allContactIds = allContactIds.Distinct().ToList();

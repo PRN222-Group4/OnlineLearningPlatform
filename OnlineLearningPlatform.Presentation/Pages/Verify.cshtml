@@ -1,0 +1,106 @@
+﻿@page
+@model OnlineLearningPlatform.Presentation.Pages.VerifyModel
+@{
+    ViewData["Title"] = "Verify Certificate";
+    Layout = "~/Pages/Shared/_Layout.cshtml"; // Xài layout chung cho đẹp
+}
+
+<div class="min-h-[80vh] bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans flex flex-col items-center justify-center relative overflow-hidden">
+
+    <div class="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#4f46e5 2px, transparent 2px); background-size: 32px 32px;"></div>
+
+    <div class="max-w-xl w-full relative z-10">
+        <div class="text-center mb-10">
+            <div class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-shield-check text-3xl text-indigo-600"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Credential Verification</h1>
+            <p class="text-slate-500 mt-2">Enter the certificate code to verify its authenticity.</p>
+        </div>
+
+        <form method="get" class="mb-8">
+            <div class="relative flex items-center max-w-md mx-auto">
+                <i class="fas fa-search absolute left-4 text-slate-400"></i>
+                <input type="text" name="code" value="@Model.CertCode" placeholder="e.g. OLP-A1B2C3D4" required
+                       class="w-full pl-12 pr-32 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all font-mono text-lg uppercase tracking-widest shadow-sm" />
+                <button type="submit" class="absolute right-2 px-5 py-2.5 bg-slate-900 text-white font-bold text-sm rounded-xl hover:bg-indigo-600 transition shadow-md">
+                    Verify
+                </button>
+            </div>
+        </form>
+
+        @if (Model.IsSearched)
+        {
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden transform transition-all animate-fade-in-up">
+                @if (Model.IsValid)
+                {
+                    <div class="bg-emerald-500 p-6 text-center relative overflow-hidden">
+                        <div class="absolute -right-4 -bottom-4 opacity-20">
+                            <i class="fas fa-check-circle text-8xl text-white"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-check text-white text-xl"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-white tracking-wide">VALID CERTIFICATE</h2>
+                            <p class="text-emerald-100 text-sm mt-1">This document is officially issued by CourseSphere.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-8">
+                        <div class="space-y-6">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Recipient</p>
+                                <p class="text-xl font-extrabold text-slate-900">@Model.CertificateInfo!.StudentName</p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Course Completed</p>
+                                <p class="text-lg font-bold text-indigo-700">@Model.CertificateInfo.CourseName</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Issue Date</p>
+                                    <p class="text-sm font-bold text-slate-700">@Model.CertificateInfo.IssueDate.ToString("dd MMM yyyy")</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Credential ID</p>
+                                    <p class="text-sm font-mono font-bold text-slate-700 bg-slate-100 inline-block px-2 py-1 rounded">@Model.CertificateInfo.CertificateCode</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="bg-rose-50 p-10 text-center">
+                        <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+                            <i class="fas fa-times text-3xl text-rose-500"></i>
+                        </div>
+                        <h2 class="text-xl font-extrabold text-rose-700 mb-2">No Record Found</h2>
+                        <p class="text-slate-600 text-sm">We couldn't find a certificate matching the code <strong class="font-mono">@Model.CertCode</strong>. Please check the code and try again.</p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

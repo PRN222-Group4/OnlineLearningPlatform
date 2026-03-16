@@ -26,6 +26,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Courses
 
         public Guid CourseId { get; set; }
 
+        public Guid CourseAuthorId { get; set; }
+
         [BindProperty]
         public decimal Amount { get; set; }
 
@@ -38,6 +40,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Courses
 
             var claim = _claimService.GetUserClaim();
             UserRole = claim.Role;
+
+            CourseAuthorId = await _courseService.GetCourseAuthorIdAsync(id);
 
             var resp = await _courseService.GetCourseDetailAsync(id);
             if (resp != null && resp.IsSuccess && resp.Result != null)
