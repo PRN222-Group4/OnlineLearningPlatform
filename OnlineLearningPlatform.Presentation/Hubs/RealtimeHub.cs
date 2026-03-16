@@ -248,6 +248,10 @@ namespace OnlineLearningPlatform.Presentation.Hubs
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
         }
+        public async Task JoinWalletGroup(string userId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"wallet_{userId}");
+        }
 
         // Instructor gọi method này khi submit course
         public async Task NotifyNewPendingCourse(object courseData)

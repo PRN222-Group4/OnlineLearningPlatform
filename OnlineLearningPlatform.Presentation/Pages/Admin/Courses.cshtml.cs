@@ -40,6 +40,33 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
             }
         }
 
+        //public async Task<IActionResult> OnPostApproveAsync(Guid CourseId, bool IsApprove, string? RejectReason)
+        //{
+        //    if (CourseId == Guid.Empty)
+        //    {
+        //        TempData["Error"] = "Invalid course.";
+        //        return RedirectToPage(new { status = Status });
+        //    }
+
+        //    var req = new ApproveCourseRequest { CourseId = CourseId, Status = IsApprove, RejectReason = RejectReason };
+        //    var resp = await _service.ApproveCourseAsync(req);
+
+        //    if (resp?.IsSuccess == true)
+        //    {
+        //        TempData["Success"] = IsApprove ? "Course approved successfully. An email has been sent to the instructor." : "Course rejected and email sent.";
+        //        await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", new
+        //        {
+        //            courseId = CourseId,
+        //            isApproved = IsApprove
+        //        });
+        //    }
+        //    else
+        //    {
+        //        TempData["Error"] = resp?.ErrorMessage ?? "Operation failed.";
+        //    }
+
+        //    return RedirectToPage(new { status = Status });
+        //}
         public async Task<IActionResult> OnPostApproveAsync(Guid CourseId, bool IsApprove, string? RejectReason)
         {
             if (CourseId == Guid.Empty)
@@ -48,17 +75,37 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
                 return RedirectToPage(new { status = Status });
             }
 
+            // Lấy CreatedBy từ GetAllCourseForAdminAsync
+            Guid? instructorId = null;
+            var allResp = await _service.GetAllCourseForAdminAsync(-1);
+            if (allResp?.IsSuccess == true && allResp.Result is List<GetAllCourseForAdminResponse> allList)
+            {
+                instructorId = allList.FirstOrDefault(x => x.CourseId == CourseId)?.CreatedBy;
+            }
+
             var req = new ApproveCourseRequest { CourseId = CourseId, Status = IsApprove, RejectReason = RejectReason };
             var resp = await _service.ApproveCourseAsync(req);
 
             if (resp?.IsSuccess == true)
             {
-                TempData["Success"] = IsApprove ? "Course approved successfully. An email has been sent to the instructor." : "Course rejected and email sent.";
-                await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", new
+                TempData["Success"] = IsApprove
+                    ? "Course approved successfully. An email has been sent to the instructor."
+                    : "Course rejected and email sent.";
+
+                var payload = new { courseId = CourseId, isApproved = IsApprove };
+
+                await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", payload);
+
+                if (instructorId != null)
                 {
-                    courseId = CourseId,
-                    isApproved = IsApprove
-                });
+                    Console.WriteLine($"=== Sending CourseStatusChanged to wallet_{instructorId} ===");
+                    await _hubContext.Clients.Group($"wallet_{instructorId}").SendAsync("CourseStatusChanged", payload);
+                    Console.WriteLine("=== Sent to instructor! ===");
+                }
+                else
+                {
+                    Console.WriteLine("=== instructorId is NULL! ===");
+                }
             }
             else
             {

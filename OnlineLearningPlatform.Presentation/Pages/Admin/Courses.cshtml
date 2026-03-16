@@ -347,9 +347,9 @@
             .withAutomaticReconnect()
             .build();
 
-        connection.on("Connected", () => {
-            connection.invoke("JoinAdminGroup");
-        });
+        // connection.on("Connected", () => {
+        //     connection.invoke("JoinAdminGroup");
+        // });
 
         // connection.on("NewPendingCourse", (data) => {
         //     showToast(`📚 New course submitted: "${data.title}"`, 'amber');
@@ -360,6 +360,11 @@
         //     showToast('Course status updated, refreshing...', 'indigo');
         //     setTimeout(() => location.reload(), 1500);
         // });
+            connection.start()
+        .then(() => {
+            connection.invoke("JoinAdminGroup").catch(console.error);
+        })
+        .catch(err => console.error("SignalR error:", err));
                 connection.on("NewPendingCourse", (data) => {
             showToast(`📚 New course submitted: "${data.title}"`, 'amber');
             setTimeout(() => refreshCourseTable(), 1500);
@@ -449,7 +454,7 @@
             }
         }
 
-        connection.start().catch(err => console.error("SignalR error:", err));
+        // connection.start().catch(err => console.error("SignalR error:", err));
 
         function showToast(message, color) {
             const colors = {

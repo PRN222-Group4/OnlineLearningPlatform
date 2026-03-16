@@ -200,3 +200,54 @@
         </div>
     }
 </div>
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    const userId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/realtimeHub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.start()
+    .then(() => {
+        console.log("UserId:", userId);
+        if (userId) {
+            connection.invoke("JoinWalletGroup", userId)
+                .then(() => console.log("✅ Joined wallet group:", userId))
+                .catch(err => console.error("❌ JoinWalletGroup error:", err));
+        }
+    })
+    .catch(err => console.error("SignalR error:", err));
+
+    // Khi admin approve/reject course → toast + reload
+    connection.on("CourseStatusChanged", (data) => {
+        if (data.isApproved) {
+            showToast('✅ Your course has been approved!', 'emerald');
+        } else {
+            showToast('❌ Your course was rejected. Please review and resubmit.', 'rose');
+        }
+        setTimeout(() => location.reload(), 2500);
+    });
+
+    // Khi có payment → toast wallet updated
+    connection.on("WalletUpdated", () => {
+        showToast('💰 New enrollment! Check your wallet.', 'indigo');
+    });
+
+    function showToast(message, color) {
+        const colors = {
+            emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+            rose:    'bg-rose-50 border-rose-200 text-rose-700',
+            indigo:  'bg-indigo-50 border-indigo-200 text-indigo-700',
+            amber:   'bg-amber-50 border-amber-200 text-amber-700'
+        };
+        const toast = document.createElement('div');
+        toast.className = `fixed top-5 right-5 z-[200] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-medium ${colors[color] || colors.indigo} transition-all`;
+        toast.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 5000);
+    }
+</script>
+}
