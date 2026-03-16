@@ -25,6 +25,7 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
         IWalletTransactionRepository WalletTransactions { get; }
         IGenericRepository<Certificate> Certificates { get; }
 
+        IMessageRepository Messages { get; }
         //19
 
         Task SaveChangeAsync();

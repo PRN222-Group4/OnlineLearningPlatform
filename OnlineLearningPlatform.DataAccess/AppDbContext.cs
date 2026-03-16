@@ -40,6 +40,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<Message> Messages { get; set; } = null!;
+
     public virtual DbSet<UserLessonProgress> UserLessonProgresses { get; set; }
 
     public virtual DbSet<Wallet> Wallets { get; set; }

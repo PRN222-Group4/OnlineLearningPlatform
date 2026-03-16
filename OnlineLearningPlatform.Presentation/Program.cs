@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnlineLearningPlatform.BusinessObject;
 using OnlineLearningPlatform.BusinessObject.DependencyInjection;
 using OnlineLearningPlatform.BusinessObject.IServices;
@@ -17,6 +17,9 @@ if (config == null)
 builder.Services.AddScoped<IGradedItemService, GradedItemService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
+
+builder.Services.AddScoped<IMessageService, MessageService>();
+
 builder.Services.Configure<AppSettings>(builder.Configuration);
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -24,7 +27,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 builder.Services.AddOnlineLearningPlatformCore(config);
 
-// Add Quartz
 builder.Services.AddQuartz(q =>
 {
     var jobKey = new JobKey("ExpirePaymentJob");
@@ -38,7 +40,6 @@ builder.Services.AddQuartz(q =>
 
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
-// Add Authorization 
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
     {
@@ -53,7 +54,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("TeacherOnly", policy => policy.RequireRole("Instructor"));
 });
-// Add services to the container.
+
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
@@ -66,11 +67,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 if (app.Environment.IsDevelopment())
@@ -85,11 +84,8 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-//controller
 app.MapControllers();
-//razorpage
 app.MapRazorPages();
-//signalr hub
 app.MapHub<RealtimeHub>("/realtimeHub");
 
 app.Run();

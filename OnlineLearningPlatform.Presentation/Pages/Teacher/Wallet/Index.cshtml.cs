@@ -31,30 +31,5 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Wallet
                 ErrorMessage = res.ErrorMessage;
             }
         }
-
-        public async Task<IActionResult> OnPostWithdrawAsync(decimal amount, string bankInfo)
-        {
-
-            if (amount < 50000)
-            {
-                ErrorMessage = "Minimum withdrawal amount is 50,000 ₫.";
-                await OnGetAsync();
-                return Page();
-            }
-
-            var res = await _walletService.RequestWithdrawalAsync(amount, bankInfo);
-
-            if (res.IsSuccess)
-            {
-                TempData["Success"] = "Payout request submitted! Admin will process it shortly.";
-                return RedirectToPage();
-            }
-            else
-            {
-                ErrorMessage = res.ErrorMessage;
-                await OnGetAsync();
-                return Page();
-            }
-        }
     }
 }

@@ -18,14 +18,15 @@ namespace OnlineLearningPlatform.Presentation.Hubs
         private readonly IModuleService _moduleService;
         private readonly IUserLessonProgressService _userLessonProgressService;
         private readonly IGradedItemService _gradedItemService;
-
+        private readonly IMessageService _messageService;
         public RealtimeHub(
             ICourseService courseService,
             IEnrollmentService enrollmentService,
             ILessonService lessonService,
             IModuleService moduleService,
             IUserLessonProgressService userLessonProgressService,
-            IGradedItemService gradedItemService)
+            IGradedItemService gradedItemService,
+            IMessageService messageService)
         {
             _courseService = courseService;
             _enrollmentService = enrollmentService;
@@ -33,6 +34,7 @@ namespace OnlineLearningPlatform.Presentation.Hubs
             _moduleService = moduleService;
             _userLessonProgressService = userLessonProgressService;
             _gradedItemService = gradedItemService;
+            _messageService = messageService;
         }
 
         // Course Methods
@@ -256,6 +258,22 @@ namespace OnlineLearningPlatform.Presentation.Hubs
         public async Task NotifyLessonProgressUpdate(Guid lessonId, object progressData)
         {
             await Clients.All.SendAsync("LessonProgressUpdated", new { lessonId, progressData });
+        }
+
+        public async Task RegisterUserConnection(Guid userId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, userId.ToString());
+        }
+        public async Task SendPrivateMessage(Guid senderId, Guid receiverId, string content)
+        {
+            var response = await _messageService.SendMessageAsync(senderId, receiverId, content);
+
+            if (response.IsSuccess && response.Result != null)
+            {
+                await Clients.Group(receiverId.ToString()).SendAsync("ReceivePrivateMessage", response.Result);
+
+                await Clients.Caller.SendAsync("ReceivePrivateMessage", response.Result);
+            }
         }
     }
 }

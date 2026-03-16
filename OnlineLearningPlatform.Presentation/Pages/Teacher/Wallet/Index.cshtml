@@ -5,18 +5,17 @@
     ViewData["Title"] = "My Wallet";
 }
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans" x-data="{ showWithdrawModal: false }">
-
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
             <p class="text-xs font-semibold text-primary-600 uppercase tracking-widest mb-1">Financial Center</p>
-            <h1 class="font-display text-3xl font-extrabold text-slate-900">My Wallet</h1>
-            <p class="text-slate-500 text-sm mt-1">Manage your earnings, view transactions, and request payouts.</p>
+            <h1 class="font-display text-3xl font-extrabold text-slate-900">Revenue Overview</h1>
+            <p class="text-slate-500 text-sm mt-1">Track your course sales and monthly settlements.</p>
         </div>
-        <button x-on:click="showWithdrawModal = true"
-                class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-primary-600 transition-all shadow-lg shadow-slate-900/20 shrink-0">
-            <i class="fas fa-money-bill-wave text-xs"></i> Request Payout
-        </button>
+        <div class="px-5 py-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center gap-3">
+            <i class="fas fa-info-circle text-indigo-500 text-lg"></i>
+            <p class="text-sm font-bold text-indigo-800">Payouts are processed automatically on the 5th of every month.</p>
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
@@ -27,31 +26,30 @@
     }
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-
         <div class="bg-gradient-to-br from-emerald-600 to-teal-800 rounded-3xl p-8 shadow-xl relative overflow-hidden transform transition-all hover:-translate-y-1">
             <div class="absolute -right-4 -bottom-4 opacity-10"><i class="fas fa-vault text-9xl text-white"></i></div>
             <div class="flex items-center justify-between mb-2 relative z-10">
-                <p class="text-emerald-50 text-sm font-semibold">Available Balance</p>
-                <span class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm"><i class="fas fa-check text-white text-xs"></i></span>
+                <p class="text-emerald-50 text-sm font-semibold">Unpaid Earnings</p>
+                <span class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm"><i class="fas fa-money-bill text-white text-xs"></i></span>
             </div>
             <h2 class="text-4xl sm:text-5xl font-black text-white relative z-10 tracking-tight mb-1">
                 @Model.MyWallet.Balance.ToString("N0") <span class="text-2xl opacity-80">₫</span>
             </h2>
             <p class="text-emerald-100 text-xs font-bold relative z-10 uppercase tracking-wider mt-4">
-                Ready for withdrawal
+                To be paid next cycle
             </p>
         </div>
 
         <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden transform transition-all hover:-translate-y-1">
             <div class="flex items-center justify-between mb-2">
-                <p class="text-slate-500 text-sm font-semibold">Pending Payout</p>
-                <span class="w-8 h-8 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center"><i class="fas fa-hourglass-half text-xs"></i></span>
+                <p class="text-slate-500 text-sm font-semibold">Next Settlement</p>
+                <span class="w-8 h-8 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center"><i class="fas fa-calendar-alt text-xs"></i></span>
             </div>
             <h2 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight mb-1">
-                @Model.MyWallet.PendingBalance.ToString("N0") <span class="text-xl text-slate-400">₫</span>
+                5th
             </h2>
             <p class="text-amber-600 text-xs font-bold uppercase tracking-wider mt-4 flex items-center gap-1.5">
-                <i class="fas fa-sync fa-spin"></i> Processing by Admin
+                <i class="fas fa-sync fa-spin"></i> Processed automatically
             </p>
         </div>
 
@@ -80,7 +78,6 @@
             <div class="divide-y divide-slate-100">
                 @foreach (var tx in Model.MyWallet.Transactions)
                 {
-                    // 0: Nhận tiền mua khóa học (Income), 1: Rút tiền (Withdrawal)
                     var isIncome = tx.TransactionType == 0;
                     var iconBg = isIncome ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600";
                     var iconClass = isIncome ? "fa-arrow-down" : "fa-arrow-up";
@@ -117,49 +114,5 @@
                 <p class="text-sm text-slate-500 max-w-sm mx-auto">When students purchase your courses, the revenue will appear here.</p>
             </div>
         }
-    </div>
-
-    <div x-show="showWithdrawModal" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div x-show="showWithdrawModal" x-transition.opacity class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" x-on:click="showWithdrawModal = false"></div>
-
-        <div x-show="showWithdrawModal"
-             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-             class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
-
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-lg font-bold text-slate-900">Request Payout</h3>
-                <button x-on:click="showWithdrawModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
-            </div>
-
-            <form method="post" asp-page-handler="Withdraw" class="p-6">
-                <div class="mb-6 bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
-                    <p class="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Available to withdraw</p>
-                    <h4 class="text-2xl font-black text-emerald-700">@Model.MyWallet.Balance.ToString("N0") ₫</h4>
-                </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Amount to withdraw (₫)</label>
-                    <div class="relative">
-                        <i class="fas fa-money-bill absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="number" name="amount" min="50000" max="@Model.MyWallet.Balance" required
-                               class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all font-mono font-bold text-lg"
-                               placeholder="Min 50,000" />
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Bank Account Info</label>
-                    <textarea name="bankInfo" rows="2" required placeholder="E.g., Vietcombank - 0123456789 - NGUYEN VAN A"
-                              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-sm"></textarea>
-                </div>
-
-                <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-primary-600 text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-paper-plane"></i> Send Request to Admin
-                </button>
-            </form>
-        </div>
     </div>
 </div>

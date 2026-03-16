@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.2/flowbite.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.2/flowbite.min.js"></script>
     <style>
         [x-cloak] {
@@ -30,7 +30,6 @@
 
     <div class="flex min-h-screen">
 
-        <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
         <aside class="bg-white border-r border-zinc-200 fixed inset-y-0 left-0 z-50 w-64 flex flex-col transition-transform duration-300 shadow-sm"
                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
                x-cloak>
@@ -71,7 +70,7 @@
                                            : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
                     <i class="fas fa-chart-pie w-4 text-center
                           @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Index") == true
-                                                   ? "text-zinc-900" : "text-zinc-400")"></i>
+                                               ? "text-zinc-900" : "text-zinc-400")"></i>
                     Dashboard
                 </a>
 
@@ -82,7 +81,7 @@
                                            : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
                     <i class="fas fa-chart-bar w-4 text-center
                           @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Dashboard") == true
-                                                   ? "text-zinc-900" : "text-zinc-400")"></i>
+                                               ? "text-zinc-900" : "text-zinc-400")"></i>
                     Analytics
                 </a>
 
@@ -95,7 +94,7 @@
                                            : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
                     <i class="fas fa-book w-4 text-center
                           @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses") == true
-                                                   ? "text-zinc-900" : "text-zinc-400")"></i>
+                                               ? "text-zinc-900" : "text-zinc-400")"></i>
                     Courses
                 </a>
 
@@ -109,10 +108,10 @@
                                            : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
                     <i class="fas fa-clipboard-check w-4 text-center
                           @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/CoursesPending") == true
-                                                   || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/CourseReview") == true
-                                                   || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses/Pending") == true
-                                                   || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses/Review") == true
-                                                   ? "text-zinc-900" : "text-zinc-400")"></i>
+                                               || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/CourseReview") == true
+                                               || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses/Pending") == true
+                                               || ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Courses/Review") == true
+                                               ? "text-zinc-900" : "text-zinc-400")"></i>
                     Pending Reviews
                 </a>
 
@@ -123,8 +122,19 @@
                                            : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
                     <i class="fas fa-users w-4 text-center
                           @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Users") == true
-                                                   ? "text-zinc-900" : "text-zinc-400")"></i>
+                                               ? "text-zinc-900" : "text-zinc-400")"></i>
                     Users
+                </a>
+
+                <a asp-page="/Admin/Messages"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                          @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Messages") == true
+                                           ? "bg-zinc-100 text-zinc-900"
+                                           : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
+                    <i class="fas fa-comments w-4 text-center
+                          @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Messages") == true
+                                               ? "text-zinc-900" : "text-zinc-400")"></i>
+                    Messages
                 </a>
 
                 <a asp-page="/Admin/Payouts"
@@ -167,7 +177,6 @@
              x-transition.opacity
              x-cloak></div>
 
-        <!-- ══════════════════════ MAIN ══════════════════════ -->
         <div class="flex flex-col flex-1 min-h-screen transition-all duration-300"
              :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'">
 
@@ -189,63 +198,105 @@
                     </h1>
                 </div>
 
-                @* Right side: user dropdown *@
-                <div class="relative flex items-center gap-4" x-data="{ open: false }">
-                    @{
-                        var headerName = User.Identity?.Name ?? "Admin";
-                        var headerAvatar = User.FindFirst("Avatar")?.Value;
-                    }
-                    <button @@click="open = !open" @@click.away="open = false"
-                            class="flex items-center gap-3 outline-none">
+                @* ══════ RIGHT SIDE: CHUÔNG VÀ AVATAR ĐƯỢC GÓI CHUNG ══════ *@
+                <div class="flex items-center gap-3 sm:gap-5">
 
-                        <div class="text-right hidden sm:block leading-tight">
-                            <div class="text-sm font-semibold text-zinc-900">@headerName</div>
-                            <div class="text-[11px] font-medium text-zinc-400 uppercase tracking-wide">Administrator</div>
-                        </div>
+                    @* CHUÔNG THÔNG BÁO *@
+                    <div class="relative" x-data="{ notiOpen: false, hasNew: false, notiList: [] }"
+                         @@new-notification.window="hasNew = true; notiList.unshift($event.detail); if(notiList.length > 5) notiList.pop();">
 
-                        @if (!string.IsNullOrEmpty(headerAvatar))
-                        {
-                            <img src="@headerAvatar"
-                                 class="h-9 w-9 rounded-full object-cover border border-zinc-200" />
-                        }
-                        else
-                        {
-                            <div class="h-9 w-9 rounded-full bg-[#0b1220] text-white flex items-center justify-center font-bold text-xs">
-                                AD
+                        <button @@click="notiOpen = !notiOpen; hasNew = false" @@click.away="notiOpen = false"
+                                class="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors relative outline-none">
+                            <i class="far fa-bell text-lg"></i>
+                            <span x-show="hasNew" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white ring-2 ring-white/50 animate-pulse" x-cloak></span>
+                        </button>
+
+                        <div x-show="notiOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-xl border border-zinc-100 py-2 z-50 origin-top-right overflow-hidden">
+
+                            <div class="px-4 py-2 border-b border-zinc-50 flex justify-between items-center">
+                                <p class="text-xs text-zinc-800 font-extrabold uppercase tracking-wider">Notifications</p>
+                                <a asp-page="/Admin/Messages" class="text-[10px] text-indigo-600 font-bold hover:underline">View All Chat</a>
                             </div>
-                        }
 
-                        <i class="fas fa-chevron-down text-[10px] text-zinc-400 transition-transform duration-200"
-                           :class="open ? 'rotate-180' : ''"></i>
-                    </button>
-
-                    @* Dropdown *@
-                    <div x-show="open"
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 scale-100"
-                         x-transition:leave-end="opacity-0 scale-95"
-                         class="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-xl border border-zinc-100 py-1.5 z-50 origin-top-right"
-                         x-cloak>
-                        <div class="px-4 py-1.5 border-b border-zinc-50 mb-1">
-                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">My Account</p>
+                            <div class="max-h-64 overflow-y-auto sidebar-scroll">
+                                <template x-if="notiList.length === 0">
+                                    <div class="p-6 text-center text-zinc-400 text-xs font-medium">No new notifications</div>
+                                </template>
+                                <template x-for="(noti, index) in notiList" :key="index">
+                                    <a asp-page="/Admin/Messages" class="block px-4 py-3 hover:bg-indigo-50/50 transition-colors border-b border-zinc-50">
+                                        <p class="text-sm font-bold text-zinc-900" x-text="noti.from"></p>
+                                        <p class="text-xs text-zinc-500 truncate mt-0.5" x-text="noti.text.startsWith('[IMG]') ? 'Sent an image' : noti.text"></p>
+                                    </a>
+                                </template>
+                            </div>
                         </div>
-                        <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 transition-colors">
-                            <i class="fas fa-user text-zinc-400 w-4"></i> Profile
-                        </a>
-                        <div class="border-t border-zinc-50 my-1"></div>
-                        @if (User.Identity?.IsAuthenticated ?? false)
-                        {
-                            <form method="post" action="/Account/Logout">
-                                @Html.AntiForgeryToken()
-                                <button type="submit"
-                                        class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 font-medium transition-colors">
-                                    <i class="fas fa-sign-out-alt w-4"></i> Log out
-                                </button>
-                            </form>
+                    </div>
+
+                    @* USER DROPDOWN *@
+                    <div class="relative flex items-center" x-data="{ open: false }">
+                        @{
+                            var headerName = User.Identity?.Name ?? "Admin";
+                            var headerAvatar = User.FindFirst("Avatar")?.Value;
                         }
+                        <button @@click="open = !open" @@click.away="open = false"
+                                class="flex items-center gap-3 outline-none">
+
+                            <div class="text-right hidden sm:block leading-tight">
+                                <div class="text-sm font-semibold text-zinc-900">@headerName</div>
+                                <div class="text-[11px] font-medium text-zinc-400 uppercase tracking-wide">Administrator</div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(headerAvatar))
+                            {
+                                <img src="@headerAvatar"
+                                     class="h-9 w-9 rounded-full object-cover border border-zinc-200" />
+                            }
+                            else
+                            {
+                                <div class="h-9 w-9 rounded-full bg-[#0b1220] text-white flex items-center justify-center font-bold text-xs">
+                                    AD
+                                </div>
+                            }
+
+                            <i class="fas fa-chevron-down text-[10px] text-zinc-400 transition-transform duration-200"
+                               :class="open ? 'rotate-180' : ''"></i>
+                        </button>
+
+                        @* Dropdown Content *@
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-xl border border-zinc-100 py-1.5 z-50 origin-top-right"
+                             x-cloak>
+                            <div class="px-4 py-1.5 border-b border-zinc-50 mb-1">
+                                <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">My Account</p>
+                            </div>
+                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 transition-colors">
+                                <i class="fas fa-user text-zinc-400 w-4"></i> Profile
+                            </a>
+                            <div class="border-t border-zinc-50 my-1"></div>
+                            @if (User.Identity?.IsAuthenticated ?? false)
+                            {
+                                <form method="post" action="/Account/Logout">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 font-medium transition-colors">
+                                        <i class="fas fa-sign-out-alt w-4"></i> Log out
+                                    </button>
+                                </form>
+                            }
+                        </div>
                     </div>
                 </div>
             </header>
@@ -267,4 +318,28 @@
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
+<div x-data="{ showToast: false, title: '', message: '' }"
+     @@new-notification.window="title = $event.detail.from; message = $event.detail.text; showToast = true; setTimeout(() => showToast = false, 5000)"
+     x-show="showToast" x-cloak
+     x-transition:enter="transform ease-out duration-300 transition"
+     x-transition:enter-start="translate-y-4 opacity-0 sm:translate-y-0 sm:translate-x-4"
+     x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed bottom-6 right-6 z-[100] max-w-sm w-full bg-white rounded-2xl shadow-2xl border border-slate-100 pointer-events-auto overflow-hidden">
+    <div class="p-4 flex items-start gap-4 relative">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-inner">
+            <i class="fas fa-comment-dots text-lg"></i>
+        </div>
+        <div class="flex-1 min-w-0 pt-0.5">
+            <p class="text-sm font-extrabold text-slate-900 truncate" x-text="title"></p>
+            <p class="text-xs text-slate-500 truncate mt-1" x-text="message.startsWith('[IMG]') ? '📷 Đã gửi một ảnh' : message"></p>
+        </div>
+        <button @@click="showToast = false" class="text-slate-400 hover:text-rose-500 transition-colors">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
 </html>

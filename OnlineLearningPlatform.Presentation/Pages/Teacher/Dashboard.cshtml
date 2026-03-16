@@ -21,11 +21,16 @@
             <h1 class="font-display text-3xl font-extrabold text-slate-900">Dashboard Overview</h1>
             <p class="text-slate-500 text-sm mt-1">Manage courses and track your financial growth</p>
         </div>
-        <a asp-page="/Teacher/Courses/Create"
-           class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl
-                  hover:bg-primary-600 transition-all shadow-xl shadow-slate-900/20 shrink-0 no-underline">
-            <i class="fas fa-plus text-xs"></i> Create Course
-        </a>
+        <div class="flex items-center gap-3 shrink-0">
+            <a asp-page="/Teacher/Message"
+               class="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-700 border border-slate-200 text-sm font-bold rounded-xl hover:bg-slate-50 hover:text-primary-600 transition-all shadow-sm no-underline">
+                <i class="fas fa-comment-dots text-primary-500 text-xs"></i> Messages
+            </a>
+            <a asp-page="/Teacher/Courses/Create"
+               class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-primary-600 transition-all shadow-xl shadow-slate-900/20 no-underline">
+                <i class="fas fa-plus text-xs"></i> Create Course
+            </a>
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))

@@ -9,6 +9,7 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
     {
         private readonly AppDbContext _context;
         private IDbContextTransaction? _transaction;
+
         public IAnswerOptionRepository AnswerOptions { get; }
         public ICourseRepository Courses { get; }
         public IEnrollmentRepository Enrollments { get; }
@@ -26,11 +27,13 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
         public IUserRepository Users { get; }
         public IUserLessonProgressRepository UserLessonProgresses { get; }
         public IWalletRepository Wallets { get; }
+        public IWalletTransactionRepository WalletTransactions { get; }
+
+        public IMessageRepository Messages { get; }
 
         private IGenericRepository<Certificate>? _certificates;
         public IGenericRepository<Certificate> Certificates => _certificates ??= new GenericRepository<Certificate>(_context);
-        public IWalletTransactionRepository WalletTransactions { get; }
-        //18
+
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
@@ -53,7 +56,7 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
             Wallets = new WalletRepository(context);
             WalletTransactions = new WalletTransactionRepository(context);
             Languages = new LanguageRepository(context);
-            //19
+            Messages = new MessageRepository(context);
         }
 
         public async Task SaveChangeAsync()
@@ -75,6 +78,7 @@ namespace OnlineLearningPlatform.DataAccess.UnitOfWork
 
             _transaction = await _context.Database.BeginTransactionAsync();
         }
+
         public async Task CommitAsync()
         {
             try

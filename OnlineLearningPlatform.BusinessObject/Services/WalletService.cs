@@ -116,8 +116,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             var response = new ApiResponse();
             try
             {
-                var wallets = await _uow.Wallets.GetAllAsync(w => w.PendingBalance > 0);
-
+                var wallets = await _uow.Wallets.GetAllAsync(w => w.Balance > 0);
                 var result = new List<PendingPayoutResponse>();
 
                 foreach (var w in wallets)
@@ -129,18 +128,16 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                         WalletId = w.WalletId,
                         InstructorName = user?.FullName ?? "Unknown Instructor",
                         InstructorEmail = user?.Email ?? "No email",
-                        PendingBalance = w.PendingBalance,
+                        PendingBalance = w.Balance, // Mượn trường này để lưu số tiền cần thanh toán tháng này
                         Balance = w.Balance,
                         TotalWithdrawn = w.TotalWithdrawn,
                         RequestedAt = w.UpdatedAt
                     });
                 }
-
                 return response.SetOk(result);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[WALLET ERROR]: {ex.Message}");
                 return response.SetBadRequest(ex.Message);
             }
         }
@@ -184,15 +181,17 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 await _uow.BeginTransactionAsync();
 
                 var wallet = await _uow.Wallets.GetAsync(w => w.WalletId == walletId);
-                if (wallet == null || wallet.PendingBalance <= 0)
+
+                // Trừ thẳng vào Balance (Số dư thực tế)
+                if (wallet == null || wallet.Balance <= 0)
                 {
                     await _uow.RollbackAsync();
-                    return response.SetBadRequest("No pending payout found for this wallet.");
+                    return response.SetBadRequest("No unpaid balance found for this wallet.");
                 }
 
-                var payoutAmount = wallet.PendingBalance;
+                var payoutAmount = wallet.Balance;
 
-                wallet.PendingBalance = 0;
+                wallet.Balance = 0;
                 wallet.TotalWithdrawn += payoutAmount;
                 wallet.UpdatedAt = DateTime.UtcNow;
 
@@ -200,10 +199,10 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 {
                     WalletTransactionId = Guid.NewGuid(),
                     WalletId = wallet.WalletId,
-                    Amount = 0,
-                    TransactionType = 2,
+                    Amount = -payoutAmount,
+                    TransactionType = 1,
                     BalanceAfterTransaction = wallet.Balance,
-                    Description = $"Payout Approved & Transferred by Admin ({payoutAmount:N0} ₫)",
+                    Description = $"Monthly Settlement: Paid by Admin ({payoutAmount:N0} ₫)",
                     CreatedAt = DateTime.UtcNow
                 };
 

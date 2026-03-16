@@ -54,6 +54,30 @@
         @RenderBody()
     </main>
 
+    <div x-data="{ showToast: false, title: '', message: '' }"
+         @@new-notification.window="title = $event.detail.from; message = $event.detail.text; showToast = true; setTimeout(() => showToast = false, 5000)"
+         x-show="showToast" x-cloak
+         x-transition:enter="transform ease-out duration-300 transition"
+         x-transition:enter-start="translate-y-4 opacity-0 sm:translate-y-0 sm:translate-x-4"
+         x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed bottom-6 right-6 z-[100] max-w-sm w-full bg-white rounded-2xl shadow-2xl border border-slate-100 pointer-events-auto overflow-hidden">
+        <div class="p-4 flex items-start gap-4 relative">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-inner">
+                <i class="fas fa-comment-dots text-lg"></i>
+            </div>
+            <div class="flex-1 min-w-0 pt-0.5">
+                <p class="text-sm font-extrabold text-slate-900 truncate" x-text="title"></p>
+                <p class="text-xs text-slate-500 truncate mt-1" x-text="message.startsWith('[IMG]') ? '📷 Đã gửi một ảnh' : message"></p>
+            </div>
+            <button @@click="showToast = false" class="text-slate-400 hover:text-rose-500 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
