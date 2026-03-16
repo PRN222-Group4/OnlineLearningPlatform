@@ -17,15 +17,17 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
         private readonly ILessonService _lessonService;
         private readonly ILessonItemService _lessonItemService;
         private readonly IHubContext<RealtimeHub> _hubContext;
+        private readonly IAwsAiService _awsAiService;
 
 
-        public EditModulesModel(IModuleService moduleService, ICourseService courseService, ILessonService lessonService, ILessonItemService lessonItemService, IHubContext<RealtimeHub> hubContext)
+        public EditModulesModel(IAwsAiService awsAiService, IModuleService moduleService, ICourseService courseService, ILessonService lessonService, ILessonItemService lessonItemService, IHubContext<RealtimeHub> hubContext)
         {
             _moduleService = moduleService;
             _courseService = courseService;
             _lessonService = lessonService;
             _lessonItemService = lessonItemService;
             _hubContext = hubContext;
+            _awsAiService = awsAiService;
         }
 
         public List<ModuleResponse> Modules { get; set; } = new();
@@ -38,6 +40,19 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
                 Modules = (List<ModuleResponse>)response.Result;
             }
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostGenerateQuizFromPdfAsync(IFormFile pdfFile)
+        {
+            if (pdfFile == null || pdfFile.Length == 0)
+                return new JsonResult(new { success = false, message = "Vui lòng chọn file PDF." });
+
+            var result = await _awsAiService.GenerateQuizFromPdfAsync(pdfFile);
+
+            if (!result.IsSuccess)
+                return new JsonResult(new { success = false, message = result.ErrorMessage });
+
+            return Content(result.Result.ToString()!, "application/json");
         }
 
         // 1.MODULE
@@ -125,10 +140,9 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
             return RedirectToPage(new { courseId });
         }
 
-        // 6. QUIZ (TRÙM CUỐI)
+        // 6. QUIZ 
         public async Task<IActionResult> OnPostCreateQuizAsync(Guid courseId, CreateQuizItemRequest QuizInput)
         {
-            // Set title để lưu thành SubmissionGuidelines luôn (nếu sếp muốn)
             if (string.IsNullOrEmpty(QuizInput.Title)) QuizInput.Title = "Quiz Assessment";
 
             var response = await _lessonItemService.CreateQuizItemAsync(QuizInput);

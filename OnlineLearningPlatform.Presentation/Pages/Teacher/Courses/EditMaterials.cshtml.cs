@@ -15,12 +15,14 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
         private readonly ICourseService _courseService;
         private readonly ILessonItemService _lessonItemService;
         private readonly IHubContext<RealtimeHub> _hubContext;
+        private readonly IAwsAiService _awsAiService;
 
-        public EditMaterialsModel(ICourseService courseService, ILessonItemService lessonItemService, IHubContext<RealtimeHub> hubContext)
+        public EditMaterialsModel(ICourseService courseService, ILessonItemService lessonItemService, IHubContext<RealtimeHub> hubContext, IAwsAiService awsAiService)
         {
             _courseService = courseService;
             _lessonItemService = lessonItemService;
             _hubContext = hubContext;
+            _awsAiService = awsAiService;
         }
 
         public CourseEditSummaryResponse Course { get; set; } = new();
@@ -222,5 +224,17 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Courses
             return true;
         }
 
+        public async Task<IActionResult> OnPostGenerateQuizFromPdfAsync(IFormFile pdfFile)
+        {
+            if (pdfFile == null || pdfFile.Length == 0)
+                return new JsonResult(new { success = false, message = "Vui lòng chọn file PDF." });
+
+            var result = await _awsAiService.GenerateQuizFromPdfAsync(pdfFile);
+
+            if (!result.IsSuccess)
+                return new JsonResult(new { success = false, message = result.ErrorMessage });
+
+            return Content(result.Result.ToString()!, "application/json");
+        }
     }
 }

@@ -16,19 +16,21 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
         private readonly IEnrollmentService _enrollmentService;
         private readonly IUserLessonProgressService _progressService;
         private readonly IGradedItemService _gradedItemService;
-
+        private readonly IAwsAiService _awsAiService;
         public LearnModel(
             ICourseService courseService,
             IClaimService claimService,
             IEnrollmentService enrollmentService,
             IUserLessonProgressService progressService,
-            IGradedItemService gradedItemService)
+            IGradedItemService gradedItemService,
+            IAwsAiService awsAiService)
         {
             _courseService = courseService;
             _claimService = claimService;
             _enrollmentService = enrollmentService;
             _progressService = progressService;
             _gradedItemService = gradedItemService;
+            _awsAiService = awsAiService;
         }
 
         public CourseEditSummaryResponse Course { get; set; } = default!;
@@ -132,6 +134,42 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
             return Page();
         }
 
+        public async Task<IActionResult> OnPostSubmitSpeakingAsync(Guid courseId, Guid lessonId, Guid GradedItemId, IFormFile AudioFile, string PromptText)
+        {
+            TempData["EvaluatedLessonId"] = lessonId.ToString();
+            TempData["ActiveTab"] = "Speaking";
+
+            if (AudioFile == null || AudioFile.Length == 0)
+            {
+                TempData["AiScore"] = 0;
+                TempData["AiSpeakingFeedback"] = "Sếp chưa chọn file ghi âm kìa!";
+                return RedirectToPage(new { courseId = courseId });
+            }
+
+            var aiResponse = await _awsAiService.EvaluateSpeakingAsync(PromptText, AudioFile);
+
+            if (aiResponse.IsSuccess && aiResponse.Result != null)
+            {
+                var resultData = (AiEvaluationResult)aiResponse.Result;
+                TempData["AiScore"] = resultData.Score.ToString();
+                TempData["AiSpeakingFeedback"] = resultData.Feedback;
+
+                if (resultData.Score >= 5)
+                {
+                    await _progressService.MarkLessonCompletedAsync(lessonId);
+                    TempData["Success"] = $"Tuyệt đỉnh! Bài Speaking của bạn đạt Band {resultData.Score}.";
+                }
+            }
+            else
+            {
+                TempData["AiScore"] = 0;
+                var errorDetail = aiResponse.ErrorMessage ?? aiResponse.Result?.ToString() ?? "AWS Câm nín không rõ lý do";
+                TempData["AiSpeakingFeedback"] = $"[BÁO CÁO LỖI TỪ BACKEND]\n{errorDetail}";
+            }
+
+            return RedirectToPage(new { courseId = courseId });
+        }
+
         //public async Task<IActionResult> OnPostMarkCompleteAsync(Guid courseId, Guid lessonId)
         //{
         //    var result = await _progressService.MarkLessonCompletedAsync(lessonId);
@@ -185,7 +223,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
             return RedirectToPage(new { courseId = courseId });
         }
 
-        public async Task<IActionResult> OnPostSubmitWritingAsync(Guid courseId, Guid lessonId, Guid GradedItemId, string SubmissionText)
+        public async Task<IActionResult> OnPostSubmitWritingAsync(Guid courseId, Guid lessonId, Guid GradedItemId, string SubmissionText, string PromptText)
         {
             TempData["EvaluatedLessonId"] = lessonId.ToString();
 
@@ -196,59 +234,26 @@ namespace OnlineLearningPlatform.Presentation.Pages.Student
                 return RedirectToPage(new { courseId = courseId });
             }
 
-            await Task.Delay(2000);
+            var aiResponse = await _awsAiService.EvaluateWritingAsync(PromptText, SubmissionText);
 
-            var random = new Random();
-            int aiScore = random.Next(3, 11);
-
-            string aiFeedback = aiScore switch
+            if (aiResponse.IsSuccess && aiResponse.Result != null)
             {
-                >= 9 => "Xuất sắc! Ý tưởng rõ ràng, ngữ pháp chuẩn chỉnh không chê vào đâu được.",
-                >= 7 => "Khá tốt! Bạn diễn đạt ổn, nhưng cần chú ý đa dạng hóa từ vựng.",
-                >= 5 => "Tạm được. Bài viết đủ ý cơ bản nhưng sai khá nhiều lỗi chính tả.",
-                _ => "Bài làm còn sơ sài, lạc đề. Yêu cầu xem lại bài giảng và làm lại từ đầu."
-            };
-            TempData["AiScore"] = aiScore;
-            TempData["AiFeedback"] = aiFeedback;
+                var resultData = (AiEvaluationResult)aiResponse.Result;
+                TempData["AiScore"] = resultData.Score.ToString();
+                TempData["AiFeedback"] = resultData.Feedback;
 
-            if (aiScore >= 5)
-            {
-                await _progressService.MarkLessonCompletedAsync(lessonId);
-                TempData["Success"] = "Tuyệt vời! Bạn đã vượt qua bài kiểm tra Writing.";
+                if (resultData.Score >= 5)
+                {
+                    await _progressService.MarkLessonCompletedAsync(lessonId);
+                    TempData["Success"] = $"Tuyệt vời! Bạn đạt Band {resultData.Score} và đã vượt qua bài kiểm tra Writing.";
+                }
             }
-
-            return RedirectToPage(new { courseId = courseId });
-        }
-
-        public async Task<IActionResult> OnPostSubmitSpeakingAsync(Guid courseId, Guid lessonId, Guid GradedItemId, IFormFile AudioFile)
-        {
-            TempData["EvaluatedLessonId"] = lessonId.ToString();
-
-            if (AudioFile == null || AudioFile.Length == 0)
+            else
             {
                 TempData["AiScore"] = 0;
-                TempData["AiFeedback"] = "Sếp chưa chọn file ghi âm kìa!";
-                return RedirectToPage(new { courseId = courseId });
-            }
+                var errorDetail = aiResponse.ErrorMessage ?? aiResponse.Result?.ToString() ?? "Không bắt được lỗi, AWS câm nín!";
 
-            await Task.Delay(2000);
-
-            var random = new Random();
-            int aiScore = random.Next(4, 11);
-            string aiFeedback = aiScore switch
-            {
-                >= 8 => "Phát âm rất tự nhiên và trôi chảy! Trọng âm chuẩn xác.",
-                >= 5 => "Nghe khá rõ ràng, tuy nhiên một số âm đuôi bị nuốt. Cố gắng chậm lại chút nhé.",
-                _ => "Âm thanh bị rè hoặc phát âm chưa rõ chữ. Vui lòng ghi âm lại."
-            };
-
-            TempData["AiScore"] = aiScore;
-            TempData["AiFeedback"] = aiFeedback;
-
-            if (aiScore >= 5)
-            {
-                await _progressService.MarkLessonCompletedAsync(lessonId);
-                TempData["Success"] = "Tuyệt vời! Bạn đã vượt qua bài kiểm tra Speaking.";
+                TempData["AiFeedback"] = $"[BÁO CÁO LỖI TỪ AWS]\n{errorDetail}\n\nPrompt nhận được: {PromptText ?? "RỖNG"}";
             }
 
             return RedirectToPage(new { courseId = courseId });

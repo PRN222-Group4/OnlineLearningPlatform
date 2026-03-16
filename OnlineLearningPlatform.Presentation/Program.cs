@@ -19,7 +19,7 @@ builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 
 builder.Services.AddScoped<IMessageService, MessageService>();
-
+builder.Services.AddHttpClient<IAwsAiService, AwsAiService>();
 builder.Services.Configure<AppSettings>(builder.Configuration);
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
