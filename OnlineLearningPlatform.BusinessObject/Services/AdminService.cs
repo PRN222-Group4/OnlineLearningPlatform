@@ -132,9 +132,53 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             response.RevenueGrowth = prevRevenue == 0 ? null : Math.Round((currentRevenue - prevRevenue) / prevRevenue * 100, 1);
             response.EnrollmentGrowth = prevEnrolls == 0 ? null : Math.Round((decimal)(currentEnrolls - prevEnrolls) / prevEnrolls * 100, 1);
 
+            //if (totalDays <= 1)
+            //{
+            //    // 1 ngày → 12 mốc (2h/mốc)
+            //    var slots = Enumerable.Range(0, 12).ToList();
+            //    response.RevenueMonths = slots.Select(i => $"{i * 2:00}h-{i * 2 + 2:00}h").ToList();
+            //    response.RevenueData = slots
+            //        .Select(i => allPayments.Where(p => p.PaidAt!.Value.Hour >= i * 2 && p.PaidAt.Value.Hour < i * 2 + 2).Sum(p => p.Amount))
+            //        .ToList();
+            //    response.EnrollmentMonths = response.RevenueMonths;
+            //    response.EnrollmentData = slots
+            //        .Select(i => allEnrollments.Count(e => e.EnrolledAt!.Value.Hour >= i * 2 && e.EnrolledAt.Value.Hour < i * 2 + 2))
+            //        .ToList();
+            //}
+            //else if (totalDays <= 12)
+            //{
+            //    // ≤ 12 ngày → mỗi ngày 1 mốc
+            //    var days = Enumerable.Range(0, (int)Math.Ceiling(totalDays)).Select(i => start.AddDays(i).Date).ToList();
+            //    response.RevenueMonths = days.Select(d => d.ToString("dd/MM")).ToList();
+            //    response.RevenueData = days.Select(d => allPayments.Where(p => p.PaidAt!.Value.Date == d).Sum(p => p.Amount)).ToList();
+            //    response.EnrollmentMonths = response.RevenueMonths;
+            //    response.EnrollmentData = days.Select(d => allEnrollments.Count(e => e.EnrolledAt!.Value.Date == d)).ToList();
+            //}
+            //else if (totalDays <= 84)
+            //{
+            //    // ≤ 84 ngày (~3 tháng) → nhóm theo tuần, tối đa 12 mốc
+            //    var weeks = Enumerable.Range(0, 12).Select(i => (from: start.AddDays(i * totalDays / 12), to: start.AddDays((i + 1) * totalDays / 12))).ToList();
+            //    response.RevenueMonths = weeks.Select(w => w.from.ToString("dd/MM")).ToList();
+            //    response.RevenueData = weeks.Select(w => allPayments.Where(p => p.PaidAt!.Value >= w.from && p.PaidAt.Value < w.to).Sum(p => p.Amount)).ToList();
+            //    response.EnrollmentMonths = response.RevenueMonths;
+            //    response.EnrollmentData = weeks.Select(w => allEnrollments.Count(e => e.EnrolledAt!.Value >= w.from && e.EnrolledAt.Value < w.to)).ToList();
+            //}
+            //else
+            //{
+            //    // > 84 ngày → nhóm theo tháng, tối đa 12 mốc
+            //    var monthNames = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+            //    response.RevenueMonths = monthNames.ToList();
+            //    response.RevenueData = Enumerable.Range(1, 12)
+            //        .Select(m => allPayments.Where(p => p.PaidAt!.Value.Month == m).Sum(p => p.Amount)).ToList();
+            //    response.EnrollmentMonths = monthNames.ToList();
+            //    response.EnrollmentData = Enumerable.Range(1, 12)
+            //        .Select(m => allEnrollments.Count(e => e.EnrolledAt!.Value.Month == m)).ToList();
+            //}
+            var isFullYear = !fromDate.HasValue && !toDate.HasValue;
+
             if (totalDays <= 1)
             {
-                // 1 ngày → 12 mốc (2h/mốc)
+                // 1 ngày → 12 mốc 2h
                 var slots = Enumerable.Range(0, 12).ToList();
                 response.RevenueMonths = slots.Select(i => $"{i * 2:00}h-{i * 2 + 2:00}h").ToList();
                 response.RevenueData = slots
@@ -145,27 +189,9 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     .Select(i => allEnrollments.Count(e => e.EnrolledAt!.Value.Hour >= i * 2 && e.EnrolledAt.Value.Hour < i * 2 + 2))
                     .ToList();
             }
-            else if (totalDays <= 12)
+            else if (isFullYear)
             {
-                // ≤ 12 ngày → mỗi ngày 1 mốc
-                var days = Enumerable.Range(0, (int)Math.Ceiling(totalDays)).Select(i => start.AddDays(i).Date).ToList();
-                response.RevenueMonths = days.Select(d => d.ToString("dd/MM")).ToList();
-                response.RevenueData = days.Select(d => allPayments.Where(p => p.PaidAt!.Value.Date == d).Sum(p => p.Amount)).ToList();
-                response.EnrollmentMonths = response.RevenueMonths;
-                response.EnrollmentData = days.Select(d => allEnrollments.Count(e => e.EnrolledAt!.Value.Date == d)).ToList();
-            }
-            else if (totalDays <= 84)
-            {
-                // ≤ 84 ngày (~3 tháng) → nhóm theo tuần, tối đa 12 mốc
-                var weeks = Enumerable.Range(0, 12).Select(i => (from: start.AddDays(i * totalDays / 12), to: start.AddDays((i + 1) * totalDays / 12))).ToList();
-                response.RevenueMonths = weeks.Select(w => w.from.ToString("dd/MM")).ToList();
-                response.RevenueData = weeks.Select(w => allPayments.Where(p => p.PaidAt!.Value >= w.from && p.PaidAt.Value < w.to).Sum(p => p.Amount)).ToList();
-                response.EnrollmentMonths = response.RevenueMonths;
-                response.EnrollmentData = weeks.Select(w => allEnrollments.Count(e => e.EnrolledAt!.Value >= w.from && e.EnrolledAt.Value < w.to)).ToList();
-            }
-            else
-            {
-                // > 84 ngày → nhóm theo tháng, tối đa 12 mốc
+                // Cả năm không filter → luôn 12 tháng
                 var monthNames = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
                 response.RevenueMonths = monthNames.ToList();
                 response.RevenueData = Enumerable.Range(1, 12)
@@ -174,7 +200,61 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 response.EnrollmentData = Enumerable.Range(1, 12)
                     .Select(m => allEnrollments.Count(e => e.EnrolledAt!.Value.Month == m)).ToList();
             }
+            else if (totalDays <= 12)
+            {
+                // ≤ 12 ngày → hiện đúng số ngày thực tế
+                var days = Enumerable.Range(0, (int)Math.Ceiling(totalDays))
+                    .Select(i => start.AddDays(i).Date).ToList();
+                response.RevenueMonths = days.Select(d => d.ToString("dd/MM")).ToList();
+                response.RevenueData = days.Select(d => allPayments.Where(p => p.PaidAt!.Value.Date == d).Sum(p => p.Amount)).ToList();
+                response.EnrollmentMonths = response.RevenueMonths;
+                response.EnrollmentData = days.Select(d => allEnrollments.Count(e => e.EnrolledAt!.Value.Date == d)).ToList();
+            }
+            else
+            {
+                // Có filter fromDate/toDate với > 12 ngày
+                // Tính số tháng thực tế trong khoảng
+                var actualMonths = new List<(int year, int month)>();
+                var cur = new DateTime(start.Year, start.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                while (cur <= end)
+                {
+                    actualMonths.Add((cur.Year, cur.Month));
+                    cur = cur.AddMonths(1);
+                }
 
+                if (actualMonths.Count <= 12)
+                {
+                    // ≤ 12 tháng → hiện đúng số tháng thực tế
+                    var monthNames = new[] { "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+                    response.RevenueMonths = actualMonths
+                        .Select(m => actualMonths.Count > 12 ? $"{monthNames[m.month]}/{m.year % 100:00}" : monthNames[m.month])
+                        .ToList();
+                    response.RevenueData = actualMonths
+                        .Select(m => allPayments.Where(p => p.PaidAt!.Value.Month == m.month && p.PaidAt.Value.Year == m.year).Sum(p => p.Amount))
+                        .ToList();
+                    response.EnrollmentMonths = response.RevenueMonths;
+                    response.EnrollmentData = actualMonths
+                        .Select(m => allEnrollments.Count(e => e.EnrolledAt!.Value.Month == m.month && e.EnrolledAt.Value.Year == m.year))
+                        .ToList();
+                }
+                else
+                {
+                    // > 12 tháng → gộp tối đa 12 mốc đều nhau
+                    var slots = Enumerable.Range(0, 12)
+                        .Select(i => (
+                            from: start.AddDays(i * totalDays / 12),
+                            to: start.AddDays((i + 1) * totalDays / 12)
+                        )).ToList();
+                    response.RevenueMonths = slots.Select(w => w.from.ToString("dd/MM/yy")).ToList();
+                    response.RevenueData = slots
+                        .Select(w => allPayments.Where(p => p.PaidAt!.Value >= w.from && p.PaidAt.Value < w.to).Sum(p => p.Amount))
+                        .ToList();
+                    response.EnrollmentMonths = response.RevenueMonths;
+                    response.EnrollmentData = slots
+                        .Select(w => allEnrollments.Count(e => e.EnrolledAt!.Value >= w.from && e.EnrolledAt.Value < w.to))
+                        .ToList();
+                }
+            }
             var users = await _uow.Users.GetAllAsync(u => !u.IsDeleted);
             response.AdminCount = users.Count(u => u.Role == 0);
             response.InstructorCount = users.Count(u => u.Role == 1);
