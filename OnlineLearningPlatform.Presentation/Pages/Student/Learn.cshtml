@@ -151,7 +151,7 @@
 
                     <template x-if="currentItem?.type === 3">
                         <div>
-                            <form method="post" asp-page-handler="SubmitWriting" class="space-y-6" @@submit="isEvaluating = true">
+                            <form method="post" asp-page-handler="SubmitWriting" class="space-y-6" x-on:submit="isEvaluating = true">
                                 <input type="hidden" name="courseId" value="@Model.Course?.CourseId" />
                                 <input type="hidden" name="GradedItemId" :value="currentItem?.gradedItemId" />
                                 <input type="hidden" name="lessonId" :value="currentItem?.lessonId" />
@@ -266,7 +266,7 @@
 
                     <template x-if="currentItem?.type === 4">
                         <div>
-                            <form method="post" asp-page-handler="SubmitSpeaking" enctype="multipart/form-data" class="space-y-6" @@submit="isEvaluatingSpeaking = true">
+                            <form method="post" asp-page-handler="SubmitSpeaking" enctype="multipart/form-data" class="space-y-6" x-on:submit="isEvaluatingSpeaking = true">
                                 <input type="hidden" name="courseId" value="@Model.Course?.CourseId" />
                                 <input type="hidden" name="GradedItemId" :value="currentItem?.gradedItemId" />
                                 <input type="hidden" name="lessonId" :value="currentItem?.lessonId" />
