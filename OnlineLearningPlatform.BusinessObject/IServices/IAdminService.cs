@@ -11,6 +11,13 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
         Task<bool> UpdateUserAsync(Guid userId, AdminUpdateUserRequest request);
         Task<bool> SoftDeleteUserAsync(Guid userId);
         Task<bool> ToggleBanUserAsync(Guid userId);
-        Task<AdminDashboardResponse> GetDashboardAsync(int year, int? month = null, int? day = null, DateTime? fromDate = null, DateTime? toDate = null);
+        Task<AdminDashboardResponse> GetDashboardAsync(
+    int year,
+    int? month = null,
+    int? day = null,
+    DateTime? fromDate = null,
+    DateTime? toDate = null,
+    int? quarter = null
+);
     }
 }

@@ -7,46 +7,44 @@
     var currentYear = DateTime.Now.Year;
 }
 
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between mb-6 flex-wrap gap-3">
     <div>
         <h2 class="text-xl font-bold text-zinc-900">Analytics Dashboard</h2>
         <p class="text-sm text-zinc-400 mt-0.5">Statistics for @Model.Year</p>
     </div>
-    @* <form method="get" class="flex items-center gap-2">
-        <select name="Year"
-                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
-            @for (int y = currentYear; y >= currentYear - 4; y--)
-            {
-                <option value="@y" selected="@(y == Model.Year)">@y</option>
-            }
-        </select>
-        <button type="submit"
-                class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-            Apply
-        </button>
-    </form> *@
-    @* <form method="get" class="flex flex-wrap items-center gap-2" x-data="{ fromDate: '@Model.FromDate', toDate: '@Model.ToDate' }">
-        
 
+    <form method="get" class="flex flex-wrap items-center gap-2">
+        <!-- Date range -->
         <div class="flex items-center gap-2 bg-white border border-zinc-200 rounded-lg px-3 py-1.5">
             <i class="fas fa-calendar text-zinc-400 text-xs"></i>
-            <input type="date" name="FromDate"
-                   value="@Model.FromDate"
-                   placeholder="From date"
+            <input type="date" name="FromDate" value="@Model.FromDate"
                    class="text-sm text-zinc-700 outline-none bg-transparent w-32" />
             <span class="text-zinc-300 text-xs">→</span>
-            <input type="date" name="ToDate"
-                   value="@Model.ToDate"
+            <input type="date" name="ToDate" value="@Model.ToDate"
                    class="text-sm text-zinc-700 outline-none bg-transparent w-32" />
         </div>
 
-        <select name="Year"
-                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
-            @for (int y = currentYear; y >= currentYear - 4; y--)
+        <!-- Year + Quarter cùng nhóm -->
+        <div class="flex items-center gap-1 bg-white border border-zinc-200 rounded-lg px-2 py-1">
+            <select name="Year"
+                    class="text-sm text-zinc-700 outline-none bg-transparent pr-2 border-r border-zinc-200">
+                @for (int y = currentYear; y >= currentYear - 4; y--)
+                {
+                    <option value="@y" selected="@(y == Model.Year)">@y</option>
+                }
+            </select>
+            <input type="hidden" name="Quarter" id="quarterInput" value="@Model.Quarter" />
+            @foreach (var q in new[] { 1, 2, 3, 4 })
             {
-                <option value="@y" selected="@(y == Model.Year)">@y</option>
+                var isActive = Model.Quarter == q;
+                var btnClass = isActive
+                ? "px-2.5 py-1 text-xs font-bold rounded-md transition-colors bg-indigo-600 text-white"
+                : "px-2.5 py-1 text-xs font-bold rounded-md transition-colors text-zinc-500 hover:bg-zinc-100";
+                var qLabel = $"Q{q}";
+                var qVal = q;
+                <button type="button" onclick="setQuarter(@qVal)" class="@btnClass">@qLabel</button>
             }
-        </select>
+        </div>
 
         <button type="submit"
                 class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
@@ -57,43 +55,19 @@
             <i class="fas fa-undo text-xs"></i> Reset
         </a>
 
-        @if (!string.IsNullOrEmpty(Model.FromDate) && !string.IsNullOrEmpty(Model.ToDate))
+        @if (Model.Quarter.HasValue)
+        {
+            <span class="text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
+                <i class="fas fa-calendar-check mr-1"></i> Q@(Model.Quarter) @Model.Year
+            </span>
+        }
+        else if (!string.IsNullOrEmpty(Model.FromDate) && !string.IsNullOrEmpty(Model.ToDate))
         {
             <span class="text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
                 <i class="fas fa-calendar-check mr-1"></i>
                 @DateTime.Parse(Model.FromDate).ToString("dd/MM/yyyy") → @DateTime.Parse(Model.ToDate).ToString("dd/MM/yyyy")
             </span>
         }
-        }
-    </form> *@
-    <form method="get" class="flex flex-wrap items-center gap-2">
-        <div class="flex items-center gap-2 bg-white border border-zinc-200 rounded-lg px-3 py-1.5">
-            <i class="fas fa-calendar text-zinc-400 text-xs"></i>
-            <input type="date" name="FromDate"
-                   value="@Model.FromDate"
-                   class="text-sm text-zinc-700 outline-none bg-transparent w-32" />
-            <span class="text-zinc-300 text-xs">→</span>
-            <input type="date" name="ToDate"
-                   value="@Model.ToDate"
-                   class="text-sm text-zinc-700 outline-none bg-transparent w-32" />
-        </div>
-
-        <select name="Year"
-                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
-            @for (int y = currentYear; y >= currentYear - 4; y--)
-            {
-                <option value="@y" selected="@(y == Model.Year)">@y</option>
-            }
-        </select>
-
-        <button type="submit"
-                class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
-            <i class="fas fa-filter text-xs"></i> Apply
-        </button>
-        <a asp-page="/Admin/Dashboard"
-           class="px-4 py-2 bg-zinc-100 text-zinc-600 text-sm font-medium rounded-lg hover:bg-zinc-200 transition-colors flex items-center gap-2">
-            <i class="fas fa-undo text-xs"></i> Reset
-        </a>
     </form>
 </div>
 
@@ -308,10 +282,79 @@
         <div id="topCoursesChart" style="height: 260px; width: 100%;"></div>
     </div>
 </div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <!-- Top Instructors by Revenue -->
+    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-chalkboard-teacher text-purple-600 text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-zinc-900">Top Instructors</h3>
+                <p class="text-xs text-zinc-400">By revenue — selected period</p>
+            </div>
+        </div>
+        <div id="topInstructorsChart" style="height: 260px; width: 100%;"></div>
+    </div>
+
+    <!-- Top Courses by Revenue -->
+    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-money-bill-wave text-emerald-600 text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-zinc-900">Top Courses by Revenue</h3>
+                <p class="text-xs text-zinc-400">Highest earning courses — selected period</p>
+            </div>
+        </div>
+        <div id="topCourseRevenueChart" style="height: 260px; width: 100%;"></div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user-graduate text-blue-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Top Instructors by Students</h3>
+                    <p class="text-xs text-zinc-400">Most enrolled instructors — all time</p>
+                </div>
+            </div>
+            <div id="topInstructorEnrollChart" style="height: 260px; width: 100%;"></div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-user-plus text-rose-600 text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-zinc-900">User Growth</h3>
+                <p class="text-xs text-zinc-400">New registrations vs same period last year</p>
+            </div>
+        </div>
+        <div id="userGrowthChart" style="height: 260px; width: 100%;"></div>
+    </div>
+</div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <script>
+
+        const userGrowthData     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.UserGrowthData));
+        const prevUserGrowthData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.PrevUserGrowthData));
+        const topInstructorEnrollNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorEnrollNames));
+        const topInstructorEnrollData  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorEnrollData));
+        const prevRevenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.PrevRevenueData));
+        const prevEnrollData  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.PrevEnrollmentData));
+        const prevLabel       = '@Model.Data.PrevPeriodLabel';
+        const currentLabel    = '@(Model.Quarter.HasValue ? $"Q{Model.Quarter} {Model.Year}" : Model.Year.ToString())';
+
+        const topInstructorNames   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorNames));
+        const topInstructorRevenue = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorRevenue));
+        const topCourseRevTitles   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopCourseRevenueTitle));
+        const topCourseRevData     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopCourseRevenueData));
         // ── Data from server ──────────────────────────────────────────────────────
         const months      = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.RevenueMonths));
         const revenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.RevenueData));
@@ -369,29 +412,29 @@
             grid,
             xAxis: xAxisBase,
             yAxis: { ...yAxisBase, axisLabel: { ...yAxisBase.axisLabel, formatter: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v } },
-            series: [
-                {
-                    name: 'Gross Revenue',
-                    data: revenueData, type: 'line', smooth: true,
-                    symbol: 'circle', symbolSize: 6,
-                    lineStyle: { color: '#10b981', width: 3 }, // Emerald
-                    itemStyle: { color: '#10b981', borderColor: '#fff', borderWidth: 2 }
-                },
-                {
-                    name: 'Platform Net (30%)',
-                    data: netData, type: 'line', smooth: true,
-                    symbol: 'circle', symbolSize: 6,
-                    lineStyle: { color: '#6366f1', width: 2.5, type: 'dashed' }, // Indigo
-                    itemStyle: { color: '#6366f1', borderColor: '#fff', borderWidth: 2 }
-                },
-                {
-                    name: 'Instructors (70%)',
-                    data: instructorData, type: 'line', smooth: true,
-                    symbol: 'circle', symbolSize: 6,
-                    lineStyle: { color: '#f59e0b', width: 2.5, type: 'dashed' }, // Amber
-                    itemStyle: { color: '#f59e0b', borderColor: '#fff', borderWidth: 2 }
-                }
-            ]
+                    series: [
+            {
+                name: `Gross ${currentLabel}`,
+                data: revenueData, type: 'line', smooth: true,
+                symbol: 'circle', symbolSize: 6,
+                lineStyle: { color: '#10b981', width: 3 },
+                itemStyle: { color: '#10b981', borderColor: '#fff', borderWidth: 2 }
+            },
+            {
+                name: `Net ${currentLabel} (30%)`,
+                data: netData, type: 'line', smooth: true,
+                symbol: 'circle', symbolSize: 6,
+                lineStyle: { color: '#6366f1', width: 2.5, type: 'dashed' },
+                itemStyle: { color: '#6366f1', borderColor: '#fff', borderWidth: 2 }
+            },
+            {
+                name: `Gross ${prevLabel}`,
+                data: prevRevenueData.map(v => v), type: 'line', smooth: true,
+                symbol: 'circle', symbolSize: 5,
+                lineStyle: { color: '#10b981', width: 1.5, type: 'dotted', opacity: 0.6 },
+                itemStyle: { color: '#10b981', opacity: 0.5 }
+            }
+        ]
         });
 
         echarts.init(document.getElementById('enrollmentChart')).setOption({
@@ -399,10 +442,18 @@
             grid,
             xAxis: xAxisBase,
             yAxis: { ...yAxisBase, minInterval: 1 },
-            series: [{
-                data: enrollData, type: 'bar', barMaxWidth: '40%', borderRadius: [6, 6, 0, 0],
+                    series: [
+            {
+                name: currentLabel,
+                data: enrollData, type: 'bar', barMaxWidth: '30%', borderRadius: [6, 6, 0, 0],
                 itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#6366f1' }, { offset: 1, color: '#a5b4fc' }] } }
-            }]
+            },
+            {
+                name: prevLabel,
+                data: prevEnrollData, type: 'bar', barMaxWidth: '30%', borderRadius: [6, 6, 0, 0],
+                itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fcd34d' }] } }
+            }
+        ]
         });
 
         echarts.init(document.getElementById('roleChart')).setOption({
@@ -430,10 +481,82 @@
             }]
         });
 
-        window.addEventListener('resize', () => {
-            ['revenueChart','enrollmentChart','roleChart','topCoursesChart'].forEach(id => {
-                echarts.getInstanceByDom(document.getElementById(id))?.resize();
-            });
+                echarts.init(document.getElementById('topInstructorsChart')).setOption({
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 },
+                formatter: p => `${p[0].name}<br/><b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>` },
+            grid: { left: 12, right: 36, top: 8, bottom: 8, containLabel: true },
+            xAxis: { type: 'value', axisLabel: { color: '#a1a1aa', fontSize: 11, formatter: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v }, splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } }, axisLine: { show: false } },
+            yAxis: { type: 'category', data: topInstructorNames, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
+            series: [{
+                data: topInstructorRevenue, type: 'bar', barMaxWidth: 28, borderRadius: [0, 6, 6, 0],
+                itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#8b5cf6' }, { offset: 1, color: '#a78bfa' }] } },
+                label: { show: true, position: 'right', color: '#52525b', fontSize: 11, formatter: p => Number(p.value) >= 1000000 ? (Number(p.value)/1000000).toFixed(1)+'M' : Number(p.value) >= 1000 ? (Number(p.value)/1000).toFixed(0)+'K' : p.value }
+            }]
+        });
+
+        echarts.init(document.getElementById('topCourseRevenueChart')).setOption({
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 },
+                formatter: p => `${p[0].name}<br/><b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>` },
+            grid: { left: 12, right: 36, top: 8, bottom: 8, containLabel: true },
+            xAxis: { type: 'value', axisLabel: { color: '#a1a1aa', fontSize: 11, formatter: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v }, splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } }, axisLine: { show: false } },
+            yAxis: { type: 'category', data: topCourseRevTitles, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
+            series: [{
+                data: topCourseRevData, type: 'bar', barMaxWidth: 28, borderRadius: [0, 6, 6, 0],
+                itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] } },
+                label: { show: true, position: 'right', color: '#52525b', fontSize: 11, formatter: p => Number(p.value) >= 1000000 ? (Number(p.value)/1000000).toFixed(1)+'M' : Number(p.value) >= 1000 ? (Number(p.value)/1000).toFixed(0)+'K' : p.value }
+            }]
+        });
+                echarts.init(document.getElementById('topInstructorEnrollChart')).setOption({
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 },
+                formatter: p => `${p[0].name}<br/><b>${p[0].value} students</b>` },
+            grid: { left: 12, right: 36, top: 8, bottom: 8, containLabel: true },
+            xAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#a1a1aa', fontSize: 11 }, splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } }, axisLine: { show: false } },
+            yAxis: { type: 'category', data: topInstructorEnrollNames, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
+            series: [{
+                data: topInstructorEnrollData, type: 'bar', barMaxWidth: 28, borderRadius: [0, 6, 6, 0],
+                itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#3b82f6' }, { offset: 1, color: '#93c5fd' }] } },
+                label: { show: true, position: 'right', color: '#52525b', fontSize: 11, formatter: '{c}' }
+            }]
+        });
+                echarts.init(document.getElementById('userGrowthChart')).setOption({
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1,
+                textStyle: { color: '#3f3f46', fontSize: 12 },
+                formatter: function(params) {
+                    let res = `<div style="font-weight:bold;margin-bottom:4px">${params[0].name}</div>`;
+                    params.forEach(p => {
+                        res += `<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:4px"></span>${p.seriesName}: <b>${p.value}</b></div>`;
+                    });
+                    return res;
+                }
+            },
+            legend: { data: [currentLabel, prevLabel], top: 0, right: 0, textStyle: { fontSize: 10, color: '#a1a1aa' } },
+            grid: { left: 12, right: 12, top: 24, bottom: 6, containLabel: true },
+            xAxis: {
+                type: 'category', data: months,
+                axisLine: { lineStyle: { color: '#e4e4e7' } },
+                axisLabel: { color: '#a1a1aa', fontSize: 10, interval: 0, rotate: 30 },
+                splitLine: { show: false }
+            },
+            yAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#a1a1aa', fontSize: 10 }, splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } }, axisLine: { show: false } },
+            series: [
+                {
+                    name: currentLabel,
+                    data: userGrowthData, type: 'bar', barMaxWidth: '35%', borderRadius: [4, 4, 0, 0],
+                    itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#f43f5e' }, { offset: 1, color: '#fda4af' }] } }
+                },
+                {
+                    name: prevLabel,
+                    data: prevUserGrowthData, type: 'bar', barMaxWidth: '35%', borderRadius: [4, 4, 0, 0],
+                    itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#94a3b8' }, { offset: 1, color: '#cbd5e1' }] } }
+                }
+            ]
+        });
+               window.addEventListener('resize', () => {
+                            ['revenueChart','enrollmentChart','roleChart','topCoursesChart','topInstructorsChart','topCourseRevenueChart','topInstructorEnrollChart','userGrowthChart'].forEach(id => {
+            echarts.getInstanceByDom(document.getElementById(id))?.resize();
+        });
         });
         window.addEventListener('load', () => {
             setTimeout(() => {
@@ -474,6 +597,18 @@
             toast.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
             document.body.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 5000);
+        }
+                function setQuarter(q) {
+            const input = document.getElementById('quarterInput');
+            if (input.value == q) {
+                input.value = '';  // toggle off nếu click lại
+            } else {
+                input.value = q;
+                // Clear date inputs khi chọn quarter
+                document.querySelector('input[name="FromDate"]').value = '';
+                document.querySelector('input[name="ToDate"]').value = '';
+            }
+            input.closest('form').submit();
         }
     </script>
 }
