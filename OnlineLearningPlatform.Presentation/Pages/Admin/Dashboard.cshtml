@@ -162,7 +162,12 @@
 </div>
 
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+<!-- Section: Revenue & Enrollments -->
+<div id="section-revenue" class="mb-8">
+    <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Revenue & Enrollments
+    </p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl border border-zinc-200 p-6">
             <div class="flex items-center gap-2 mb-4">
                 <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -175,36 +180,6 @@
             </div>
             <div id="grossChart" style="height: 260px; width: 100%;"></div>
         </div>
-
-        <div class="bg-white rounded-xl border border-zinc-200 p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-chart-line text-indigo-600 text-sm"></i>
-                </div>
-                <div>
-                    <h3 class="text-sm font-semibold text-zinc-900">Platform Net (30%)</h3>
-                    <p class="text-xs text-zinc-400">Net revenue vs same period last year</p>
-                </div>
-            </div>
-            <div id="netChart" style="height: 260px; width: 100%;"></div>
-        </div>
-    </div>
-
-    <!-- Row 2: Instructors + Enrollments -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white rounded-xl border border-zinc-200 p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-chart-line text-amber-600 text-sm"></i>
-                </div>
-                <div>
-                    <h3 class="text-sm font-semibold text-zinc-900">Instructor Earnings (70%)</h3>
-                    <p class="text-xs text-zinc-400">Instructor payouts vs same period last year</p>
-                </div>
-            </div>
-            <div id="instructorEarningsChart" style="height: 260px; width: 100%;"></div>
-        </div>
-
         <div class="bg-white rounded-xl border border-zinc-200 p-6">
             <div class="flex items-center gap-2 mb-4">
                 <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -218,101 +193,148 @@
             <div id="enrollmentChart" style="height: 260px; width: 100%;"></div>
         </div>
     </div>
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-    <!-- User Distribution -->
-    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-chart-pie text-indigo-600 text-sm"></i>
-            </div>
-            <div>
-                <h3 class="text-sm font-semibold text-zinc-900">User Distribution</h3>
-                <p class="text-xs text-zinc-400">By role — all time</p>
-            </div>
-        </div>
-        <div id="roleChart" style="height: 260px; width: 100%;"></div>
-        <div class="flex justify-center gap-5 mt-3">
-            <div class="flex items-center gap-1.5 text-xs text-zinc-500">
-                <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span> Admin (@Model.Data.AdminCount)
-            </div>
-            <div class="flex items-center gap-1.5 text-xs text-zinc-500">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Instructor (@Model.Data.InstructorCount)
-            </div>
-            <div class="flex items-center gap-1.5 text-xs text-zinc-500">
-                <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 inline-block"></span> Student (@Model.Data.StudentCount)
-            </div>
-        </div>
-    </div>
+</div>
 
-    <!-- Top 5 Courses by Enrollment -->
-    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-trophy text-amber-600 text-sm"></i>
+<!-- Section: Platform Financials -->
+<div id="section-financials" class="mb-8">
+    <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Platform Financials
+    </p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-amber-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Instructor Earnings (70%)</h3>
+                    <p class="text-xs text-zinc-400">Instructor payouts vs same period last year</p>
+                </div>
             </div>
-            <div>
-                <h3 class="text-sm font-semibold text-zinc-900">Top 5 Courses</h3>
-                <p class="text-xs text-zinc-400">By number of enrollments — selected period</p>
-            </div>
+            <div id="instructorEarningsChart" style="height: 260px; width: 100%;"></div>
         </div>
-        <div id="topCoursesChart" style="height: 260px; width: 100%;"></div>
-    </div>
-
-    <!-- Top Instructors by Revenue -->
-    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-chalkboard-teacher text-purple-600 text-sm"></i>
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-indigo-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Platform Net (30%)</h3>
+                    <p class="text-xs text-zinc-400">Net revenue vs same period last year</p>
+                </div>
             </div>
-            <div>
-                <h3 class="text-sm font-semibold text-zinc-900">Top Instructors</h3>
-                <p class="text-xs text-zinc-400">By revenue — selected period</p>
-            </div>
+            <div id="netChart" style="height: 260px; width: 100%;"></div>
         </div>
-        <div id="topInstructorsChart" style="height: 260px; width: 100%;"></div>
-    </div>
-
-    <!-- Top Courses by Revenue -->
-    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-money-bill-wave text-emerald-600 text-sm"></i>
-            </div>
-            <div>
-                <h3 class="text-sm font-semibold text-zinc-900">Top Courses by Revenue</h3>
-                <p class="text-xs text-zinc-400">Highest earning courses — selected period</p>
-            </div>
-        </div>
-        <div id="topCourseRevenueChart" style="height: 260px; width: 100%;"></div>
     </div>
 </div>
 
-<!-- Top Instructors by Students + User Growth -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-user-graduate text-blue-600 text-sm"></i>
+<!-- Section: Courses -->
+<div id="section-courses" class="mb-8">
+    <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Courses
+    </p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-trophy text-amber-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Top 5 Courses</h3>
+                    <p class="text-xs text-zinc-400">By number of enrollments — selected period</p>
+                </div>
             </div>
-            <div>
-                <h3 class="text-sm font-semibold text-zinc-900">Top Instructors by Students</h3>
-                <p class="text-xs text-zinc-400">Most enrolled — selected period</p>
-            </div>
+            <div id="topCoursesChart" style="height: 260px; width: 100%;"></div>
         </div>
-        <div id="topInstructorEnrollChart" style="height: 260px; width: 100%;"></div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-money-bill-wave text-emerald-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Top Courses by Revenue</h3>
+                    <p class="text-xs text-zinc-400">Highest earning courses — selected period</p>
+                </div>
+            </div>
+            <div id="topCourseRevenueChart" style="height: 260px; width: 100%;"></div>
+        </div>
     </div>
+</div>
 
-    <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-fire text-orange-600 text-sm"></i>
+<!-- Section: Instructors -->
+<div id="section-instructors" class="mb-8">
+    <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Instructors
+    </p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chalkboard-teacher text-purple-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Top Instructors</h3>
+                    <p class="text-xs text-zinc-400">By revenue — selected period</p>
+                </div>
             </div>
-            <div>
-                <h3 class="text-sm font-semibold text-zinc-900">Top Students by Spending</h3>
-                <p class="text-xs text-zinc-400">Highest spenders — selected period</p>
+            <div id="topInstructorsChart" style="height: 260px; width: 100%;"></div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user-graduate text-blue-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Top Instructors by Students</h3>
+                    <p class="text-xs text-zinc-400">Most enrolled — selected period</p>
+                </div>
+            </div>
+            <div id="topInstructorEnrollChart" style="height: 260px; width: 100%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Section: Users -->
+<div id="section-users" class="mb-8">
+    <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Users
+    </p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-pie text-indigo-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">User Distribution</h3>
+                    <p class="text-xs text-zinc-400">By role — all time</p>
+                </div>
+            </div>
+            <div id="roleChart" style="height: 260px; width: 100%;"></div>
+            <div class="flex justify-center gap-5 mt-3">
+                <div class="flex items-center gap-1.5 text-xs text-zinc-500">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span> Admin (@Model.Data.AdminCount)
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-zinc-500">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Instructor (@Model.Data.InstructorCount)
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-zinc-500">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 inline-block"></span> Student (@Model.Data.StudentCount)
+                </div>
             </div>
         </div>
-        <div id="topStudentChart" style="height: 260px; width: 100%;"></div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-fire text-orange-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Top Students by Spending</h3>
+                    <p class="text-xs text-zinc-400">Highest spenders — selected period</p>
+                </div>
+            </div>
+            <div id="topStudentChart" style="height: 260px; width: 100%;"></div>
+        </div>
     </div>
 </div>
 
