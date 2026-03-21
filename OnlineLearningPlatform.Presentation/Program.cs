@@ -3,8 +3,9 @@ using OnlineLearningPlatform.BusinessObject;
 using OnlineLearningPlatform.BusinessObject.DependencyInjection;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Services;
-using OnlineLearningPlatform.Presentation.Quartz;
 using OnlineLearningPlatform.Presentation.Hubs;
+using OnlineLearningPlatform.Presentation.Notifications;
+using OnlineLearningPlatform.Presentation.Quartz;
 using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -65,6 +66,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
+builder.Services.AddScoped<IRealtimeNotifier, RealtimeNotifier>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

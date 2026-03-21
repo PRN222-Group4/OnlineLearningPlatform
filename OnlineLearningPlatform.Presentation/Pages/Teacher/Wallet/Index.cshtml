@@ -291,5 +291,44 @@
                 if (el) echarts.getInstanceByDom(el)?.resize();
             });
         });
+                const userId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+        const walletScript = document.createElement('script');
+        walletScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js';
+        walletScript.onload = () => {
+            const conn = new signalR.HubConnectionBuilder()
+                .withUrl("/realtimeHub")
+                .withAutomaticReconnect()
+                .build();
+
+            conn.start()
+                .then(() => {
+                    if (userId) {
+                        conn.invoke("JoinWalletGroup", userId)
+                            .then(() => console.log("✅ Wallet joined group:", userId))
+                            .catch(console.error);
+                    }
+                })
+                .catch(console.error);
+
+            // Khi có payment mới → toast + reload sau 2s
+            conn.on("WalletUpdated", () => {
+                showWalletToast('💰 New enrollment! Your wallet has been updated.', 'emerald');
+                setTimeout(() => location.reload(), 2000);
+            });
+        };
+        document.head.appendChild(walletScript);
+
+        function showWalletToast(message, color) {
+            const colors = {
+                emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+                rose:    'bg-rose-50 border-rose-200 text-rose-700',
+                indigo:  'bg-indigo-50 border-indigo-200 text-indigo-700'
+            };
+            const toast = document.createElement('div');
+            toast.className = `fixed top-5 right-5 z-[200] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-medium ${colors[color] || colors.indigo} transition-all`;
+            toast.innerHTML = `<i class="fas fa-wallet"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 5000);
+        }
     </script>
 }
