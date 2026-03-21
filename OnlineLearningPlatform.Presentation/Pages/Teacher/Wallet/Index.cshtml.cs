@@ -34,6 +34,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Wallet
         public List<decimal> RevenueData { get; set; } = new();
         public List<decimal> GrossData { get; set; } = new();
         public List<int> EnrollData { get; set; } = new();
+        public List<(string Title, int Enrollments, decimal Revenue)> TopCoursesByRevenue { get; set; } = new();
+
 
         // Top courses
         public List<(string Title, int Enrollments, decimal Revenue)> TopCourses { get; set; } = new();
@@ -117,14 +119,35 @@ namespace OnlineLearningPlatform.Presentation.Pages.Teacher.Wallet
             }
 
             // Top courses
-            TopCourses = myCourses.Select(c => (
-                Title: c.Title.Length > 30 ? c.Title[..30] + "..." : c.Title,
+            TopCourses = myCourses
+            .Select(c => (
+                Title: c.Title.Length > 25 ? c.Title[..25] + "..." : c.Title,
+                FullTitle: c.Title,
                 Enrollments: filtered.Count(p => p.CourseTitle == c.Title),
                 Revenue: filtered.Where(p => p.CourseTitle == c.Title).Sum(p => p.Amount * 0.7m)
             ))
             .Where(x => x.Enrollments > 0)
+            .GroupBy(x => x.FullTitle)        // group theo full title trước
+            .Select(g => g.First())           // lấy 1 cái mỗi course
             .OrderByDescending(x => x.Enrollments)
-            .Take(5).ToList();
+            .Take(3)
+            .Select(x => (x.Title, x.Enrollments, x.Revenue))
+            .ToList();
+
+                TopCoursesByRevenue = myCourses
+                .Select(c => (
+                    Title: c.Title.Length > 25 ? c.Title[..25] + "..." : c.Title,
+                    FullTitle: c.Title,
+                    Enrollments: filtered.Count(p => p.CourseTitle == c.Title),
+                    Revenue: filtered.Where(p => p.CourseTitle == c.Title).Sum(p => p.Amount * 0.7m)
+                ))
+                .Where(x => x.Revenue > 0)
+                .GroupBy(x => x.FullTitle)
+                .Select(g => g.First())
+                .OrderByDescending(x => x.Revenue)
+                .Take(3)
+                .Select(x => (x.Title, x.Enrollments, x.Revenue))
+                .ToList();
         }
     }
 }

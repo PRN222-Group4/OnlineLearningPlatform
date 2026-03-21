@@ -121,9 +121,22 @@
             </div>
         </div>
         <div class="p-6">
-            @if (Model.TopCourses.Any())
+            @if (Model.TopCourses.Any() || Model.TopCoursesByRevenue.Any())
             {
-                <div id="topCoursesChart" style="height: 260px; width: 100%;"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span> By Enrollments
+                        </p>
+                        <div id="topEnrollChart" style="height: 200px; width: 100%;"></div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> By Revenue
+                        </p>
+                        <div id="topRevenueChart" style="height: 200px; width: 100%;"></div>
+                    </div>
+                </div>
             }
             else
             {
@@ -192,7 +205,9 @@
         const topTitles    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCourses.Select(x => x.Title).ToList()));
         const topEnrolls   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCourses.Select(x => x.Enrollments).ToList()));
         const topRevenue   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCourses.Select(x => x.Revenue).ToList()));
-
+        const topRevTitles  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCoursesByRevenue.Select(x => x.Title).ToList()));
+        const topRevData    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCoursesByRevenue.Select(x => x.Revenue).ToList()));
+        const topRevEnrolls = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCoursesByRevenue.Select(x => x.Enrollments).ToList()));
         // Performance chart (dual axis)
         echarts.init(document.getElementById('performanceChart')).setOption({
             tooltip: {
@@ -256,37 +271,56 @@
         });
 
         // Top courses chart
-        if (document.getElementById('topCoursesChart')) {
-            echarts.init(document.getElementById('topCoursesChart')).setOption({
+                // THAY TOÀN BỘ topCoursesChart setOption:
+        if (document.getElementById('topEnrollChart')) {
+            echarts.init(document.getElementById('topEnrollChart')).setOption({
                 tooltip: {
                     trigger: 'axis', axisPointer: { type: 'shadow' },
                     backgroundColor: '#fff', borderColor: '#e2e8f0', borderWidth: 1,
                     textStyle: { color: '#1e293b', fontSize: 12 },
-                    formatter: function(params) {
-                        const i = params[0].dataIndex;
-                        return `<b>${params[0].name}</b><br/>
-                            Enrollments: <b>${topEnrolls[i]}</b><br/>
-                            Revenue: <b>${Number(topRevenue[i]).toLocaleString('vi-VN')} ₫</b>`;
-                    }
+                    formatter: p => `<b>${p[0].name}</b><br/>Enrollments: <b>${p[0].value}</b>`
                 },
-                grid: { left: 12, right: 80, top: 8, bottom: 8, containLabel: true },
+                grid: { left: 8, right: 50, top: 4, bottom: 4, containLabel: true },
                 xAxis: { type: 'value', show: false },
                 yAxis: {
                     type: 'category', data: topTitles,
-                    axisLabel: { color: '#475569', fontSize: 11, width: 140, overflow: 'truncate' },
+                    axisLabel: { color: '#475569', fontSize: 10, width: 100, overflow: 'truncate' },
                     axisLine: { show: false }, axisTick: { show: false }
                 },
                 series: [{
-                    data: topEnrolls, type: 'bar', barMaxWidth: 28, barCategoryGap: '40%', borderRadius: [0, 6, 6, 0],
+                    data: topEnrolls, type: 'bar', barMaxWidth: 22, barCategoryGap: '40%', borderRadius: [0, 4, 4, 0],
                     itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fcd34d' }] } },
-                    label: { show: true, position: 'right', color: '#475569', fontSize: 11,
-                        formatter: p => `${p.value} enrolls` }
+                    label: { show: true, position: 'right', color: '#475569', fontSize: 10, formatter: p => `${p.value}` }
                 }]
             });
         }
 
-        window.addEventListener('resize', () => {
-            ['performanceChart', 'topCoursesChart'].forEach(id => {
+        if (document.getElementById('topRevenueChart')) {
+            echarts.init(document.getElementById('topRevenueChart')).setOption({
+                tooltip: {
+                    trigger: 'axis', axisPointer: { type: 'shadow' },
+                    backgroundColor: '#fff', borderColor: '#e2e8f0', borderWidth: 1,
+                    textStyle: { color: '#1e293b', fontSize: 12 },
+                    formatter: p => `<b>${p[0].name}</b><br/>Revenue: <b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>`
+                },
+                grid: { left: 8, right: 60, top: 4, bottom: 4, containLabel: true },
+                xAxis: { type: 'value', show: false },
+                yAxis: {
+                    type: 'category', data: topRevTitles,
+                    axisLabel: { color: '#475569', fontSize: 10, width: 100, overflow: 'truncate' },
+                    axisLine: { show: false }, axisTick: { show: false }
+                },
+                series: [{
+                    data: topRevData, type: 'bar', barMaxWidth: 22, barCategoryGap: '40%', borderRadius: [0, 4, 4, 0],
+                    itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] } },
+                    label: { show: true, position: 'right', color: '#475569', fontSize: 10,
+                        formatter: p => Number(p.value) >= 1000000 ? (Number(p.value)/1000000).toFixed(1)+'M' : Number(p.value) >= 1000 ? (Number(p.value)/1000).toFixed(0)+'K' : p.value }
+                }]
+            });
+        }
+
+                window.addEventListener('resize', () => {
+            ['performanceChart', 'topEnrollChart', 'topRevenueChart'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) echarts.getInstanceByDom(el)?.resize();
             });
