@@ -121,10 +121,10 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             }
 
             response.PrevPeriodLabel = quarter.HasValue
-                ? $"Q{quarter} {year - 1}"
-                : fromDate.HasValue
-                    ? $"{prevStart:dd/MM/yy}–{prevEnd:dd/MM/yy}"
-                    : $"{year - 1}";
+    ? $"Q{quarter} {year - 1}"
+    : fromDate.HasValue
+        ? $"{prevStart:dd/MM/yy} to {prevEnd:dd/MM/yy}"
+        : $"{year - 1}";
 
             var allPayments = await _uow.Payments.GetAllAsync(p =>
                 p.Status == 1 && p.PaidAt != null &&

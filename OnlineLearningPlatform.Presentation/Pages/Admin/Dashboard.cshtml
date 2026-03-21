@@ -161,44 +161,63 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
-    <div class="bg-white rounded-xl border border-zinc-200 p-6">
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <div class="flex items-center gap-2 mb-4">
                 <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                     <i class="fas fa-chart-line text-emerald-600 text-sm"></i>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-zinc-900">Financial Growth</h3>
-                    <p class="text-xs text-zinc-400">Gross vs Net vs Instructors — @Model.Year</p>
+                    <h3 class="text-sm font-semibold text-zinc-900">Gross Revenue</h3>
+                    <p class="text-xs text-zinc-400">Total revenue vs same period last year</p>
                 </div>
             </div>
-            <div class="hidden sm:flex items-center gap-3 text-[10px] font-bold uppercase text-zinc-500">
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Gross</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Net (30%)</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Instructors</span>
-            </div>
+            <div id="grossChart" style="height: 260px; width: 100%;"></div>
         </div>
-        <div id="revenueChart" style="height: 300px; width: 100%;"></div>
+
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-indigo-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Platform Net (30%)</h3>
+                    <p class="text-xs text-zinc-400">Net revenue vs same period last year</p>
+                </div>
+            </div>
+            <div id="netChart" style="height: 260px; width: 100%;"></div>
+        </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-zinc-200 p-6">
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
+    <!-- Row 2: Instructors + Enrollments -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-amber-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-zinc-900">Instructor Earnings (70%)</h3>
+                    <p class="text-xs text-zinc-400">Instructor payouts vs same period last year</p>
+                </div>
+            </div>
+            <div id="instructorEarningsChart" style="height: 260px; width: 100%;"></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <div class="flex items-center gap-2 mb-4">
                 <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                     <i class="fas fa-chart-bar text-blue-600 text-sm"></i>
                 </div>
                 <div>
                     <h3 class="text-sm font-semibold text-zinc-900">Enrollments</h3>
-                    <p class="text-xs text-zinc-400">Monthly new enrollments — @Model.Year</p>
+                    <p class="text-xs text-zinc-400">New enrollments vs same period last year</p>
                 </div>
             </div>
+            <div id="enrollmentChart" style="height: 260px; width: 100%;"></div>
         </div>
-        <div id="enrollmentChart" style="height: 300px; width: 100%;"></div>
     </div>
-</div>
-
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
     <!-- User Distribution -->
     <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
@@ -355,77 +374,97 @@
         };
 
         // ── 1. UPGRADED Multi-line Revenue Chart ─────────────────────────────────────────────────
-        echarts.init(document.getElementById('revenueChart')).setOption({
-            tooltip: {
-                trigger: 'axis',
-                backgroundColor: '#fff',
-                borderColor: '#e4e4e7',
-                borderWidth: 1,
-                textStyle: { color: '#3f3f46', fontSize: 12 },
-                formatter: function(params) {
-                    let res = `<div class="font-bold mb-1">${params[0].name}</div>`;
-                    params.forEach(p => {
-                        res += `<div class="flex justify-between gap-4">
-                                  <span><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${p.color};"></span>${p.seriesName}</span>
-                                  <span class="font-bold">${Number(p.value).toLocaleString('vi-VN')} ₫</span>
-                                </div>`;
-                    });
-                    return res;
-                }
-            },
-            grid,
-            xAxis: xAxisBase,
-            yAxis: { ...yAxisBase, axisLabel: { ...yAxisBase.axisLabel, formatter: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v } },
-                    series: [
-            {
-                name: `Gross ${currentLabel}`,
-                data: revenueData, type: 'line', smooth: true,
-                symbol: 'circle', symbolSize: 6,
-                lineStyle: { color: '#10b981', width: 3 },
-                itemStyle: { color: '#10b981', borderColor: '#fff', borderWidth: 2 }
-            },
-            {
-                name: `Net ${currentLabel} (30%)`,
-                data: netData, type: 'line', smooth: true,
-                symbol: 'circle', symbolSize: 6,
-                lineStyle: { color: '#6366f1', width: 2.5, type: 'dashed' },
-                itemStyle: { color: '#6366f1', borderColor: '#fff', borderWidth: 2 }
-            },
-            {
-                name: `Gross ${prevLabel}`,
-                data: prevRevenueData.map(v => v), type: 'line', smooth: true,
-                symbol: 'circle', symbolSize: 5,
-                lineStyle: { color: '#10b981', width: 1.5, type: 'dotted', opacity: 0.6 },
-                itemStyle: { color: '#10b981', opacity: 0.5 }
-            },
+                    const lineChartOption = (data, prevData, color, prevColor, unit = '₫') => ({
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1,
+                    textStyle: { color: '#3f3f46', fontSize: 12 },
+                    formatter: function(params) {
+                        let res = `<div style="font-weight:bold;margin-bottom:4px">${params[0].name}</div>`;
+                        params.forEach(p => {
+                            const val = unit === '₫'
+                                ? Number(p.value).toLocaleString('vi-VN') + ' ₫'
+                                : p.value;
+                            res += `<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:4px"></span>${p.seriesName}: <b>${val}</b></div>`;
+                        });
+                        return res;
+                    }
+                },
+                legend: { data: [currentLabel, prevLabel], top: 0, right: 0, textStyle: { fontSize: 10, color: '#a1a1aa' } },
+                grid: { left: 12, right: 12, top: 28, bottom: 6, containLabel: true },
+                xAxis: {
+                    type: 'category', data: months,
+                    axisLine: { lineStyle: { color: '#e4e4e7' } },
+                    axisLabel: { color: '#a1a1aa', fontSize: 10, interval: 0, rotate: 30 },
+                    splitLine: { show: false }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#a1a1aa', fontSize: 10, formatter: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v },
+                    splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } },
+                    axisLine: { show: false }
+                },
+                series: [
                     {
-            name: `Instructors ${currentLabel} (70%)`,
-            data: instructorData, type: 'line', smooth: true,
-            symbol: 'circle', symbolSize: 5,
-            lineStyle: { color: '#f59e0b', width: 2, type: 'dashed' },
-            itemStyle: { color: '#f59e0b', borderColor: '#fff', borderWidth: 2 }
-        }
-        ]
-        });
+                        name: currentLabel, data, type: 'line', smooth: true,
+                        symbol: 'circle', symbolSize: 6,
+                        lineStyle: { color, width: 3 },
+                        itemStyle: { color, borderColor: '#fff', borderWidth: 2 },
+                        areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + '33' }, { offset: 1, color: color + '00' }] } }
+                    },
+                    {
+                        name: prevLabel, data: prevData, type: 'line', smooth: true,
+                        symbol: 'circle', symbolSize: 5,
+                        lineStyle: { color: prevColor, width: 2, type: 'dashed' },
+                        itemStyle: { color: prevColor, borderColor: '#fff', borderWidth: 2 }
+                    }
+                ]
+            });
 
-        echarts.init(document.getElementById('enrollmentChart')).setOption({
-            tooltip: { ...tooltip, formatter: p => `${p[0].name}<br/><b>${p[0].value} enrollments</b>` },
-            grid,
-            xAxis: xAxisBase,
-            yAxis: { ...yAxisBase, minInterval: 1 },
-                    series: [
-            {
-                name: currentLabel,
-                data: enrollData, type: 'bar', barMaxWidth: '30%', borderRadius: [6, 6, 0, 0],
-                itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#6366f1' }, { offset: 1, color: '#a5b4fc' }] } }
-            },
-            {
-                name: prevLabel,
-                data: prevEnrollData, type: 'bar', barMaxWidth: '30%', borderRadius: [6, 6, 0, 0],
-                itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fcd34d' }] } }
-            }
-        ]
-        });
+            echarts.init(document.getElementById('grossChart'))
+                .setOption(lineChartOption(revenueData, prevRevenueData, '#10b981', '#6ee7b7'));
+
+            echarts.init(document.getElementById('netChart'))
+                .setOption(lineChartOption(netData, prevRevenueData.map(v => v * 0.3), '#6366f1', '#a5b4fc'));
+
+            echarts.init(document.getElementById('instructorEarningsChart'))
+                .setOption(lineChartOption(instructorData, prevRevenueData.map(v => v * 0.7), '#f59e0b', '#fcd34d'));
+
+                    echarts.init(document.getElementById('enrollmentChart')).setOption({
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1,
+                    textStyle: { color: '#3f3f46', fontSize: 12 },
+                    formatter: function(params) {
+                        let res = `<div style="font-weight:bold;margin-bottom:4px">${params[0].axisValueLabel}</div>`;
+                        params.forEach(p => {
+                            res += `<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:4px"></span>${p.seriesName}: <b>${p.value} enrollments</b></div>`;
+                        });
+                        return res;
+                    }
+                },
+                legend: { data: [currentLabel, prevLabel], top: 0, right: 0, textStyle: { fontSize: 10, color: '#a1a1aa' } },
+                grid: { left: 12, right: 12, top: 28, bottom: 6, containLabel: true },
+                xAxis: {
+                    type: 'category', data: months,
+                    axisLine: { lineStyle: { color: '#e4e4e7' } },
+                    axisLabel: { color: '#a1a1aa', fontSize: 10, interval: 0, rotate: 30 },
+                    splitLine: { show: false }
+                },
+                yAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#a1a1aa', fontSize: 10 }, splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } }, axisLine: { show: false } },
+                series: [
+                    {
+                        name: currentLabel,
+                        data: enrollData, type: 'bar', barMaxWidth: '30%', borderRadius: [6, 6, 0, 0],
+                        itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#6366f1' }, { offset: 1, color: '#a5b4fc' }] } }
+                    },
+                    {
+                        name: prevLabel,
+                        data: prevEnrollData, type: 'bar', barMaxWidth: '30%', borderRadius: [6, 6, 0, 0],
+                        itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fcd34d' }] } }
+                    }
+                ]
+            });
 
         echarts.init(document.getElementById('roleChart')).setOption({
             tooltip: { trigger: 'item', backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 }, formatter: p => `${p.name}<br/><b>${p.value} users (${p.percent}%)</b>` },
@@ -503,9 +542,9 @@
         });
                 
                window.addEventListener('resize', () => {
-                            ['revenueChart','enrollmentChart','roleChart','topCoursesChart','topInstructorsChart','topCourseRevenueChart','topInstructorEnrollChart','topStudentChart'].forEach(id => {
-            echarts.getInstanceByDom(document.getElementById(id))?.resize();
-        });
+                                        ['grossChart','netChart','instructorEarningsChart','enrollmentChart','roleChart','topCoursesChart','topInstructorsChart','topCourseRevenueChart','topInstructorEnrollChart','topStudentChart'].forEach(id => {
+                echarts.getInstanceByDom(document.getElementById(id))?.resize();
+            });
         });
         window.addEventListener('load', () => {
             setTimeout(() => {
