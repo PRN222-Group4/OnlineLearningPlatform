@@ -14,6 +14,8 @@ using PayOS.Exceptions;
 using PayOS.Models.V2.PaymentRequests;
 using PayOS.Models.Webhooks;
 using System.Security;
+using Microsoft.AspNetCore.SignalR;
+
 
 namespace OnlineLearningPlatform.BusinessObject.Services
 {
@@ -22,12 +24,14 @@ namespace OnlineLearningPlatform.BusinessObject.Services
         private readonly IUnitOfWork _uow;
         private readonly IClaimService _service;
         private readonly AppSettings _appSettings;
+        private readonly IRealtimeNotifier _notifier;
 
-        public PaymentService(IUnitOfWork uow, IClaimService service, AppSettings appSettings)
+        public PaymentService(IUnitOfWork uow, IClaimService service, AppSettings appSettings, IRealtimeNotifier notifier)
         {
             _uow = uow;
             _service = service;
             _appSettings = appSettings;
+            _notifier = notifier;
         }
 
         public async Task<ApiResponse> GetSuccessfulPaymentRecordsAsync()
@@ -213,6 +217,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     _uow.Payments.Update(payment);
 
                     await _uow.CommitAsync();
+                    
                     return;
                 }
 
@@ -290,6 +295,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 _uow.Payments.Update(payment);
 
                 await _uow.CommitAsync();
+                await _notifier.NotifyWalletUpdated(course.CreatedBy.ToString());
             }
             catch
             {
@@ -375,6 +381,8 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
                 _uow.Payments.Update(payment);
                 await _uow.CommitAsync();
+                if (course != null)
+                    await _notifier.NotifyWalletUpdated(course.CreatedBy.ToString());
 
                 return response.SetOk(true);
             }
