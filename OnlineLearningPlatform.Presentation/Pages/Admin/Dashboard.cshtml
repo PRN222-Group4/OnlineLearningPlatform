@@ -302,6 +302,11 @@
     <script>
 
         const topStudentNames    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopStudentNames));
+        const topCourseCreatorEmails        = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopCourseCreatorEmails));
+        const topCourseRevenueCreatorEmails = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopCourseRevenueCreatorEmails));
+        const topInstructorEmails           = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorEmails));
+        const topInstructorEnrollEmails     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorEnrollEmails));
+        const topStudentEmails              = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopStudentEmails));
         const topStudentSpending = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopStudentSpending));
         const topInstructorEnrollNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorEnrollNames));
         const topInstructorEnrollData  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorEnrollData));
@@ -436,7 +441,9 @@
         });
 
         echarts.init(document.getElementById('topCoursesChart')).setOption({
-            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 }, formatter: p => `${p[0].name}<br/><b>${p[0].value} enrollments</b>` },
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 }, formatter: p => `<b>${p[0].name}</b><br/>
+        ${topCourseCreatorEmails[p[0].dataIndex] ? '📧 ' + topCourseCreatorEmails[p[0].dataIndex] + '<br/>' : ''}
+        <b>${p[0].value} enrollments</b>` },
             grid: { left: 12, right: 36, top: 8, bottom: 8, containLabel: true },
             xAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#a1a1aa', fontSize: 11 }, splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } }, axisLine: { show: false } },
             yAxis: { type: 'category', data: topTitles, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
@@ -449,7 +456,10 @@
 
                         echarts.init(document.getElementById('topInstructorsChart')).setOption({
             tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 },
-                formatter: p => `${p[0].name}<br/><b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>` },
+                       formatter: p => `<b>${p[0].name}</b><br/>
+           ${topInstructorEmails[p[0].dataIndex] ? '📧 ' + topInstructorEmails[p[0].dataIndex] + '<br/>' : ''}
+           <b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>`
+        },
             grid: { left: 12, right: 80, top: 8, bottom: 8, containLabel: true },
             xAxis: { type: 'value', show: false },
             yAxis: { type: 'category', data: topInstructorNames, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
@@ -463,7 +473,10 @@
 
                 echarts.init(document.getElementById('topCourseRevenueChart')).setOption({
             tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 },
-                formatter: p => `${p[0].name}<br/><b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>` },
+                       formatter: p => `<b>${p[0].name}</b><br/>
+           ${topCourseRevenueCreatorEmails[p[0].dataIndex] ? '📧 ' + topCourseRevenueCreatorEmails[p[0].dataIndex] + '<br/>' : ''}
+           <b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>`
+        },
             grid: { left: 12, right: 80, top: 8, bottom: 8, containLabel: true },
             xAxis: { type: 'value', show: false },
             yAxis: { type: 'category', data: topCourseRevTitles, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
@@ -476,7 +489,9 @@
         });
                 echarts.init(document.getElementById('topInstructorEnrollChart')).setOption({
             tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 },
-                formatter: p => `${p[0].name}<br/><b>${p[0].value} students</b>` },
+                    formatter: p => `<b>${p[0].name}</b><br/>
+        ${topInstructorEnrollEmails[p[0].dataIndex] ? '📧 ' + topInstructorEnrollEmails[p[0].dataIndex] + '<br/>' : ''}
+        <b>${p[0].value} students</b>` },
             grid: { left: 12, right: 36, top: 8, bottom: 8, containLabel: true },
             xAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#a1a1aa', fontSize: 11 }, splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } }, axisLine: { show: false } },
             yAxis: { type: 'category', data: topInstructorEnrollNames, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
@@ -499,7 +514,9 @@
         });
                 echarts.init(document.getElementById('topStudentChart')).setOption({
             tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 },
-                formatter: p => `${p[0].name}<br/><b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>` },
+                    formatter: p => `<b>${p[0].name}</b><br/>
+        ${topStudentEmails[p[0].dataIndex] ? '📧 ' + topStudentEmails[p[0].dataIndex] + '<br/>' : ''}
+        <b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>` },
             grid: { left: 12, right: 80, top: 8, bottom: 8, containLabel: true },
             xAxis: { type: 'value', show: false },
             yAxis: { type: 'category', data: topStudentNames, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },

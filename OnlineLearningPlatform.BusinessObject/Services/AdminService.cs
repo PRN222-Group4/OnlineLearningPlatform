@@ -254,9 +254,11 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 var course = allCourses.FirstOrDefault(c => c.CourseId == item.CourseId);
                 if (course == null) continue;
+                var creator = users.FirstOrDefault(u => u.UserId == course.CreatedBy);
                 var title = course.Title.Length > 25 ? course.Title[..25] + "..." : course.Title;
                 response.TopCourseTitles.Add(title);
                 response.TopCourseEnrolls.Add(item.Count);
+                response.TopCourseCreatorEmails.Add(creator?.Email ?? "");
             }
 
             // ── Top 5 courses by revenue (filtered by period) ──
@@ -270,9 +272,11 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             {
                 var course = allCourses.FirstOrDefault(c => c.CourseId == item.CourseId);
                 if (course == null) continue;
+                var creator = users.FirstOrDefault(u => u.UserId == course.CreatedBy);
                 var title = course.Title.Length > 25 ? course.Title[..25] + "..." : course.Title;
                 response.TopCourseRevenueTitle.Add(title);
                 response.TopCourseRevenueData.Add(item.Revenue);
+                response.TopCourseRevenueCreatorEmails.Add(creator?.Email ?? "");
             }
 
             // ── Top 5 instructors by revenue (filtered by period) ──
@@ -292,6 +296,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 if (instructor == null) continue;
                 response.TopInstructorNames.Add(instructor.FullName);
                 response.TopInstructorRevenue.Add(item.Revenue);
+                response.TopInstructorEmails.Add(instructor.Email);
             }
 
             // ── Top 5 instructors by enrollment (filtered by period) ──
@@ -310,6 +315,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 if (instructor == null) continue;
                 response.TopInstructorEnrollNames.Add(instructor.FullName);
                 response.TopInstructorEnrollData.Add(item.Count);
+                response.TopInstructorEnrollEmails.Add(instructor.Email);
             }
 
             // ── User growth theo thời gian ──
@@ -385,6 +391,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 if (student == null) continue;
                 response.TopStudentNames.Add(student.FullName);
                 response.TopStudentSpending.Add(item.Total);
+                response.TopStudentEmails.Add(student.Email);
             }
 
 

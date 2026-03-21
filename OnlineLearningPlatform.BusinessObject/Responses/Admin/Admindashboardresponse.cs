@@ -49,5 +49,10 @@ namespace OnlineLearningPlatform.BusinessObject.Responses.Admin
         public List<int> PrevUserGrowthData { get; set; } = new();
         public List<string> TopStudentNames { get; set; } = new();
         public List<decimal> TopStudentSpending { get; set; } = new();
+        public List<string> TopCourseCreatorEmails { get; set; } = new();
+        public List<string> TopCourseRevenueCreatorEmails { get; set; } = new();
+        public List<string> TopInstructorEmails { get; set; } = new();
+        public List<string> TopInstructorEnrollEmails { get; set; } = new();
+        public List<string> TopStudentEmails { get; set; } = new();
     }
 }
