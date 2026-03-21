@@ -131,8 +131,11 @@
                 <i class="fas fa-receipt text-zinc-500 text-sm"></i>
             </div>
             <h2 class="text-base font-semibold text-zinc-900">Recent Payments</h2>
+            <span id="liveBadge" class="hidden inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> LIVE
+            </span>
         </div>
-        <span class="text-xs text-zinc-400 font-medium">
+        <span class="text-xs text-zinc-400 font-medium" id="paymentCount">
             @(Model.RecentPayments?.Count ?? 0) records
         </span>
     </div>
@@ -149,7 +152,7 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Course</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Amount</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Dates</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Paid At</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100">
@@ -204,9 +207,8 @@
                                 }
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-[11px] text-zinc-500 leading-5">
-                                <div>Created: @p.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
-                                <div>Paid: @(p.PaidAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
-                                <div>Expired: @(p.ExpiredAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                                <div class="font-medium">@(p.PaidAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                                <div class="text-zinc-400">Order #@p.OrderCode.ToString()[^6..]</div>
                             </td>
                         </tr>
                     }
@@ -266,7 +268,11 @@
             }
         }
 
-        function prependPaymentRow(data) {
+                function prependPaymentRow(data) {
+            // Nếu chưa có tbody (no payments state), reload để tạo table
+            const emptyState = document.querySelector('.px-6.py-12');
+            if (emptyState) { location.reload(); return; }
+
             const tbody = document.querySelector('tbody');
             if (!tbody) return;
 
@@ -275,10 +281,12 @@
                 + ' ' + now.toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
 
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-zinc-50 transition-colors duration-150 bg-emerald-50';
+            tr.className = 'hover:bg-zinc-50 transition-all duration-500 bg-emerald-50 border-l-4 border-emerald-400';
             tr.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500">
-                    <div class="text-xs font-semibold text-zinc-700">NEW</div>
+                    <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> NEW
+                    </div>
                     <div class="text-[11px] text-zinc-400">Just now</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -292,9 +300,9 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-700">${data.courseTitle ?? '—'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-700">${data.courseTitle ?? '—'}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="text-sm font-semibold text-emerald-600">+${Number(data.amount).toLocaleString('vi-VN')} ₫</span>
+                    <span class="text-sm font-bold text-emerald-600">+${Number(data.amount).toLocaleString('vi-VN')} ₫</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
@@ -302,8 +310,8 @@
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-[11px] text-zinc-500 leading-5">
-                    <div>Created: ${timeStr}</div>
-                    <div>Paid: ${timeStr}</div>
+                    <div class="font-medium">${timeStr}</div>
+                    <div class="text-zinc-400">Just paid</div>
                 </td>`;
 
             tbody.insertBefore(tr, tbody.firstChild);
@@ -312,8 +320,17 @@
             const rows = tbody.querySelectorAll('tr');
             if (rows.length > 10) rows[rows.length - 1].remove();
 
-            // Fade out highlight sau 4s
-            setTimeout(() => tr.classList.remove('bg-emerald-50'), 4000);
+            // Update count
+            const countEl = document.getElementById('paymentCount');
+            if (countEl) countEl.textContent = `${rows.length} records`;
+
+            // Show live badge
+            document.getElementById('liveBadge')?.classList.remove('hidden');
+
+            // Fade out highlight sau 5s
+            setTimeout(() => {
+                tr.classList.remove('bg-emerald-50', 'border-l-4', 'border-emerald-400');
+            }, 5000);
         }
 
         function showToast(message, color) {
