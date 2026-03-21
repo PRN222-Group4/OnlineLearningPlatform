@@ -590,7 +590,7 @@
         });
                 const signalRScript = document.createElement('script');
         signalRScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js';
-        signalRScript.onload = () => {
+                signalRScript.onload = () => {
             const conn = new signalR.HubConnectionBuilder()
                 .withUrl("/realtimeHub")
                 .withAutomaticReconnect()
@@ -604,8 +604,9 @@
                 showDashToast(`📚 New course pending: "${data.title}"`, 'amber');
             });
 
-            conn.on("CourseStatusChanged", (data) => {
-                showDashToast(data.isApproved ? '✅ Course approved!' : '❌ Course rejected', data.isApproved ? 'emerald' : 'rose');
+            conn.on("WalletUpdated", () => {
+                showDashToast('💰 New enrollment! Dashboard is updating...', 'emerald');
+                setTimeout(() => location.reload(), 2000);
             });
         };
         document.head.appendChild(signalRScript);

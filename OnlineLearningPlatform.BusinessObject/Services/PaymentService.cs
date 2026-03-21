@@ -295,7 +295,13 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 _uow.Payments.Update(payment);
 
                 await _uow.CommitAsync();
-                await _notifier.NotifyWalletUpdated(course.CreatedBy.ToString());
+                var studentUser = await _uow.Users.GetAsync(u => u.UserId == payment.UserId);
+                await _notifier.NotifyWalletUpdated(
+                    course.CreatedBy.ToString(),
+                    studentUser?.Email ?? "",
+                    course.Title,
+                    payment.Amount
+                );
             }
             catch
             {
@@ -382,7 +388,15 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 _uow.Payments.Update(payment);
                 await _uow.CommitAsync();
                 if (course != null)
-                    await _notifier.NotifyWalletUpdated(course.CreatedBy.ToString());
+                {
+                    var studentUser2 = await _uow.Users.GetAsync(u => u.UserId == payment.UserId);
+                    await _notifier.NotifyWalletUpdated(
+                        course.CreatedBy.ToString(),
+                        studentUser2?.Email ?? "",
+                        course.Title,
+                        payment.Amount
+                    );
+                }
 
                 return response.SetOk(true);
             }

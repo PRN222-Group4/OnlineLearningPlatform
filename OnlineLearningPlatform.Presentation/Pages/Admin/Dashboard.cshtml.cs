@@ -21,6 +21,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
         }
 
         public AdminDashboardResponse Data { get; set; } = new();
+
         public CashflowReportResponse Financials { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]

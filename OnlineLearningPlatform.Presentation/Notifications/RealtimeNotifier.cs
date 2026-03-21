@@ -13,10 +13,12 @@ namespace OnlineLearningPlatform.Presentation.Notifications
             _hubContext = hubContext;
         }
 
-        public async Task NotifyWalletUpdated(string userId)
+        public async Task NotifyWalletUpdated(string userId, string studentEmail = "", string courseTitle = "", decimal amount = 0)
         {
-            await _hubContext.Clients.Group($"wallet_{userId}").SendAsync("WalletUpdated");
-            Console.WriteLine($"=== WalletUpdated sent to wallet_{userId}");
+            var data = new { studentEmail, courseTitle, amount };
+            await _hubContext.Clients.Group($"wallet_{userId}").SendAsync("WalletUpdated", data);
+            await _hubContext.Clients.Group("admins").SendAsync("WalletUpdated", data);
+            Console.WriteLine($"=== WalletUpdated sent to wallet_{userId} and admins | {studentEmail} | {courseTitle} | {amount}");
         }
     }
 }

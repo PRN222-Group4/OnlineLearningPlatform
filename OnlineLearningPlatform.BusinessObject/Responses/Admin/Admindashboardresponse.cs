@@ -31,6 +31,8 @@ namespace OnlineLearningPlatform.BusinessObject.Responses.Admin
         // Top 5 courses by enrollments
         public List<string> TopCourseTitles { get; set; } = new();
         public List<int> TopCourseEnrolls { get; set; } = new();
+        public List<RecentPaymentItem> RecentPayments { get; set; } = new();
+
 
         // Top 5 courses by revenue
         public List<string> TopCourseRevenueTitle { get; set; } = new();
@@ -54,5 +56,12 @@ namespace OnlineLearningPlatform.BusinessObject.Responses.Admin
         public List<string> TopInstructorEmails { get; set; } = new();
         public List<string> TopInstructorEnrollEmails { get; set; } = new();
         public List<string> TopStudentEmails { get; set; } = new();
+        public class RecentPaymentItem
+        {
+            public string StudentEmail { get; set; } = "";
+            public string CourseTitle { get; set; } = "";
+            public decimal Amount { get; set; }
+            public DateTime PaidAt { get; set; }
+        }
     }
 }

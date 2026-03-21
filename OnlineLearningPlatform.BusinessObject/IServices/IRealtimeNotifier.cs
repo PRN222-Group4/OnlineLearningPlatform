@@ -8,6 +8,6 @@ namespace OnlineLearningPlatform.BusinessObject.IServices
 {
     public interface IRealtimeNotifier
     {
-        Task NotifyWalletUpdated(string userId);
+        Task NotifyWalletUpdated(string userId, string studentEmail = "", string courseTitle = "", decimal amount = 0);
     }
 }
