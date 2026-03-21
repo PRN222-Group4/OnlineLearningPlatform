@@ -74,16 +74,78 @@
                     Dashboard
                 </a>
 
-                <a asp-page="/Admin/Dashboard"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                      @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Dashboard") == true
-                                           ? "bg-zinc-100 text-zinc-900"
-                                           : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
-                    <i class="fas fa-chart-bar w-4 text-center
-                          @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Dashboard") == true
-                                               ? "text-zinc-900" : "text-zinc-400")"></i>
-                    Analytics
-                </a>
+                @{
+                    var isAnalytics = ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Dashboard") == true;
+                }
+                <div x-data="{ analyticsOpen: @(isAnalytics ? "true" : "false"), activeSection: '' }"
+                     x-init="
+                     if ( @(isAnalytics ? "true" : "false")) {
+                     const observer=new IntersectionObserver((entries)=>
+                    {
+                    entries.forEach(e => {
+                    if (e.isIntersecting) activeSection = e.target.id;
+                    });
+                    }, { threshold: 0.3 });
+                    ['section-revenue','section-financials','section-courses','section-instructors','section-users'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) observer.observe(el);
+                    });
+                    }
+                    ">
+                    <!-- Analytics main link -->
+                    <button @@click ="analyticsOpen = !analyticsOpen"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                   @(isAnalytics ? "bg-zinc-100 text-zinc-900" : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900")">
+                        <i class="fas fa-chart-bar w-4 text-center @(isAnalytics ? "text-zinc-900" : "text-zinc-400")"></i>
+                        <span class="flex-1 text-left">Analytics</span>
+                        <i class="fas fa-chevron-down text-[10px] text-zinc-400 transition-transform duration-200"
+                           :class="analyticsOpen ? 'rotate-180' : ''"></i>
+                    </button>
+
+                    <!-- Sub-items -->
+                    <div x-show="analyticsOpen" x-cloak class="ml-4 mt-0.5 space-y-0.5 border-l-2 border-zinc-100 pl-3">
+                        <a href="/Admin/Dashboard#section-revenue"
+                           class="flex items-center gap-2 px-2 py-2 rounded-lg text-xs font-medium transition-colors"
+                           :class="activeSection === 'section-revenue'
+               ? 'text-emerald-700 bg-emerald-50 font-bold'
+               : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                            Revenue & Enrollments
+                        </a>
+                        <a href="/Admin/Dashboard#section-financials"
+                           class="flex items-center gap-2 px-2 py-2 rounded-lg text-xs font-medium transition-colors"
+                           :class="activeSection === 'section-financials'
+               ? 'text-indigo-700 bg-indigo-50 font-bold'
+               : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                            Platform Financials
+                        </a>
+                        <a href="/Admin/Dashboard#section-courses"
+                           class="flex items-center gap-2 px-2 py-2 rounded-lg text-xs font-medium transition-colors"
+                           :class="activeSection === 'section-courses'
+               ? 'text-amber-700 bg-amber-50 font-bold'
+               : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                            Courses
+                        </a>
+                        <a href="/Admin/Dashboard#section-instructors"
+                           class="flex items-center gap-2 px-2 py-2 rounded-lg text-xs font-medium transition-colors"
+                           :class="activeSection === 'section-instructors'
+               ? 'text-purple-700 bg-purple-50 font-bold'
+               : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
+                            Instructors
+                        </a>
+                        <a href="/Admin/Dashboard#section-users"
+                           class="flex items-center gap-2 px-2 py-2 rounded-lg text-xs font-medium transition-colors"
+                           :class="activeSection === 'section-users'
+               ? 'text-rose-700 bg-rose-50 font-bold'
+               : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                            Users
+                        </a>
+                    </div>
+                </div>
 
                 <p class="px-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 mt-5">Management</p>
 
