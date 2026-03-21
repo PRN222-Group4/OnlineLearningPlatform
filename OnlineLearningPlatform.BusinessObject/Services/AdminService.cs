@@ -313,11 +313,19 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             }
 
             // ── User growth theo thời gian ──
-            var allUsersInPeriod = await _uow.Users.GetAllAsync(u =>
-                !u.IsDeleted && u.CreatedAt >= start && u.CreatedAt <= end);
-            var prevUsersInPeriod = await _uow.Users.GetAllAsync(u =>
-                !u.IsDeleted && u.CreatedAt >= prevStart && u.CreatedAt <= prevEnd);
+            var allUsersRaw = await _uow.Users.GetAllAsync(u => !u.IsDeleted);
 
+            // Convert start/end sang local để so sánh đúng timezone
+            var startLocal = start.ToLocalTime();
+            var endLocal = end.ToLocalTime();
+            var prevStartLocal = prevStart.ToLocalTime();
+            var prevEndLocal = prevEnd.ToLocalTime();
+
+            var allUsersInPeriod = allUsersRaw
+                .Where(u => u.CreatedAt >= startLocal && u.CreatedAt <= endLocal).ToList();
+            var prevUsersInPeriod = allUsersRaw
+                .Where(u => u.CreatedAt >= prevStartLocal && u.CreatedAt <= prevEndLocal).ToList();
+            Console.WriteLine($"=== DEBUG: allUsersInPeriod={allUsersInPeriod.Count}, prevUsersInPeriod={prevUsersInPeriod.Count}");
             response.UserGrowthLabels = labels;
 
             if (totalDays <= 1)
@@ -365,6 +373,8 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     response.PrevUserGrowthData = slots2.Select(w => prevUsersInPeriod.Count(u => u.CreatedAt >= w.from.AddYears(-1) && u.CreatedAt < w.to.AddYears(-1))).ToList();
                 }
             }
+            Console.WriteLine($"=== DEBUG: UserGrowthData={string.Join(",", response.UserGrowthData)}");
+
 
             return response;
         }
