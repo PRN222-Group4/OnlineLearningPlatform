@@ -66,6 +66,71 @@
             </p>
         </div>
     </div>
+    <!-- Filter -->
+    <form method="get" class="flex flex-wrap items-center gap-2 mb-6">
+        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2">
+            <i class="fas fa-calendar text-slate-400 text-xs"></i>
+            <input type="date" name="FromDate" value="@Model.FromDate"
+                   class="text-sm text-slate-700 outline-none bg-transparent w-32" />
+            <span class="text-slate-300 text-xs">→</span>
+            <input type="date" name="ToDate" value="@Model.ToDate"
+                   class="text-sm text-slate-700 outline-none bg-transparent w-32" />
+        </div>
+        <button type="submit"
+                class="px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-primary-600 transition-colors flex items-center gap-2">
+            <i class="fas fa-filter text-xs"></i> Apply
+        </button>
+        <a asp-page="/Teacher/Wallet/Index"
+           class="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2">
+            <i class="fas fa-undo text-xs"></i> Reset
+        </a>
+        @if (!string.IsNullOrEmpty(Model.FromDate) && !string.IsNullOrEmpty(Model.ToDate))
+        {
+            <span class="text-xs text-primary-600 font-bold bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-100">
+                <i class="fas fa-calendar-check mr-1"></i>
+                @DateTime.Parse(Model.FromDate).ToString("dd/MM/yyyy") → @DateTime.Parse(Model.ToDate).ToString("dd/MM/yyyy")
+            </span>
+        }
+    </form>
+
+    <!-- Chart 1: Revenue + Gross + Enrollments -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+            <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-chart-line text-emerald-600 text-sm"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-slate-900">Performance Over Time</h3>
+                <p class="text-xs text-slate-500">Revenue (70%), Gross & Enrollments</p>
+            </div>
+        </div>
+        <div class="p-6">
+            <div id="performanceChart" style="height: 320px; width: 100%;"></div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Top Courses -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+            <div class="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-trophy text-amber-600 text-sm"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-slate-900">Top Courses</h3>
+                <p class="text-xs text-slate-500">By enrollments — selected period</p>
+            </div>
+        </div>
+        <div class="p-6">
+            @if (Model.TopCourses.Any())
+            {
+                <div id="topCoursesChart" style="height: 260px; width: 100%;"></div>
+            }
+            else
+            {
+                <div class="py-10 text-center text-slate-400 text-sm">No data for selected period</div>
+            }
+        </div>
+    </div>
 
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -116,3 +181,115 @@
         }
     </div>
 </div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script>
+        const labels       = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartLabels));
+        const revenueData  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueData));
+        const grossData    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GrossData));
+        const enrollData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.EnrollData));
+
+        const topTitles    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCourses.Select(x => x.Title).ToList()));
+        const topEnrolls   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCourses.Select(x => x.Enrollments).ToList()));
+        const topRevenue   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopCourses.Select(x => x.Revenue).ToList()));
+
+        // Performance chart (dual axis)
+        echarts.init(document.getElementById('performanceChart')).setOption({
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: '#fff', borderColor: '#e2e8f0', borderWidth: 1,
+                textStyle: { color: '#1e293b', fontSize: 12 },
+                formatter: function(params) {
+                    let res = `<div style="font-weight:bold;margin-bottom:4px">${params[0].name}</div>`;
+                    params.forEach(p => {
+                        const val = p.seriesName === 'Enrollments'
+                            ? `${p.value} enrollments`
+                            : `${Number(p.value).toLocaleString('vi-VN')} ₫`;
+                        res += `<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:4px"></span>${p.seriesName}: <b>${val}</b></div>`;
+                    });
+                    return res;
+                }
+            },
+            legend: { data: ['My Revenue (70%)', 'Gross Revenue', 'Enrollments'], top: 0, textStyle: { fontSize: 11, color: '#94a3b8' } },
+            grid: { left: 12, right: 60, top: 36, bottom: 6, containLabel: true },
+            xAxis: {
+                type: 'category', data: labels,
+                axisLine: { lineStyle: { color: '#e2e8f0' } },
+                axisLabel: { color: '#94a3b8', fontSize: 10, rotate: 30, interval: 0 },
+                splitLine: { show: false }
+            },
+            yAxis: [
+                {
+                    type: 'value', name: '₫',
+                    axisLabel: { color: '#94a3b8', fontSize: 10, formatter: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v },
+                    splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' } },
+                    axisLine: { show: false }
+                },
+                {
+                    type: 'value', name: 'Enrollments', position: 'right',
+                    axisLabel: { color: '#94a3b8', fontSize: 10 },
+                    splitLine: { show: false },
+                    axisLine: { show: false },
+                    minInterval: 1
+                }
+            ],
+            series: [
+                {
+                    name: 'My Revenue (70%)', data: revenueData, type: 'line', smooth: true,
+                    yAxisIndex: 0, symbol: 'circle', symbolSize: 6,
+                    lineStyle: { color: '#10b981', width: 3 },
+                    itemStyle: { color: '#10b981', borderColor: '#fff', borderWidth: 2 },
+                    areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#10b98133' }, { offset: 1, color: '#10b98100' }] } }
+                },
+                {
+                    name: 'Gross Revenue', data: grossData, type: 'line', smooth: true,
+                    yAxisIndex: 0, symbol: 'circle', symbolSize: 5,
+                    lineStyle: { color: '#6366f1', width: 2, type: 'dashed' },
+                    itemStyle: { color: '#6366f1', borderColor: '#fff', borderWidth: 2 }
+                },
+                {
+                    name: 'Enrollments', data: enrollData, type: 'bar',
+                    yAxisIndex: 1, barMaxWidth: 20, borderRadius: [4, 4, 0, 0],
+                    itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fcd34d' }] } }
+                }
+            ]
+        });
+
+        // Top courses chart
+        if (document.getElementById('topCoursesChart')) {
+            echarts.init(document.getElementById('topCoursesChart')).setOption({
+                tooltip: {
+                    trigger: 'axis', axisPointer: { type: 'shadow' },
+                    backgroundColor: '#fff', borderColor: '#e2e8f0', borderWidth: 1,
+                    textStyle: { color: '#1e293b', fontSize: 12 },
+                    formatter: function(params) {
+                        const i = params[0].dataIndex;
+                        return `<b>${params[0].name}</b><br/>
+                            Enrollments: <b>${topEnrolls[i]}</b><br/>
+                            Revenue: <b>${Number(topRevenue[i]).toLocaleString('vi-VN')} ₫</b>`;
+                    }
+                },
+                grid: { left: 12, right: 80, top: 8, bottom: 8, containLabel: true },
+                xAxis: { type: 'value', show: false },
+                yAxis: {
+                    type: 'category', data: topTitles,
+                    axisLabel: { color: '#475569', fontSize: 11, width: 140, overflow: 'truncate' },
+                    axisLine: { show: false }, axisTick: { show: false }
+                },
+                series: [{
+                    data: topEnrolls, type: 'bar', barMaxWidth: 28, barCategoryGap: '40%', borderRadius: [0, 6, 6, 0],
+                    itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fcd34d' }] } },
+                    label: { show: true, position: 'right', color: '#475569', fontSize: 11,
+                        formatter: p => `${p.value} enrolls` }
+                }]
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            ['performanceChart', 'topCoursesChart'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) echarts.getInstanceByDom(el)?.resize();
+            });
+        });
+    </script>
+}

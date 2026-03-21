@@ -36,16 +36,27 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             try
             {
                 var paymentList = await _uow.Payments.GetAllAsync(p => p.Status == 1 && p.PaidAt != null);
-                var result = paymentList.Select(p => new PaymentRecord
-                {
-                    PaymentId = p.PaymentId,
-                    OrderCode = p.OrderCode,
-                    PaidAt = p.PaidAt,
-                    Amount = p.Amount,
-                    Status = p.Status,
-                    CreatedAt = p.CreatedAt,
-                    ExpiredAt = p.ExpiredAt
+
+                // Lấy tất cả courseIds để lookup
+                var courseIds = paymentList.Where(p => p.CourseId.HasValue)
+                    .Select(p => p.CourseId!.Value).Distinct().ToList();
+                var courses = await _uow.Courses.GetAllAsync(c => courseIds.Contains(c.CourseId));
+
+                var result = paymentList.Select(p => {
+                    var course = courses.FirstOrDefault(c => c.CourseId == p.CourseId);
+                    return new PaymentRecord
+                    {
+                        PaymentId = p.PaymentId,
+                        OrderCode = p.OrderCode,
+                        PaidAt = p.PaidAt,
+                        Amount = p.Amount,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt,
+                        ExpiredAt = p.ExpiredAt,
+                        CourseTitle = course?.Title
+                    };
                 }).ToList();
+
                 return response.SetOk(result);
             }
             catch (Exception ex)
