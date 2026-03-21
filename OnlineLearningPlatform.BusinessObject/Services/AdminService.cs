@@ -374,6 +374,18 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 }
             }
             Console.WriteLine($"=== DEBUG: UserGrowthData={string.Join(",", response.UserGrowthData)}");
+            var top5Students = allPayments
+    .GroupBy(p => p.UserId)
+    .Select(g => new { UserId = g.Key, Total = g.Sum(p => p.Amount) })
+    .OrderByDescending(x => x.Total).Take(5).ToList();
+
+            foreach (var item in top5Students)
+            {
+                var student = users.FirstOrDefault(u => u.UserId == item.UserId);
+                if (student == null) continue;
+                response.TopStudentNames.Add(student.FullName);
+                response.TopStudentSpending.Add(item.Total);
+            }
 
 
             return response;

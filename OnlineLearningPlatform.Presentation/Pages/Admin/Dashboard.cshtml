@@ -285,15 +285,15 @@
 
     <div class="bg-white rounded-xl border border-zinc-200 p-6 overflow-hidden">
         <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-user-plus text-rose-600 text-sm"></i>
+            <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-fire text-orange-600 text-sm"></i>
             </div>
             <div>
-                <h3 class="text-sm font-semibold text-zinc-900">User Growth</h3>
-                <p class="text-xs text-zinc-400">New registrations vs same period last year</p>
+                <h3 class="text-sm font-semibold text-zinc-900">Top Students by Spending</h3>
+                <p class="text-xs text-zinc-400">Highest spenders — selected period</p>
             </div>
         </div>
-        <div id="userGrowthChart" style="height: 260px; width: 100%;"></div>
+        <div id="topStudentChart" style="height: 260px; width: 100%;"></div>
     </div>
 </div>
 
@@ -301,8 +301,8 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <script>
 
-        const userGrowthData     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.UserGrowthData));
-        const prevUserGrowthData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.PrevUserGrowthData));
+        const topStudentNames    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopStudentNames));
+        const topStudentSpending = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopStudentSpending));
         const topInstructorEnrollNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorEnrollNames));
         const topInstructorEnrollData  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TopInstructorEnrollData));
         const prevRevenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.PrevRevenueData));
@@ -486,43 +486,9 @@
                 label: { show: true, position: 'right', color: '#52525b', fontSize: 11, formatter: '{c}' }
             }]
         });
-                echarts.init(document.getElementById('userGrowthChart')).setOption({
-            tooltip: {
-                trigger: 'axis',
-                backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1,
-                textStyle: { color: '#3f3f46', fontSize: 12 },
-                formatter: function(params) {
-                    let res = `<div style="font-weight:bold;margin-bottom:4px">${params[0].name}</div>`;
-                    params.forEach(p => {
-                        res += `<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:4px"></span>${p.seriesName}: <b>${p.value}</b></div>`;
-                    });
-                    return res;
-                }
-            },
-            legend: { data: [currentLabel, prevLabel], top: 0, right: 0, textStyle: { fontSize: 10, color: '#a1a1aa' } },
-            grid: { left: 12, right: 12, top: 24, bottom: 6, containLabel: true },
-            xAxis: {
-                type: 'category', data: months,
-                axisLine: { lineStyle: { color: '#e4e4e7' } },
-                axisLabel: { color: '#a1a1aa', fontSize: 10, interval: 0, rotate: 30 },
-                splitLine: { show: false }
-            },
-            yAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#a1a1aa', fontSize: 10 }, splitLine: { lineStyle: { color: '#f4f4f5', type: 'dashed' } }, axisLine: { show: false } },
-            series: [
-                {
-                    name: currentLabel,
-                    data: userGrowthData, type: 'bar', barMaxWidth: '35%', borderRadius: [4, 4, 0, 0],
-                    itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#f43f5e' }, { offset: 1, color: '#fda4af' }] } }
-                },
-                {
-                    name: prevLabel,
-                    data: prevUserGrowthData, type: 'bar', barMaxWidth: '35%', borderRadius: [4, 4, 0, 0],
-                    itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#94a3b8' }, { offset: 1, color: '#cbd5e1' }] } }
-                }
-            ]
-        });
+                
                window.addEventListener('resize', () => {
-                            ['revenueChart','enrollmentChart','roleChart','topCoursesChart','topInstructorsChart','topCourseRevenueChart','topInstructorEnrollChart','userGrowthChart'].forEach(id => {
+                            ['revenueChart','enrollmentChart','roleChart','topCoursesChart','topInstructorsChart','topCourseRevenueChart','topInstructorEnrollChart','topStudentChart'].forEach(id => {
             echarts.getInstanceByDom(document.getElementById(id))?.resize();
         });
         });
@@ -530,6 +496,19 @@
             setTimeout(() => {
                 window.dispatchEvent(new Event('resize'));
             }, 300);
+        });
+                echarts.init(document.getElementById('topStudentChart')).setOption({
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, textStyle: { color: '#3f3f46', fontSize: 12 },
+                formatter: p => `${p[0].name}<br/><b>${Number(p[0].value).toLocaleString('vi-VN')} ₫</b>` },
+            grid: { left: 12, right: 80, top: 8, bottom: 8, containLabel: true },
+            xAxis: { type: 'value', show: false },
+            yAxis: { type: 'category', data: topStudentNames, axisLabel: { color: '#52525b', fontSize: 11, width: 120, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
+            series: [{
+                data: topStudentSpending, type: 'bar', barMaxWidth: 28, barCategoryGap: '40%', borderRadius: [0, 6, 6, 0],
+                itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f97316' }, { offset: 1, color: '#fb923c' }] } },
+                label: { show: true, position: 'right', color: '#52525b', fontSize: 11,
+                    formatter: p => Number(p.value) >= 1000000 ? (Number(p.value)/1000000).toFixed(1)+'M ₫' : Number(p.value) >= 1000 ? (Number(p.value)/1000).toFixed(0)+'K ₫' : p.value+'₫' }
+            }]
         });
                 const signalRScript = document.createElement('script');
         signalRScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js';
