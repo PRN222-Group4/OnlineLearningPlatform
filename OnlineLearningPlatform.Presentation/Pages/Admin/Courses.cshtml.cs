@@ -75,7 +75,6 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
                 return RedirectToPage(new { status = Status });
             }
 
-            // Lấy CreatedBy từ GetAllCourseForAdminAsync
             Guid? instructorId = null;
             var allResp = await _service.GetAllCourseForAdminAsync(-1);
             if (allResp?.IsSuccess == true && allResp.Result is List<GetAllCourseForAdminResponse> allList)
@@ -106,6 +105,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
                 {
                     Console.WriteLine("=== instructorId is NULL! ===");
                 }
+
+                await _hubContext.Clients.All.SendAsync("PublicCourseListChanged");
             }
             else
             {
@@ -126,6 +127,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
                     courseId = id,
                     isApproved = false
                 });
+
+                await _hubContext.Clients.All.SendAsync("PublicCourseListChanged");
             }
             else
             {

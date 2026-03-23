@@ -1,18 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 using OnlineLearningPlatform.BusinessObject.IServices;
 using OnlineLearningPlatform.BusinessObject.Requests.Course;
 using OnlineLearningPlatform.BusinessObject.Responses.Course;
+using OnlineLearningPlatform.Presentation.Hubs;
 
 namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
 {
     public class ReviewModel : PageModel
     {
         private readonly ICourseService _courseService;
+        private readonly IHubContext<RealtimeHub> _hubContext;
 
-        public ReviewModel(ICourseService courseService)
+        public ReviewModel(ICourseService courseService, IHubContext<RealtimeHub> hubContext)
         {
             _courseService = courseService;
+            _hubContext = hubContext;
         }
 
         public CourseEditSummaryResponse Course { get; set; } = new();
@@ -49,15 +53,45 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
             return Page();
         }
 
+        // Hàm phụ trợ lấy ID ông thầy để bắn thông báo
+        private async Task<Guid?> GetInstructorIdAsync(Guid courseId)
+        {
+            var allResp = await _courseService.GetAllCourseForAdminAsync(-1);
+            if (allResp?.IsSuccess == true && allResp.Result is List<GetAllCourseForAdminResponse> allList)
+            {
+                return allList.FirstOrDefault(x => x.CourseId == courseId)?.CreatedBy;
+            }
+            return null;
+        }
+
         public async Task<IActionResult> OnPostApproveAsync(Guid courseId)
         {
+            var instructorId = await GetInstructorIdAsync(courseId);
+
             var request = new ApproveCourseRequest
             {
                 CourseId = courseId,
                 Status = true
             };
             var result = await _courseService.ApproveCourseAsync(request);
-            TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Duyệt khóa học thành công" : (result.ErrorMessage ?? "Duyệt khóa học thất bại");
+
+            if (result.IsSuccess)
+            {
+                TempData["Success"] = "Duyệt khóa học thành công";
+                var payload = new { courseId = courseId, isApproved = true };
+
+                await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", payload);
+                if (instructorId != null)
+                {
+                    await _hubContext.Clients.Group($"wallet_{instructorId}").SendAsync("CourseStatusChanged", payload);
+                }
+                await _hubContext.Clients.All.SendAsync("PublicCourseListChanged");
+            }
+            else
+            {
+                TempData["Error"] = result.ErrorMessage ?? "Duyệt khóa học thất bại";
+            }
+
             return RedirectToPage("/Admin/Courses/Pending");
         }
 
@@ -69,6 +103,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
                 return RedirectToPage(new { courseId });
             }
 
+            var instructorId = await GetInstructorIdAsync(courseId);
+
             var request = new ApproveCourseRequest
             {
                 CourseId = courseId,
@@ -76,7 +112,24 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
                 RejectReason = RejectReason
             };
             var result = await _courseService.ApproveCourseAsync(request);
-            TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Đã từ chối khóa học" : (result.ErrorMessage ?? "Từ chối khóa học thất bại");
+
+            if (result.IsSuccess)
+            {
+                TempData["Success"] = "Đã từ chối khóa học";
+                var payload = new { courseId = courseId, isApproved = false };
+
+                await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", payload);
+                if (instructorId != null)
+                {
+                    await _hubContext.Clients.Group($"wallet_{instructorId}").SendAsync("CourseStatusChanged", payload);
+                }
+                await _hubContext.Clients.All.SendAsync("PublicCourseListChanged");
+            }
+            else
+            {
+                TempData["Error"] = result.ErrorMessage ?? "Từ chối khóa học thất bại";
+            }
+
             return RedirectToPage("/Admin/Courses/Pending");
         }
     }

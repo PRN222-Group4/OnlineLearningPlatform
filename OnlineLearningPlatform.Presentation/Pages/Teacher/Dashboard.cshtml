@@ -221,15 +221,30 @@
     })
     .catch(err => console.error("SignalR error:", err));
 
-    // Khi admin approve/reject course → toast + reload
-    connection.on("CourseStatusChanged", (data) => {
-        if (data.isApproved) {
-            showToast('✅ Your course has been approved!', 'emerald');
-        } else {
-            showToast('❌ Your course was rejected. Please review and resubmit.', 'rose');
-        }
-        setTimeout(() => location.reload(), 2500);
-    });
+            // Thay thế đoạn connection.on cũ bằng đoạn "Chính phái" này:
+        connection.on("CourseStatusChanged", async (data) => {
+            try {
+                const response = await fetch(window.location.href);
+                const htmlText = await response.text();
+                const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+
+                // 1. Cập nhật 4 cục Counter (Total, Published, Pending, Draft)
+                const newCounters = doc.querySelector('.grid.grid-cols-2.lg\\:grid-cols-4.gap-4.mb-8');
+                const oldCounters = document.querySelector('.grid.grid-cols-2.lg\\:grid-cols-4.gap-4.mb-8');
+                if(newCounters && oldCounters) oldCounters.innerHTML = newCounters.innerHTML;
+
+                // 2. Cập nhật Lưới khóa học (Đổi Status Label, Màu sắc thẻ)
+                const newGrid = doc.querySelector('.grid.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-4.gap-6');
+                const oldGrid = document.querySelector('.grid.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-4.gap-6');
+                if(newGrid && oldGrid) {
+                    oldGrid.innerHTML = newGrid.innerHTML;
+                } else {
+                    location.reload(); // Fallback nếu lưới đang trống
+                }
+            } catch(e) {
+                console.error("Lỗi cập nhật DOM:", e);
+            }
+        });
 
     // Khi có payment → toast wallet updated
     connection.on("WalletUpdated", () => {

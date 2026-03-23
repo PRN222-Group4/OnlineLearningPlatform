@@ -162,7 +162,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 // ==========================================
                 using var fileStream = pdfFile.OpenReadStream();
                 var streamContent = new StreamContent(fileStream);
-                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf"); // Nhớ y chang dặn dò của sếp
+                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
 
                 var reqPhase2 = new HttpRequestMessage(HttpMethod.Put, uploadUrl) { Content = streamContent };
                 var resPhase2 = await _httpClient.SendAsync(reqPhase2);
