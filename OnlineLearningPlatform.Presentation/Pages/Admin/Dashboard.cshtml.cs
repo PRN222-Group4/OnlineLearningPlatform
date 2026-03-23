@@ -21,6 +21,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
         }
 
         public AdminDashboardResponse Data { get; set; } = new();
+
         public CashflowReportResponse Financials { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
@@ -32,6 +33,9 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
         [BindProperty(SupportsGet = true)]
         public string? ToDate { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int? Quarter { get; set; }
+
         public string DebugInfo { get; set; } = "";
 
         public async Task OnGetAsync()
@@ -41,7 +45,8 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
                 DateTime? from = null, to = null;
                 if (!string.IsNullOrEmpty(FromDate) && DateTime.TryParse(FromDate, out var fd)) from = fd;
                 if (!string.IsNullOrEmpty(ToDate) && DateTime.TryParse(ToDate, out var td)) to = td;
-                Data = await _adminService.GetDashboardAsync(Year, fromDate: from, toDate: to);
+
+                Data = await _adminService.GetDashboardAsync(Year, fromDate: from, toDate: to, quarter: Quarter);
                 DebugInfo = $"Growth={Data.RevenueGrowth}, Current={Data.RevenueData.Sum()}, Enrolls={Data.EnrollmentGrowth}";
             }
             catch (Exception ex)
@@ -53,9 +58,9 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin
             var finRes = await _walletService.GetCashflowReportAsync();
             if (finRes.IsSuccess && finRes.Result != null)
             {
-                var json = System.Text.Json.JsonSerializer.Serialize(finRes.Result);
-                Financials = System.Text.Json.JsonSerializer.Deserialize<CashflowReportResponse>(json,
-                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                var json = JsonSerializer.Serialize(finRes.Result);
+                Financials = JsonSerializer.Deserialize<CashflowReportResponse>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
             }
         }
     }

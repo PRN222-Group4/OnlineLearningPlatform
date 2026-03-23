@@ -131,8 +131,11 @@
                 <i class="fas fa-receipt text-zinc-500 text-sm"></i>
             </div>
             <h2 class="text-base font-semibold text-zinc-900">Recent Payments</h2>
+            <span id="liveBadge" class="hidden inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> LIVE
+            </span>
         </div>
-        <span class="text-xs text-zinc-400 font-medium">
+        <span class="text-xs text-zinc-400 font-medium" id="paymentCount">
             @(Model.RecentPayments?.Count ?? 0) records
         </span>
     </div>
@@ -149,7 +152,7 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Course</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Amount</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Dates</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Paid At</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100">
@@ -204,9 +207,8 @@
                                 }
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-[11px] text-zinc-500 leading-5">
-                                <div>Created: @p.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
-                                <div>Paid: @(p.PaidAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
-                                <div>Expired: @(p.ExpiredAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                                <div class="font-medium">@(p.PaidAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                                <div class="text-zinc-400">Order #@p.OrderCode.ToString()[^6..]</div>
                             </td>
                         </tr>
                     }
@@ -238,33 +240,97 @@
             })
             .catch(err => console.error("SignalR error:", err));
 
-        // Khi có course mới pending → cập nhật stat + toast
         connection.on("NewPendingCourse", (data) => {
             showToast(`📚 New course submitted: "${data.title}"`, 'amber');
             refreshStats();
         });
 
-        // Khi course được approve/reject → refresh stats
         connection.on("CourseStatusChanged", () => {
             refreshStats();
+        });
+
+        connection.on("WalletUpdated", (data) => {
+            showToast(`💰 New enrollment! ${data?.studentEmail ?? ''}`, 'emerald');
+            refreshStats();
+            if (data?.studentEmail) prependPaymentRow(data);
         });
 
         async function refreshStats() {
             try {
                 const resp = await fetch('/Admin/Overview?handler=StatsJson');
                 const data = await resp.json();
-
                 document.getElementById('statUsers').firstChild.textContent = data.totalUsers.toLocaleString('vi-VN');
                 document.getElementById('statCourses').firstChild.textContent = data.totalCourses.toLocaleString('vi-VN');
                 document.getElementById('statEnrollments').firstChild.textContent = data.totalEnrollments.toLocaleString('vi-VN');
-
-                // Revenue có span con nên cần set khác
-                const revEl = document.getElementById('statRevenue');
-                const span = revEl.querySelector('span');
-                revEl.firstChild.textContent = data.totalRevenue.toLocaleString('vi-VN');
+                document.getElementById('statRevenue').firstChild.textContent = data.totalRevenue.toLocaleString('vi-VN');
             } catch(e) {
                 console.error('Refresh stats failed:', e);
             }
+        }
+
+                function prependPaymentRow(data) {
+            // Nếu chưa có tbody (no payments state), reload để tạo table
+            const emptyState = document.querySelector('.px-6.py-12');
+            if (emptyState) { location.reload(); return; }
+
+            const tbody = document.querySelector('tbody');
+            if (!tbody) return;
+
+            const now = new Date();
+            const timeStr = now.toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' })
+                + ' ' + now.toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-zinc-50 transition-all duration-500 bg-emerald-50 border-l-4 border-emerald-400';
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500">
+                    <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> NEW
+                    </div>
+                    <div class="text-[11px] text-zinc-400">Just now</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                            <i class="fas fa-user text-indigo-400 text-[10px]"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-zinc-800">—</div>
+                            <div class="text-[11px] text-zinc-400">${data.studentEmail}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-700">${data.courseTitle ?? '—'}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-sm font-bold text-emerald-600">+${Number(data.amount).toLocaleString('vi-VN')} ₫</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                        <i class="fas fa-check text-[9px]"></i> Paid
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-[11px] text-zinc-500 leading-5">
+                    <div class="font-medium">${timeStr}</div>
+                    <div class="text-zinc-400">Just paid</div>
+                </td>`;
+
+            tbody.insertBefore(tr, tbody.firstChild);
+
+            // Xóa row cuối nếu quá 10
+            const rows = tbody.querySelectorAll('tr');
+            if (rows.length > 10) rows[rows.length - 1].remove();
+
+            // Update count
+            const countEl = document.getElementById('paymentCount');
+            if (countEl) countEl.textContent = `${rows.length} records`;
+
+            // Show live badge
+            document.getElementById('liveBadge')?.classList.remove('hidden');
+
+            // Fade out highlight sau 5s
+            setTimeout(() => {
+                tr.classList.remove('bg-emerald-50', 'border-l-4', 'border-emerald-400');
+            }, 5000);
         }
 
         function showToast(message, color) {

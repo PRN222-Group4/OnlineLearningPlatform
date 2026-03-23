@@ -249,6 +249,7 @@
     // Khi có payment → toast wallet updated
     connection.on("WalletUpdated", () => {
         showToast('💰 New enrollment! Check your wallet.', 'indigo');
+        setTimeout(() => location.reload(), 2000);
     });
 
     function showToast(message, color) {

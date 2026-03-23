@@ -14,6 +14,8 @@ using PayOS.Exceptions;
 using PayOS.Models.V2.PaymentRequests;
 using PayOS.Models.Webhooks;
 using System.Security;
+using Microsoft.AspNetCore.SignalR;
+
 
 namespace OnlineLearningPlatform.BusinessObject.Services
 {
@@ -22,12 +24,14 @@ namespace OnlineLearningPlatform.BusinessObject.Services
         private readonly IUnitOfWork _uow;
         private readonly IClaimService _service;
         private readonly AppSettings _appSettings;
+        private readonly IRealtimeNotifier _notifier;
 
-        public PaymentService(IUnitOfWork uow, IClaimService service, AppSettings appSettings)
+        public PaymentService(IUnitOfWork uow, IClaimService service, AppSettings appSettings, IRealtimeNotifier notifier)
         {
             _uow = uow;
             _service = service;
             _appSettings = appSettings;
+            _notifier = notifier;
         }
 
         public async Task<ApiResponse> GetSuccessfulPaymentRecordsAsync()
@@ -36,16 +40,27 @@ namespace OnlineLearningPlatform.BusinessObject.Services
             try
             {
                 var paymentList = await _uow.Payments.GetAllAsync(p => p.Status == 1 && p.PaidAt != null);
-                var result = paymentList.Select(p => new PaymentRecord
-                {
-                    PaymentId = p.PaymentId,
-                    OrderCode = p.OrderCode,
-                    PaidAt = p.PaidAt,
-                    Amount = p.Amount,
-                    Status = p.Status,
-                    CreatedAt = p.CreatedAt,
-                    ExpiredAt = p.ExpiredAt
+
+                // Lấy tất cả courseIds để lookup
+                var courseIds = paymentList.Where(p => p.CourseId.HasValue)
+                    .Select(p => p.CourseId!.Value).Distinct().ToList();
+                var courses = await _uow.Courses.GetAllAsync(c => courseIds.Contains(c.CourseId));
+
+                var result = paymentList.Select(p => {
+                    var course = courses.FirstOrDefault(c => c.CourseId == p.CourseId);
+                    return new PaymentRecord
+                    {
+                        PaymentId = p.PaymentId,
+                        OrderCode = p.OrderCode,
+                        PaidAt = p.PaidAt,
+                        Amount = p.Amount,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt,
+                        ExpiredAt = p.ExpiredAt,
+                        CourseTitle = course?.Title
+                    };
                 }).ToList();
+
                 return response.SetOk(result);
             }
             catch (Exception ex)
@@ -202,6 +217,7 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                     _uow.Payments.Update(payment);
 
                     await _uow.CommitAsync();
+                    
                     return;
                 }
 
@@ -279,6 +295,13 @@ namespace OnlineLearningPlatform.BusinessObject.Services
                 _uow.Payments.Update(payment);
 
                 await _uow.CommitAsync();
+                var studentUser = await _uow.Users.GetAsync(u => u.UserId == payment.UserId);
+                await _notifier.NotifyWalletUpdated(
+                    course.CreatedBy.ToString(),
+                    studentUser?.Email ?? "",
+                    course.Title,
+                    payment.Amount
+                );
             }
             catch
             {
@@ -364,6 +387,16 @@ namespace OnlineLearningPlatform.BusinessObject.Services
 
                 _uow.Payments.Update(payment);
                 await _uow.CommitAsync();
+                if (course != null)
+                {
+                    var studentUser2 = await _uow.Users.GetAsync(u => u.UserId == payment.UserId);
+                    await _notifier.NotifyWalletUpdated(
+                        course.CreatedBy.ToString(),
+                        studentUser2?.Email ?? "",
+                        course.Title,
+                        payment.Amount
+                    );
+                }
 
                 return response.SetOk(true);
             }
