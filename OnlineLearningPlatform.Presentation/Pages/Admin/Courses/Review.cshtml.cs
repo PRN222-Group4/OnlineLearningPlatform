@@ -51,8 +51,28 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
             return Page();
         }
 
+        // Hàm phụ trợ lấy ID ông thầy để bắn thông báo
+        private async Task<Guid?> GetInstructorIdAsync(Guid courseId)
+        {
+            var allResp = await _courseService.GetAllCourseForAdminAsync(-1);
+            if (allResp?.IsSuccess == true && allResp.Result is List<GetAllCourseForAdminResponse> allList)
+            {
+                return allList.FirstOrDefault(x => x.CourseId == courseId)?.CreatedBy;
+            }
+            return null;
+        }
+
         public async Task<IActionResult> OnPostApproveAsync(Guid courseId)
         {
+<<<<<<< HEAD
+            var instructorId = await GetInstructorIdAsync(courseId);
+
+            var request = new ApproveCourseRequest
+            {
+                CourseId = courseId,
+                Status = true
+            };
+=======
             // Lấy instructorId trước khi approve
             Guid? instructorId = null;
             var allResp = await _courseService.GetAllCourseForAdminAsync(-1);
@@ -60,11 +80,22 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
                 instructorId = allList.FirstOrDefault(x => x.CourseId == courseId)?.CreatedBy;
 
             var request = new ApproveCourseRequest { CourseId = courseId, Status = true };
+>>>>>>> main
             var result = await _courseService.ApproveCourseAsync(request);
 
             if (result.IsSuccess)
             {
                 TempData["Success"] = "Duyệt khóa học thành công";
+<<<<<<< HEAD
+                var payload = new { courseId = courseId, isApproved = true };
+
+                await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", payload);
+                if (instructorId != null)
+                {
+                    await _hubContext.Clients.Group($"wallet_{instructorId}").SendAsync("CourseStatusChanged", payload);
+                }
+                await _hubContext.Clients.All.SendAsync("PublicCourseListChanged");
+=======
 
                 var payload = new { courseId, isApproved = true };
                 await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", payload);
@@ -74,6 +105,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
                     Console.WriteLine($"=== Notify instructor wallet_{instructorId} - Approved ===");
                     await _hubContext.Clients.Group($"wallet_{instructorId}").SendAsync("CourseStatusChanged", payload);
                 }
+>>>>>>> main
             }
             else
             {
@@ -91,6 +123,16 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
                 return RedirectToPage(new { courseId });
             }
 
+<<<<<<< HEAD
+            var instructorId = await GetInstructorIdAsync(courseId);
+
+            var request = new ApproveCourseRequest
+            {
+                CourseId = courseId,
+                Status = false,
+                RejectReason = RejectReason
+            };
+=======
             // Lấy instructorId trước khi reject
             // THAY:
             Guid? instructorId = null;
@@ -99,11 +141,22 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
                 instructorId = allList.FirstOrDefault(x => x.CourseId == courseId)?.CreatedBy;
 
             var request = new ApproveCourseRequest { CourseId = courseId, Status = false, RejectReason = RejectReason };
+>>>>>>> main
             var result = await _courseService.ApproveCourseAsync(request);
 
             if (result.IsSuccess)
             {
                 TempData["Success"] = "Đã từ chối khóa học";
+<<<<<<< HEAD
+                var payload = new { courseId = courseId, isApproved = false };
+
+                await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", payload);
+                if (instructorId != null)
+                {
+                    await _hubContext.Clients.Group($"wallet_{instructorId}").SendAsync("CourseStatusChanged", payload);
+                }
+                await _hubContext.Clients.All.SendAsync("PublicCourseListChanged");
+=======
 
                 var payload = new { courseId, isApproved = false };
                 await _hubContext.Clients.Group("admins").SendAsync("CourseStatusChanged", payload);
@@ -113,6 +166,7 @@ namespace OnlineLearningPlatform.Presentation.Pages.Admin.Courses
                     Console.WriteLine($"=== Notify instructor wallet_{instructorId} - Rejected ===");
                     await _hubContext.Clients.Group($"wallet_{instructorId}").SendAsync("CourseStatusChanged", payload);
                 }
+>>>>>>> main
             }
             else
             {

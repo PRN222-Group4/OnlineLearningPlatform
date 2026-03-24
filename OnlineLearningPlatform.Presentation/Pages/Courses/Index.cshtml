@@ -168,3 +168,65 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/realtimeHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("PublicCourseListChanged", async () => {
+            showUpdateToast();
+
+            try {
+                const response = await fetch(window.location.href);
+                const htmlText = await response.text();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+
+                const newGrid = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
+                const currentGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
+                if (newGrid && currentGrid) {
+                    currentGrid.innerHTML = newGrid.innerHTML;
+                }
+
+                const newCounter = doc.querySelector('.text-sm.font-semibold.text-slate-700.hidden.sm\\:block');
+                const currentCounter = document.querySelector('.text-sm.font-semibold.text-slate-700.hidden.sm\\:block');
+                if (newCounter && currentCounter) {
+                    currentCounter.innerHTML = newCounter.innerHTML;
+                }
+
+                const newPagination = doc.querySelector('nav.flex.items-center.gap-1');
+                const currentPagination = document.querySelector('nav.flex.items-center.gap-1');
+                if (newPagination && currentPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                } else if (newPagination && !currentPagination) {
+                    location.reload();
+                }
+
+            } catch (error) {
+                console.error("SignalR Realtime DOM Update Error:", error);
+            }
+        });
+
+        connection.start()
+            .then(() => console.log("✅ SignalR Connected (Explore Courses - Realtime DOM)"))
+            .catch(err => console.error("SignalR error: ", err));
+
+        function showUpdateToast() {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 right-5 z-[200] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border text-sm font-bold bg-indigo-600 border-indigo-500 text-white transition-all transform translate-y-10 opacity-0';
+            document.body.appendChild(toast);
+
+            setTimeout(() => { toast.classList.remove('translate-y-10', 'opacity-0'); }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+}
